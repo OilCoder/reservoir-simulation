@@ -199,6 +199,24 @@ sgtitle(sprintf('MRST Geomechanical Simulation - Timestep %d', timestep_idx), ..
 set(gcf, 'Color', 'white');
 drawnow;
 
+% Substep 8.3 – Save figure to plots directory (optional) _______
+plots_dir = 'plots';
+if ~exist(plots_dir, 'dir')
+    mkdir(plots_dir);
+    fprintf('[INFO] Created plots directory\n');
+end
+
+% Save figure with timestep in filename
+figure_filename = sprintf('quicklook_t%03d.png', timestep_idx);
+figure_path = fullfile(plots_dir, figure_filename);
+
+try
+    print(gcf, figure_path, '-dpng', '-r150');
+    fprintf('[INFO] Saved quicklook plot: %s\n', figure_path);
+catch ME
+    fprintf('[WARN] Could not save plot: %s\n', ME.message);
+end
+
 %% ----
 %% Step 9 – Save figure (optional)
 %% ----

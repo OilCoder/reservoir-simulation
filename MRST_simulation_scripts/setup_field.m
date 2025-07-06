@@ -16,7 +16,7 @@ function [G, rock, fluid] = setup_field(config_file)
     %% ----
     
     if nargin < 1
-        config_file = '../config/reservoir_config_simple.yaml';
+        config_file = '../config/reservoir_config.yaml';
     end
     
     % Load configuration
@@ -68,7 +68,7 @@ function [G, rock, fluid] = setup_field(config_file)
     Y_vec = Y(:);
     
     % Scale spatial frequency by correlation length (convert ft to MRST units)
-    corr_length = config.permeability.correlation_length * ft;
+    corr_length = 1000 * ft;  % Use fixed correlation length for now
     freq_x = 2*pi*corr_length/(nx*dx);
     freq_y = 2*pi*corr_length/(ny*dy);
     spatial_trend = 0.5 * sin(freq_x*X_vec) .* cos(freq_y*Y_vec);
@@ -126,13 +126,10 @@ function [G, rock, fluid] = setup_field(config_file)
     region_mask_2 = (rock.regions == 2);
     region_mask_3 = (rock.regions == 3);
     
-    c_phi(region_mask_1) = config.rock.region1_compressibility;
-    if n_regions >= 2
-        c_phi(region_mask_2) = config.rock.region2_compressibility;
-    end
-    if n_regions >= 3
-        c_phi(region_mask_3) = config.rock.region3_compressibility;
-    end
+    % Use the same compressibility for all regions for now
+    c_phi(region_mask_1) = config.rock.compressibility;
+    c_phi(region_mask_2) = config.rock.compressibility;
+    c_phi(region_mask_3) = config.rock.compressibility;
 
     % Substep 5.2 – Set up pvMultR for pressure-dependent properties
     if ~isfield(rock, 'pvMultR')

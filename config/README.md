@@ -99,7 +99,7 @@ nano config/reservoir_config.yaml
 The main simulation script automatically uses the configuration:
 ```matlab
 % In Octave/MATLAB
-cd sim_scripts
+cd MRST_simulation_scripts
 main_phase1
 ```
 
@@ -107,7 +107,7 @@ main_phase1
 Verify your configuration changes work:
 ```matlab
 % In Octave/MATLAB
-cd sim_scripts
+cd MRST_simulation_scripts
 test_config
 ```
 

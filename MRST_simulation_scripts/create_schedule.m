@@ -22,7 +22,7 @@ function schedule = create_schedule(G, rock, fluid, config_file)
 %% ----
 
 if nargin < 4
-    config_file = '../config/reservoir_config_simple.yaml';
+    config_file = '../config/reservoir_config.yaml';
 end
 
 % Load configuration

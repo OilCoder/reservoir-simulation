@@ -61,7 +61,7 @@ def load_latest_snapshot():
     """Load the latest simulation snapshot"""
     
     # Path to simulation data
-    data_path = Path(__file__).parent.parent.parent / "sim_scripts" / "data" / "raw"
+    data_path = Path(__file__).parent.parent.parent / "MRST_simulation_scripts" / "data"
     
     # Find all snapshot files
     snapshot_files = sorted(glob.glob(str(data_path / "snap_*.mat")))
@@ -93,8 +93,12 @@ def reshape_to_grid(data, grid_shape=(20, 20)):
     return data.reshape(grid_shape)
 
 
-def plot_spatial_maps(snapshot, timestep, output_path="plots/maps.png"):
+def plot_spatial_maps(snapshot, timestep, output_path=None):
     """Create spatial distribution maps"""
+    
+    if output_path is None:
+        # Save in monitoring/plots/ directory
+        output_path = Path(__file__).parent.parent / "plots" / "maps.png"
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     fig.suptitle(f'🗺️ Spatial Distribution - Timestep {timestep}', 

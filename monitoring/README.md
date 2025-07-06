@@ -52,7 +52,7 @@ streamlit run streamlit/app.py --server.port 8501 --server.address 127.0.0.1
   - Effective stress evolution  
   - Porosity evolution
   - Permeability evolution (log scale)
-- **Data source:** All snapshots in `sim_scripts/data/raw/snap_*.mat`
+- **Data source:** All snapshots in `MRST_simulation_scripts/data/snap_*.mat`
 
 ### 🗺️ Spatial Maps (`plot_maps.py`)
 - **6 maps showing current 20x20 grid distribution:**
@@ -62,7 +62,7 @@ streamlit run streamlit/app.py --server.port 8501 --server.address 127.0.0.1
   - Permeability map (log scale)
   - Water saturation map (placeholder)
   - Rock regions map
-- **Data source:** Latest snapshot in `sim_scripts/data/raw/`
+- **Data source:** Latest snapshot in `MRST_simulation_scripts/data/`
 
 ### 🏭 Wells Plot (`plot_wells.py`)
 - **4 subplots with well performance (placeholder):**
@@ -80,7 +80,7 @@ pip install streamlit matplotlib numpy scipy
 ```
 
 ### Data Requirements
-- Simulation snapshots in `sim_scripts/data/raw/snap_*.mat`
+- Simulation snapshots in `MRST_simulation_scripts/data/snap_*.mat`
 - Each snapshot should contain: `pressure`, `sigma_eff`, `phi`, `k`, `rock_id`
 
 ## 🌐 Dashboard Features
@@ -134,7 +134,7 @@ pip install streamlit matplotlib numpy scipy
 ### No Plots Generated
 1. **Check data availability:**
    ```bash
-   ls -la ../sim_scripts/data/raw/snap_*.mat
+   ls -la ../MRST_simulation_scripts/data/snap_*.mat
    ```
 
 2. **Test individual scripts:**
@@ -151,7 +151,7 @@ pip install streamlit matplotlib numpy scipy
 
 ### Data Not Found
 - Ensure you've run the Phase 1 simulation to generate snapshots
-- Check that `sim_scripts/data/raw/snap_*.mat` files exist
+- Check that `MRST_simulation_scripts/data/snap_*.mat` files exist
 - Verify file permissions and paths
 
 ### Container/WSL Issues
@@ -199,7 +199,7 @@ streamlit run streamlit/app.py --server.port 8501 --server.address 0.0.0.0 --ser
 - Single launcher instead of multiple scripts
 
 ### ✅ Data-Driven
-- Reads directly from `sim_scripts/data/raw/`
+- Reads directly from `MRST_simulation_scripts/data/`
 - No complex data bridges or adapters
 - Simple Octave file parsing with custom parser
 

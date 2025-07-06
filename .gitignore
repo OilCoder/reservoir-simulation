@@ -31,7 +31,8 @@ wheels/
 MANIFEST
 
 # Simulation data and results
-sim_scripts/data/
+MRST_simulation_scripts/data/
+MRST_simulation_scripts/plots/
 results/logs/
 *.mat
 *.dat

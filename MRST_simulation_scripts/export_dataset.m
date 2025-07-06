@@ -1,6 +1,6 @@
 % export_dataset.m
 % Loop over simulation states, extract snapshots using extract_snapshot,
-% save to data/raw/ directory, and update metadata.
+% save to data/ directory, and update metadata.
 % Requires: MRST
 
 %% ----
@@ -17,7 +17,7 @@ for i = 1:length(required_vars)
 end
 
 % Substep 1.2 – Create output directories ______________________
-output_dir = 'data/raw';
+output_dir = 'data';
 if ~exist(output_dir, 'dir')
     mkdir(output_dir);
     fprintf('[INFO] Created output directory: %s\n', output_dir);
@@ -58,7 +58,7 @@ for i = 1:n_states
         end
         
         % Substep 2.4 – Save snapshot file _____________________________
-        % 💾 Write to data/raw/snap_i.mat
+        % 💾 Write to data/snap_i.mat
         try
             filename = sprintf('snap_%03d.mat', i);
             filepath = fullfile(output_dir, filename);

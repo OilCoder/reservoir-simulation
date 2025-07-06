@@ -225,10 +225,10 @@ def show_plots():
     # ----
     st.markdown("---")
     st.markdown("### 📊 Data Source")
-    st.info("Plots are generated from simulation snapshots in `sim_scripts/data/raw/`")
+    st.info("Plots are generated from simulation snapshots in `MRST_simulation_scripts/data/`")
     
     # Show data info
-    data_path = Path(__file__).parent.parent.parent / "sim_scripts" / "data" / "raw"
+    data_path = Path(__file__).parent.parent.parent / "MRST_simulation_scripts" / "data"
     if data_path.exists():
         snapshot_files = list(data_path.glob("snap_*.mat"))
         st.markdown(f"**Available snapshots:** {len(snapshot_files)}")

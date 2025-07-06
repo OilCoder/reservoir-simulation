@@ -2,7 +2,7 @@
 """
 Plot Evolution - Simple temporal evolution plots
 
-Reads simulation snapshots from sim_scripts/data/raw/ and generates
+Reads simulation snapshots from MRST_simulation_scripts/data/raw/ and generates
 evolution plots showing how reservoir properties change over time.
 """
 
@@ -58,10 +58,10 @@ def parse_octave_mat_file(filepath):
 
 
 def load_snapshots():
-    """Load all simulation snapshots from sim_scripts/data/raw/"""
+    """Load all simulation snapshots from MRST_simulation_scripts/data/raw/"""
     
     # Path to simulation data
-    data_path = Path(__file__).parent.parent.parent / "sim_scripts" / "data" / "raw"
+    data_path = Path(__file__).parent.parent.parent / "MRST_simulation_scripts" / "data"
     
     # Find all snapshot files
     snapshot_files = sorted(glob.glob(str(data_path / "snap_*.mat")))
@@ -163,8 +163,12 @@ def extract_evolution_data(snapshots, timesteps):
     return evolution_data
 
 
-def plot_evolution(evolution_data, output_path="plots/evolution.png"):
+def plot_evolution(evolution_data, output_path=None):
     """Create evolution plots"""
+    
+    if output_path is None:
+        # Save in monitoring/plots/ directory
+        output_path = Path(__file__).parent.parent / "plots" / "evolution.png"
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle('📊 Reservoir Evolution', fontsize=16, fontweight='bold')

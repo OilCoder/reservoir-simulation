@@ -11,7 +11,7 @@ import time
 
 def get_data_path():
     """Get path to simulation data directory"""
-    return Path(__file__).parent.parent.parent / "sim_scripts" / "data" / "raw"
+    return Path(__file__).parent.parent.parent / "MRST_simulation_scripts" / "data"
 
 
 def get_plot_path(plot_name):

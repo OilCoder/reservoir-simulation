@@ -9,10 +9,15 @@ since well data is not included in the simulation snapshots.
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+from pathlib import Path
 
 
-def create_placeholder_wells_plot(output_path="plots/wells.png"):
+def create_placeholder_wells_plot(output_path=None):
     """Create placeholder well performance plots"""
+    
+    if output_path is None:
+        # Save in monitoring/plots/ directory
+        output_path = Path(__file__).parent.parent / "plots" / "wells.png"
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle('🏭 Well Performance (Placeholder)', 

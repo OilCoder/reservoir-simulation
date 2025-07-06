@@ -20,7 +20,7 @@ fprintf('[INFO] Starting MRST simulation...\n');
 
 % Substep 1.2 – Initialize simulation state ___________________
 % ✅ Set initial pressure and saturation from config
-config_file = '../config/reservoir_config_simple.yaml';
+config_file = '../config/reservoir_config.yaml';
 config = util_read_config(config_file);
 
 p_init = config.initial_conditions.pressure * psia;  % Initial reservoir pressure

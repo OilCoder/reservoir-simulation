@@ -19,7 +19,7 @@ function fluid = define_fluid(config_file)
 %% ----
 
 if nargin < 1
-    config_file = '../config/reservoir_config_simple.yaml';
+    config_file = '../config/reservoir_config.yaml';
 end
 
 % Load configuration

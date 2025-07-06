@@ -95,11 +95,15 @@ rng(42);
 fprintf('[INFO] Random seed set to 42 for reproducibility\n');
 
 % Substep 1.6 – Ensure we're in the correct directory _________
-sim_scripts_dir = fullfile(fileparts(pwd), 'sim_scripts');
-if exist(sim_scripts_dir, 'dir') && ~strcmp(pwd, sim_scripts_dir)
-    cd(sim_scripts_dir);
-    fprintf('[INFO] Changed to sim_scripts directory\n');
+mrst_sim_dir = fullfile(fileparts(pwd), 'MRST_simulation_scripts');
+if exist(mrst_sim_dir, 'dir') && ~strcmp(pwd, mrst_sim_dir)
+    cd(mrst_sim_dir);
+    fprintf('[INFO] Changed to MRST_simulation_scripts directory\n');
 end
+
+% Substep 1.7 – Create required directories ___________________
+fprintf('[INFO] Setting up directory structure...\n');
+util_ensure_directories();
 
 %% ----
 %% Step 2 – Grid and rock setup
@@ -110,7 +114,7 @@ fprintf('\n--- Step 2: Grid and Rock Setup ---\n');
 tic;
 
 % Run setup_field.m script with configuration file
-config_file = '../config/reservoir_config_simple.yaml';
+config_file = '../config/reservoir_config.yaml';
 [G, rock, fluid_placeholder] = setup_field(config_file);
 
 % Verify grid and rock were created
@@ -201,7 +205,7 @@ fprintf('[INFO] Simulation completed in %.1f seconds\n', simulation_time);
 fprintf('\n--- Step 7: Dataset Export ---\n');
 tic;
 
-% Export snapshots to data/raw/
+% Export snapshots to data/
 export_dataset;
 
 export_time = toc;
@@ -224,6 +228,8 @@ catch
     graphics_available = false;
     fprintf('[WARN] Graphics toolkit not available, skipping visualization\n');
 end
+
+% Plots directory already created by util_ensure_directories
 
 if graphics_available
     % Plot initial and final states
@@ -268,13 +274,13 @@ for i = 1:length(required_vars)
 end
 
 % Check data directory exists
-if ~exist('data/raw', 'dir')
+if ~exist('data', 'dir')
     fprintf('[ERROR] Data directory not created\n');
     all_vars_exist = false;
 end
 
 % Check snapshot files exist
-snap_files = dir('data/raw/snap_*.mat');
+snap_files = dir('data/snap_*.mat');
 if isempty(snap_files)
     fprintf('[ERROR] No snapshot files found\n');
     all_vars_exist = false;
@@ -326,7 +332,7 @@ end
 % Substep 10.4 – Next steps instructions ______________________
 fprintf('\nNext steps:\n');
 fprintf('  1. Inspect plots in plots/ directory\n');
-fprintf('  2. Examine snapshot data in data/raw/\n');
+fprintf('  2. Examine snapshot data in data/\n');
 fprintf('  3. Review metadata.yaml for dataset details\n');
 fprintf('  4. Proceed to Phase 2 (ML model development)\n');
 
