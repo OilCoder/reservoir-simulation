@@ -1,0 +1,178 @@
+# Reservoir Field Configuration
+# This file contains all reservoir properties and simulation parameters
+# Modify these values to change reservoir conditions without editing code
+
+# Grid Configuration
+grid:
+  nx: 20                    # Number of cells in X direction
+  ny: 20                    # Number of cells in Y direction
+  nz: 1                     # Number of cells in Z direction (2D simulation)
+  dx: 164.0                 # Cell size in X direction [ft]
+  dy: 164.0                 # Cell size in Y direction [ft]
+  dz: 33.0                  # Cell thickness [ft]
+
+# Porosity Configuration
+porosity:
+  base_value: 0.20          # Base porosity [-]
+  variation_amplitude: 0.10  # Amplitude of spatial variation [-]
+  min_value: 0.05           # Minimum allowed porosity [-]
+  max_value: 0.35           # Maximum allowed porosity [-]
+  correlation_length: 656.0  # Spatial correlation length [ft]
+
+# Permeability Configuration
+permeability:
+  base_value: 100.0         # Base permeability [mD]
+  variation_amplitude: 80.0  # Amplitude of spatial variation [mD]
+  min_value: 10.0           # Minimum allowed permeability [mD]
+  max_value: 500.0          # Maximum allowed permeability [mD]
+  correlation_length: 984.0  # Spatial correlation length [ft]
+  porosity_correlation: 0.8  # Correlation with porosity [-]
+
+# Rock Properties
+rock:
+  reference_pressure: 2900.0  # Reference pressure [psi]
+  compressibility: 3.1e-6    # Rock compressibility [1/psi]
+  
+  # Rock regions definition
+  regions:
+    - id: 1
+      name: "Sandstone"
+      lithology: "sandstone"
+      porosity_multiplier: 1.0
+      permeability_multiplier: 1.0
+      compressibility: 3.1e-6
+      
+    - id: 2
+      name: "Shale"
+      lithology: "shale"
+      porosity_multiplier: 0.3
+      permeability_multiplier: 0.01
+      compressibility: 1.4e-6
+      
+    - id: 3
+      name: "Limestone"
+      lithology: "limestone"
+      porosity_multiplier: 0.7
+      permeability_multiplier: 0.5
+      compressibility: 2.1e-6
+
+# Fluid Properties
+fluid:
+  oil:
+    density: 850.0          # Oil density [kg/m³]
+    viscosity: 2.0          # Oil viscosity [cP]
+    formation_volume_factor: 1.2  # Oil FVF [-]
+    
+  water:
+    density: 1000.0         # Water density [kg/m³]
+    viscosity: 0.5          # Water viscosity [cP]
+    formation_volume_factor: 1.0   # Water FVF [-]
+    
+  # Relative permeability curves
+  relative_permeability:
+    oil:
+      residual_saturation: 0.20    # Sor [-]
+      endpoint_krmax: 0.90         # Maximum kro [-]
+      corey_exponent: 2.0          # Corey exponent [-]
+      
+    water:
+      connate_saturation: 0.15     # Swc [-]
+      endpoint_krmax: 0.85         # Maximum krw [-]
+      corey_exponent: 2.5          # Corey exponent [-]
+
+# Initial Conditions
+initial_conditions:
+  pressure: 2900.0          # Initial reservoir pressure [psi]
+  water_saturation: 0.20    # Initial water saturation [-]
+  temperature: 176.0        # Reservoir temperature [°F]
+
+# Boundary Conditions
+boundary_conditions:
+  type: "no_flow"           # Boundary type: "no_flow", "constant_pressure", "aquifer"
+  pressure: 2900.0          # Boundary pressure [psi] (if applicable)
+
+# Wells Configuration
+wells:
+  producer:
+    name: "PROD1"
+    location: [15, 10]      # Grid coordinates [i, j]
+    type: "producer"
+    control_type: "bhp"     # "bhp" or "rate"
+    target_bhp: 2175.0      # Target BHP [psi]
+    target_rate: 314.0      # Target rate [bbl/day] (if rate control)
+    radius: 0.33            # Wellbore radius [ft]
+    
+  injector:
+    name: "INJ1"
+    location: [5, 10]       # Grid coordinates [i, j]
+    type: "injector"
+    control_type: "rate"    # "bhp" or "rate"
+    target_bhp: 3625.0      # Target BHP [psi]
+    target_rate: 251.0      # Target injection rate [bbl/day]
+    radius: 0.33            # Wellbore radius [ft]
+    fluid_type: "water"     # Injected fluid type
+
+# Simulation Parameters
+simulation:
+  total_time: 365.0         # Total simulation time [days]
+  num_timesteps: 50         # Number of timesteps
+  timestep_type: "linear"   # "linear", "logarithmic", "custom"
+  
+  # Solver settings
+  solver:
+    tolerance: 1e-6         # Convergence tolerance
+    max_iterations: 50      # Maximum iterations per timestep
+    linear_solver: "direct" # "direct", "iterative"
+
+# Geomechanical Properties
+geomechanics:
+  enabled: true             # Enable geomechanical coupling
+  
+  # Stress parameters
+  stress:
+    overburden_gradient: 1.0    # Overburden gradient [psi/ft]
+    pore_pressure_gradient: 0.433  # Pore pressure gradient [psi/ft]
+    min_horizontal_stress_ratio: 0.7  # K0 ratio [-]
+    max_horizontal_stress_ratio: 1.2  # K1 ratio [-]
+    
+  # Mechanical properties
+  mechanical:
+    young_modulus: 1450000.0  # Young's modulus [psi]
+    poisson_ratio: 0.25       # Poisson's ratio [-]
+    biot_coefficient: 0.8     # Biot coefficient [-]
+
+# Output Configuration
+output:
+  base_directory: "data/raw"  # Base output directory
+  filename_prefix: "snap"     # Snapshot filename prefix
+  save_format: "matlab"       # "matlab", "hdf5", "csv"
+  
+  # Variables to extract
+  variables:
+    - "effective_stress"      # σ_eff
+    - "porosity"             # φ
+    - "permeability"         # k
+    - "rock_id"              # Rock region ID
+    - "pressure"             # Pressure
+    - "water_saturation"     # Sw
+    
+  # Snapshot grid size
+  snapshot_grid:
+    nx: 20                   # Snapshot grid cells in X
+    ny: 20                   # Snapshot grid cells in Y
+
+# Metadata
+metadata:
+  project_name: "MRST Geomechanical Simulation"
+  description: "2D reservoir simulation with geomechanical coupling"
+  author: "Simulation Team"
+  version: "1.0"
+  created_date: "2025-01-15"
+  units:
+    length: "feet"
+    pressure: "psi"
+    permeability: "millidarcy"
+    time: "days"
+    temperature: "fahrenheit"
+    volume: "barrels"
+    rate: "barrels_per_day" 

@@ -1,5 +1,7 @@
 # Generated plots and images
 monitoring/plots/
+results/plots/
+results/snapshots/
 *.png
 *.jpg
 *.jpeg
@@ -28,10 +30,18 @@ wheels/
 *.egg
 MANIFEST
 
-# Simulation data
+# Simulation data and results
 sim_scripts/data/
+results/logs/
 *.mat
 *.dat
+octave-workspace
+
+# MRST (if it's a submodule or external)
+mrst/
+
+# Debug files (never commit)
+debug/
 
 # IDE and editor files
 .vscode/
@@ -39,6 +49,8 @@ sim_scripts/data/
 *.swp
 *.swo
 *~
+.cursor/
+.cursorignore
 
 # OS generated files
 .DS_Store
@@ -51,7 +63,12 @@ Thumbs.db
 
 # Logs
 *.log
+*.asv
+*.m~
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# DevContainer (optional - you might want to keep this)
+.devcontainer/ 
