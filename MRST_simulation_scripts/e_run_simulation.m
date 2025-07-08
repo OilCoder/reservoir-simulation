@@ -1,4 +1,4 @@
-% run_simulation.m
+% e_run_simulation.m
 % Execute main MRST simulation using simulateScheduleAD and save states
 % in memory. Main orchestrator for flow-compaction simulation.
 % Requires: MRST
@@ -23,7 +23,7 @@ fprintf('[INFO] Starting MRST simulation...\n');
 config_file = '../config/reservoir_config.yaml';
 config = util_read_config(config_file);
 
-p_init = config.initial_conditions.pressure * psia;  % Initial reservoir pressure
+p_init = config.initial_conditions.pressure * 6894.76;  % psi to Pa
 s_init = [config.initial_conditions.water_saturation, 1-config.initial_conditions.water_saturation];   % Initial saturations [water, oil]
 
 state0 = initResSol(G, p_init, s_init);
@@ -51,7 +51,7 @@ pressure = repmat(p_init, G.cells.num, 1);
 state0 = struct('pressure', pressure, 's', [config.initial_conditions.water_saturation*ones(G.cells.num,1), ...
                                            (1-config.initial_conditions.water_saturation)*ones(G.cells.num,1)]);
 
-fprintf('[INFO] Initial state configured with pressure = %.1f psi\n', p_init/psia);
+fprintf('[INFO] Initial state configured with pressure = %.1f psi\n', config.initial_conditions.pressure);
 
 %% ----
 %% Step 3 – Simulation execution
@@ -142,7 +142,7 @@ assert(n_timesteps == length(schedule.step.val), 'Timestep count mismatch');
 % Substep 4.2 – Check for simulation issues ___________________
 % ✅ Verify pressure and saturation bounds
 for i = 1:n_timesteps
-    if any(states{i}.pressure < 0) || any(states{i}.pressure > 10000*psia)
+    if any(states{i}.pressure < 0) || any(states{i}.pressure > 10000*6894.76)  % 10000 psi in Pa
         warning('[WARN] Pressure out of bounds at timestep %d', i);
     end
     if any(states{i}.s(:,1) < 0) || any(states{i}.s(:,1) > 1)
@@ -185,7 +185,7 @@ fprintf('[INFO] Saving %d states and %d well solutions in workspace\n', ...
 % Substep 5.3 – Calculate final pressure change ________________
 p_final = mean(states{end}.pressure);
 p_initial = mean(states{1}.pressure);
-dp_avg = (p_final - p_initial) / psia;
+dp_avg = (p_final - p_initial) / 6894.76;  % Convert Pa to psi
 
 fprintf('[INFO] Average pressure change: %.1f psi\n', dp_avg);
 

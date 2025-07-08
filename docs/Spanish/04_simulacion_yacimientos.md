@@ -54,8 +54,7 @@ flowchart TD
 5. Configuración de schedule de simulación
 6. Ejecución de simulación
 7. Exportación de dataset
-8. Visualización (opcional)
-9. Validación final
+8. Validación final
 
 #### 2. `setup_field.m` - Configuración de Campo
 **Propósito**: Crear grid 2D y asignar propiedades heterogéneas
@@ -139,15 +138,6 @@ sigma_eff = sigma_total - p_pore
 - `data/raw/snap_001.mat` a `snap_050.mat`
 - `data/raw/metadata.mat`
 - `data/raw/metadata.yaml`
-
-#### 9. `plot_quicklook.m` - Visualización Rápida
-**Propósito**: QA/QC de resultados de simulación
-**Plots**:
-- Mapas de esfuerzo efectivo
-- Distribución de porosidad
-- Campo de permeabilidad
-- Regiones de roca
-- Evolución temporal de presión
 
 ## Configuración YAML
 

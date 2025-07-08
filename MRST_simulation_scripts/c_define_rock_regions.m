@@ -1,5 +1,5 @@
-function rock = define_rock_regions(rock)
-% define_rock_regions - Generate rock.regions vector and assign lithology parameters
+function rock = c_define_rock_regions(rock)
+% c_define_rock_regions - Generate rock.regions vector and assign lithology parameters
 %
 % Assigns geomechanical parameters (c_φ, n, k₀) by lithology to facilitate
 % scaling to multiple rock types without rewriting setup_field.m

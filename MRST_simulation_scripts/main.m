@@ -1,5 +1,6 @@
-% main_phase1.m
-% Complete Phase 1 workflow orchestrator for MRST geomechanical simulation.
+% main.m
+% Complete workflow orchestrator for MRST geomechanical simulation.clc
+
 % Calls all functions in correct order for reproducible simulation execution.
 % Requires: MRST
 
@@ -115,7 +116,7 @@ tic;
 
 % Run setup_field.m script with configuration file
 config_file = '../config/reservoir_config.yaml';
-[G, rock, fluid_placeholder] = setup_field(config_file);
+[G, rock, fluid_placeholder] = a_setup_field(config_file);
 
 % Verify grid and rock were created
 assert(exist('G', 'var') && isstruct(G), 'Grid G not created');
@@ -133,7 +134,7 @@ fprintf('\n--- Step 3: Fluid Properties ---\n');
 tic;
 
 % Create fluid structure with configuration
-fluid = define_fluid(config_file);
+fluid = b_define_fluid(config_file);
 
 % Verify fluid was created
 assert(exist('fluid', 'var') && isstruct(fluid), 'Fluid structure not created');
@@ -150,7 +151,7 @@ fprintf('\n--- Step 4: Rock Regions ---\n');
 tic;
 
 % Update rock structure with regions
-rock = define_rock_regions(rock);
+rock = c_define_rock_regions(rock);
 
 % Verify rock regions were created
 assert(isfield(rock, 'regions'), 'Rock regions not defined');
@@ -168,7 +169,7 @@ fprintf('\n--- Step 5: Schedule Creation ---\n');
 tic;
 
 % Create schedule with wells and timesteps
-schedule = create_schedule(G, rock, fluid, config_file);
+schedule = d_create_schedule(G, rock, fluid, config_file);
 
 % Verify schedule was created
 assert(exist('schedule', 'var') && isstruct(schedule), 'Schedule not created');
@@ -187,7 +188,7 @@ fprintf('\n--- Step 6: Simulation Execution ---\n');
 tic;
 
 % Execute simulation
-run_simulation;
+e_run_simulation;
 
 % Verify simulation results
 assert(exist('states', 'var') && iscell(states), 'Simulation states not created');
@@ -198,68 +199,29 @@ simulation_time = toc;
 fprintf('[INFO] Simulation completed in %.1f seconds\n', simulation_time);
 
 %% ----
-%% Step 7 – Dataset export
+%% Step 7 – Dataset export (OPTIMIZED)
 %% ----
 
-% Substep 7.1 – Export simulation results ____________________
-fprintf('\n--- Step 7: Dataset Export ---\n');
+% Substep 7.1 – Export simulation results using optimized system
+fprintf('\n--- Step 7: Optimized Dataset Export ---\n');
 tic;
 
-% Export snapshots to data/
-export_dataset;
+% Export snapshots using new optimized system
+f_export_dataset;
 
 export_time = toc;
-fprintf('[INFO] Dataset export completed in %.1f seconds\n', export_time);
+fprintf('[INFO] Optimized dataset export completed in %.1f seconds\n', export_time);
 
 %% ----
-%% Step 8 – Visualization (optional)
+%% Step 8 – Final summary and validation
 %% ----
 
-% Substep 8.1 – Create quicklook plots ________________________
-fprintf('\n--- Step 8: Visualization ---\n');
-tic;
-
-% Check if graphics toolkit is available
-try
-    figure();
-    close();
-    graphics_available = true;
-catch
-    graphics_available = false;
-    fprintf('[WARN] Graphics toolkit not available, skipping visualization\n');
-end
-
-% Plots directory already created by util_ensure_directories
-
-if graphics_available
-    % Plot initial and final states
-    plot_quicklook(G, rock, states, 1);      % Initial state
-    plot_quicklook(G, rock, states, length(states));  % Final state
-
-    % Plot intermediate state if available
-    if length(states) > 10
-        mid_idx = round(length(states) / 2);
-        plot_quicklook(G, rock, states, mid_idx);
-    end
-    
-    fprintf('[INFO] Visualization plots created\n');
-else
-    fprintf('[INFO] Visualization skipped (no graphics available)\n');
-end
-
-plot_time = toc;
-fprintf('[INFO] Visualization completed in %.1f seconds\n', plot_time);
-
-%% ----
-%% Step 9 – Final summary and validation
-%% ----
-
-% Substep 9.1 – Calculate total workflow time __________________
+% Substep 8.1 – Calculate total workflow time __________________
 total_time = setup_time + fluid_time + regions_time + schedule_time + ...
-            simulation_time + export_time + plot_time;
+            simulation_time + export_time;
 
-% Substep 9.2 – Validate complete workflow ____________________
-fprintf('\n--- Step 9: Final Validation ---\n');
+% Substep 8.2 – Validate complete workflow ____________________
+fprintf('\n--- Step 8: Final Validation ---\n');
 
 % Check all required variables exist
 required_vars = {'G', 'rock', 'fluid', 'schedule', 'states', 'wellSols'};
@@ -273,30 +235,44 @@ for i = 1:length(required_vars)
     end
 end
 
-% Check data directory exists
-if ~exist('data', 'dir')
+% Check optimized data directory structure exists
+data_dir = '../data';
+if ~exist(data_dir, 'dir')
     fprintf('[ERROR] Data directory not created\n');
     all_vars_exist = false;
-end
-
-% Check snapshot files exist
-snap_files = dir('data/snap_*.mat');
-if isempty(snap_files)
-    fprintf('[ERROR] No snapshot files found\n');
-    all_vars_exist = false;
-end
-
-% Check plots directory exists
-if ~exist('plots', 'dir')
-    fprintf('[ERROR] Plots directory not created\n');
-    all_vars_exist = false;
+else
+    % Check for optimized data structure files
+    required_files = {
+        'initial/initial_conditions.mat',
+        'static/static_data.mat', 
+        'temporal/time_data.mat',
+        'dynamic/fields/field_arrays.mat',
+        'dynamic/wells/well_data.mat',
+        'metadata/metadata.mat'
+    };
+    
+    missing_files = 0;
+    for i = 1:length(required_files)
+        file_path = fullfile(data_dir, required_files{i});
+        if ~exist(file_path, 'file')
+            fprintf('[ERROR] Required file missing: %s\n', required_files{i});
+            missing_files = missing_files + 1;
+        end
+    end
+    
+    if missing_files == 0
+        fprintf('[INFO] All optimized data files created successfully\n');
+    else
+        fprintf('[ERROR] %d required data files missing\n', missing_files);
+        all_vars_exist = false;
+    end
 end
 
 %% ----
-%% Step 10 – Completion report
+%% Step 9 – Completion report
 %% ----
 
-% Substep 10.1 – Generate completion report ___________________
+% Substep 9.1 – Generate completion report ___________________
 fprintf('\n=== PHASE 1 COMPLETION REPORT ===\n');
 fprintf('Workflow finished at: %s\n', datestr(now));
 fprintf('Total execution time: %.1f seconds (%.1f minutes)\n', total_time, total_time/60);
@@ -307,19 +283,26 @@ fprintf('  Rock regions: %.1f s (%.1f%%)\n', regions_time, 100*regions_time/tota
 fprintf('  Schedule creation: %.1f s (%.1f%%)\n', schedule_time, 100*schedule_time/total_time);
 fprintf('  Simulation: %.1f s (%.1f%%)\n', simulation_time, 100*simulation_time/total_time);
 fprintf('  Data export: %.1f s (%.1f%%)\n', export_time, 100*export_time/total_time);
-fprintf('  Visualization: %.1f s (%.1f%%)\n', plot_time, 100*plot_time/total_time);
 
-% Substep 10.2 – Results summary ______________________________
+% Substep 9.2 – Results summary ______________________________
 fprintf('\nResults summary:\n');
 fprintf('  Grid cells: %d (20x20)\n', G.cells.num);
 fprintf('  Timesteps: %d\n', length(states));
-fprintf('  Simulation time: %.1f days\n', sum(schedule.step.val)/day);
+fprintf('  Simulation time: %.1f days\n', sum(schedule.step.val)/86400);  % Convert seconds to days
 fprintf('  Wells: %d\n', length(schedule.control(1).W));
 fprintf('  Rock regions: %d\n', length(unique(rock.regions)));
-fprintf('  Snapshot files: %d\n', length(snap_files));
-fprintf('  Total data size: %.1f MB\n', sum([snap_files.bytes])/(1024^2));
 
-% Substep 10.3 – Success/failure status _______________________
+% Calculate total data size from optimized structure
+total_size = 0;
+if exist(data_dir, 'dir')
+    data_files = dir(fullfile(data_dir, '**/*.mat'));
+    for i = 1:length(data_files)
+        total_size = total_size + data_files(i).bytes;
+    end
+end
+fprintf('  Total data size: %.1f MB\n', total_size/(1024^2));
+
+% Substep 9.3 – Success/failure status _______________________
 if all_vars_exist
     fprintf('\n✅ PHASE 1 COMPLETED SUCCESSFULLY!\n');
     fprintf('All required outputs generated and validated.\n');
@@ -329,14 +312,14 @@ else
     fprintf('Some required outputs missing. Check error messages above.\n');
 end
 
-% Substep 10.4 – Next steps instructions ______________________
+% Substep 9.4 – Next steps instructions ______________________
 fprintf('\nNext steps:\n');
-fprintf('  1. Inspect plots in plots/ directory\n');
-fprintf('  2. Examine snapshot data in data/\n');
-fprintf('  3. Review metadata.yaml for dataset details\n');
+fprintf('  1. Examine snapshot data in ../data/\n');
+fprintf('  2. Review metadata.yaml for dataset details\n');
+fprintf('  3. Use monitoring/plot_scripts/ for visualization\n');
 fprintf('  4. Proceed to Phase 2 (ML model development)\n');
 
-% Substep 10.5 – Workspace cleanup (optional) __________________
+% Substep 9.5 – Workspace cleanup (optional) __________________
 fprintf('\nWorkspace variables available:\n');
 fprintf('  G, rock, fluid, schedule, states, wellSols\n');
 fprintf('  Use "clear all" to clean workspace if needed\n');

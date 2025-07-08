@@ -18,6 +18,7 @@ porosity:
   min_value: 0.05           # Minimum allowed porosity [-]
   max_value: 0.35           # Maximum allowed porosity [-]
   correlation_length: 656.0  # Spatial correlation length [ft]
+  random_amplitude_factor: 0.5  # Factor for random variation (currently hardcoded)
 
 # Permeability Configuration
 permeability:
@@ -32,6 +33,28 @@ permeability:
 rock:
   reference_pressure: 2900.0  # Reference pressure [psi]
   compressibility: 3.1e-6    # Rock compressibility [1/psi]
+  n_regions: 3               # Number of rock regions
+  
+  # Rock region thresholds (currently hardcoded in c_define_rock_regions.m)
+  porosity_threshold_low: 0.18   # Tight rock threshold [-]
+  porosity_threshold_high: 0.22  # Loose rock threshold [-]
+  
+  # Compaction coefficients by region (currently hardcoded)
+  compaction_coefficients:
+    region_1: 1.0e-5         # Tight rock compaction [1/psi]
+    region_2: 3.0e-5         # Medium rock compaction [1/psi]
+    region_3: 5.0e-5         # Loose rock compaction [1/psi]
+  
+  # Permeability-porosity exponents by region
+  permeability_exponents:
+    region_1: 8              # Tight rock k-phi exponent [-]
+    region_2: 6              # Medium rock k-phi exponent [-]
+    region_3: 4              # Loose rock k-phi exponent [-]
+  
+  # Physical bounds for porosity and permeability
+  porosity_bounds:
+    min: 0.01                # Minimum porosity [-]
+    max: 0.50                # Maximum porosity [-]
   
   # Rock regions definition
   regions:
@@ -56,8 +79,19 @@ rock:
       permeability_multiplier: 0.5
       compressibility: 2.1e-6
 
-# Fluid Properties
+# Fluid Properties (structure expected by simulation scripts)
 fluid:
+  # Direct parameters for simulation scripts
+  oil_density: 850.0        # Oil density [kg/m³]
+  water_density: 1000.0     # Water density [kg/m³]
+  oil_viscosity: 2.0        # Oil viscosity [cP]
+  water_viscosity: 0.5      # Water viscosity [cP]
+  
+  # Saturation endpoints (currently hardcoded in b_define_fluid.m)
+  connate_water_saturation: 0.15    # Swcon [-]
+  residual_oil_saturation: 0.20     # Sores [-]
+  
+  # Detailed fluid properties
   oil:
     density: 850.0          # Oil density [kg/m³]
     viscosity: 2.0          # Oil viscosity [cP]
@@ -91,8 +125,17 @@ boundary_conditions:
   type: "no_flow"           # Boundary type: "no_flow", "constant_pressure", "aquifer"
   pressure: 2900.0          # Boundary pressure [psi] (if applicable)
 
-# Wells Configuration
+# Wells Configuration (structure expected by simulation scripts)
 wells:
+  # Direct parameters for simulation scripts
+  producer_i: 15            # Producer grid location i-index
+  producer_j: 10            # Producer grid location j-index
+  producer_bhp: 2175.0      # Producer BHP [psi]
+  injector_i: 5             # Injector grid location i-index
+  injector_j: 10            # Injector grid location j-index
+  injector_rate: 251.0      # Injector rate [bbl/day]
+  
+  # Detailed well configuration
   producer:
     name: "PROD1"
     location: [15, 10]      # Grid coordinates [i, j]
@@ -117,23 +160,30 @@ simulation:
   total_time: 365.0         # Total simulation time [days]
   num_timesteps: 50         # Number of timesteps
   timestep_type: "linear"   # "linear", "logarithmic", "custom"
+  timestep_multiplier: 1.1  # Multiplier for increasing timesteps
   
-  # Solver settings
+  # Random seed for reproducibility
+  random_seed: 42           # Random seed for reproducible results
+  
+  # Solver settings (currently hardcoded in e_run_simulation.m)
   solver:
-    tolerance: 1e-6         # Convergence tolerance
-    max_iterations: 50      # Maximum iterations per timestep
-    linear_solver: "direct" # "direct", "iterative"
+    tolerance: 1.0e-6         # Convergence tolerance
+    max_iterations: 25        # Maximum iterations per timestep
+    linear_solver: "direct"   # "direct", "iterative"
+    pressure_drop_factor: 0.9 # Well pressure drop factor [-]
 
 # Geomechanical Properties
 geomechanics:
   enabled: true             # Enable geomechanical coupling
   
-  # Stress parameters
+  # Stress parameters (currently hardcoded in extract_snapshot.m)
   stress:
-    overburden_gradient: 1.0    # Overburden gradient [psi/ft]
+    surface_stress: 2000.0       # Surface total stress [psi]
+    overburden_gradient: 1.0     # Overburden gradient [psi/ft]
     pore_pressure_gradient: 0.433  # Pore pressure gradient [psi/ft]
     min_horizontal_stress_ratio: 0.7  # K0 ratio [-]
     max_horizontal_stress_ratio: 1.2  # K1 ratio [-]
+    min_effective_stress: 100.0  # Minimum effective stress [psi]
     
   # Mechanical properties
   mechanical:
@@ -175,4 +225,14 @@ metadata:
     time: "days"
     temperature: "fahrenheit"
     volume: "barrels"
-    rate: "barrels_per_day" 
+    rate: "barrels_per_day"
+    
+  # Unit conversion factors (currently hardcoded in scripts)
+  conversion_factors:
+    ft_to_m: 0.3048               # Feet to meters
+    psi_to_pa: 6894.76            # PSI to Pascals
+    md_to_m2: 9.869233e-16        # Millidarcy to m²
+    bbl_per_day_to_m3_per_s: 1.589873e-7  # bbl/day to m³/s
+    cp_to_pa_s: 1.0e-3            # Centipoise to Pa·s
+    days_to_seconds: 86400        # Days to seconds
+    m_to_ft: 3.28084              # Meters to feet 

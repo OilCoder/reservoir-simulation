@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 MRST Monitoring System - Launcher único
-Genera plots y lanza dashboard automáticamente
+Genera plots individuales organizados por categorías y lanza dashboard
 """
 
 import subprocess
@@ -16,34 +16,59 @@ def kill_existing_streamlit():
     try:
         subprocess.run(["pkill", "-f", "streamlit"],
                        capture_output=True, text=True)
-        print("🧹 Limpiando procesos anteriores...")
+        print("🧹 Cleaning previous processes...")
         time.sleep(1)
     except Exception as e:
-        print(f"⚠️  Error limpiando procesos: {e}")
+        print(f"⚠️  Error cleaning processes: {e}")
 
 
 def generate_plots():
-    """Generate all monitoring plots"""
-    print("🎨 Generando plots...")
+    """Generate all individual monitoring plots by category"""
+    print("🎨 Generating individual plots by category...")
     
     script_dir = Path(__file__).parent
-    plot_scripts = ["plot_evolution.py", "plot_maps.py", "plot_wells.py"]
     
-    for script in plot_scripts:
+    # Category-based plot scripts (A-H) - Only use these to avoid duplicates
+    category_scripts = [
+        # Category A: Fluid & Rock Properties
+        "plot_category_a_fluid_rock_individual.py",
+        
+        # Category B: Initial Conditions  
+        "plot_category_b_initial_conditions.py",
+        
+        # Category C: Geometry & Configuration
+        "plot_category_c_geometry_individual.py",
+        
+        # Category D: Operations & Scheduling
+        "plot_category_d_operations_individual.py",
+        
+        # Category E: Global Evolution
+        "plot_category_e_global_evolution.py",
+        
+        # Category G: Spatial Maps with Well Locations & Animations
+        "plot_category_g_maps_animated.py",
+        
+        # Category H: Multiphysics Analysis
+        "plot_category_h_multiphysics.py"
+    ]
+    
+    all_scripts = category_scripts
+    
+    for script in all_scripts:
         script_path = script_dir / "plot_scripts" / script
         if script_path.exists():
-            print(f"  📊 Ejecutando {script}...")
+            print(f"  📊 Executing {script}...")
             try:
                 result = subprocess.run([sys.executable, str(script_path)],
                                         capture_output=True, text=True)
                 if result.returncode == 0:
-                    print(f"  ✅ {script} completado")
+                    print(f"  ✅ {script} completed")
                 else:
-                    print(f"  ❌ Error en {script}: {result.stderr}")
+                    print(f"  ❌ Error in {script}: {result.stderr}")
             except Exception as e:
-                print(f"  ❌ Error ejecutando {script}: {e}")
+                print(f"  ❌ Error executing {script}: {e}")
         else:
-            print(f"  ⚠️  Script no encontrado: {script_path}")
+            print(f"  ⚠️  Script not found: {script_path}")
 
 
 def launch_dashboard():
@@ -52,15 +77,18 @@ def launch_dashboard():
     app_path = script_dir / "streamlit" / "app.py"
     
     if not app_path.exists():
-        print(f"❌ App no encontrada: {app_path}")
+        print(f"❌ App not found: {app_path}")
         return
     
-    print("\n🚀 Iniciando dashboard...")
+    print("\n🚀 Starting dashboard...")
     print("=" * 60)
-    print("🌐 DASHBOARD MRST MONITORING")
+    print("🌐 MRST MONITORING DASHBOARD")
     print("=" * 60)
-    print("📋 Plots generados: ✅ COMPLETADO")
-    print("🚀 Iniciando Streamlit en segundo plano...")
+    print("📋 Individual plots generated: ✅ COMPLETED")
+    print("🎯 Categories A-H organized by scientific questions")
+    print("🗺️  Spatial maps include well locations")
+    print("🎬 Animated GIFs for time-dependent maps")
+    print("🚀 Starting Streamlit in background...")
     
     try:
         # Launch Streamlit in background
@@ -76,58 +104,71 @@ def launch_dashboard():
         
         # Check if process is still running
         if process.poll() is None:
-            print("✅ Streamlit iniciado correctamente!")
+            print("✅ Streamlit started successfully!")
             print("")
             print("🎉" * 20)
-            print("✅ DASHBOARD LISTO!")
+            print("✅ DASHBOARD READY!")
             print("🎉" * 20)
             print("")
-            print("🔗 COPIA una de estas URLs y pégala en tu navegador:")
+            print("🔗 COPY one of these URLs and paste in your browser:")
             print("   👉 http://localhost:8502")
             print("   👉 http://127.0.0.1:8502")
             print("   👉 http://0.0.0.0:8502")
             print("")
-            print("⚠️  IMPORTANTE:")
-            print("   - El servidor está corriendo en segundo plano")
-            print("   - Si no funciona una URL, prueba las otras")
-            print("   - Para detener el servidor, ejecuta:")
+            print("📊 DASHBOARD FEATURES:")
+            print("   • Individual plots (no subplots)")
+            print("   • 8 scientific categories (A-H)")
+            print("   • Well locations on all spatial maps")
+            print("   • Animated GIFs for time evolution")
+            print("   • Each plot answers specific questions")
+            print("")
+            print("⚠️  IMPORTANT:")
+            print("   - Server is running in background")
+            print("   - If one URL doesn't work, try the others")
+            print("   - To stop the server, run:")
             print("     pkill -f streamlit")
             print("=" * 60)
             
             # Try to open browser automatically
             try:
                 webbrowser.open("http://localhost:8502")
-                print("🌐 Intentando abrir navegador automáticamente...")
+                print("🌐 Trying to open browser automatically...")
             except Exception:
-                print("⚠️  No se pudo abrir el navegador automáticamente")
-                print("   Por favor, copia la URL manualmente")
+                print("⚠️  Could not open browser automatically")
+                print("   Please copy the URL manually")
                 
         else:
-            print("❌ Error: Streamlit no se pudo iniciar")
-            print("💡 Prueba ejecutar manualmente:")
+            print("❌ Error: Streamlit could not start")
+            print("💡 Try running manually:")
             print(f"   streamlit run {app_path}")
             
     except Exception as e:
         print(f"\n❌ Error: {e}")
-        print("💡 Verifica que Streamlit esté instalado:")
+        print("💡 Verify that Streamlit is installed:")
         print("   pip install streamlit")
 
 
 def main():
-    print("🛢️  MRST MONITORING SYSTEM")
-    print("=" * 40)
+    print("🛢️  MRST MONITORING SYSTEM - INDIVIDUAL PLOTS")
+    print("=" * 50)
+    print("🎯 Generating plots organized by categories A-H")
+    print("📊 Each plot addresses specific scientific questions")
+    print("🗺️  All spatial maps show well locations")
+    print("🎬 Time-dependent maps available as animated GIFs")
+    print("=" * 50)
     
     # Step 1: Clean up any existing processes
     kill_existing_streamlit()
     
-    # Step 2: Generate plots
+    # Step 2: Generate individual plots by category
     generate_plots()
     
     # Step 3: Launch dashboard
     launch_dashboard()
     
-    print("\n🏁 Proceso completado!")
-    print("💡 El dashboard está corriendo en segundo plano")
+    print("\n🏁 Process completed!")
+    print("💡 Dashboard is running in background")
+    print("📈 Navigate between categories A-H using sidebar")
 
 
 if __name__ == "__main__":

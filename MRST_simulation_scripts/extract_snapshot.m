@@ -56,7 +56,7 @@ pressure = state.pressure;  % [psi internal units]
 % Assume lithostatic stress gradient and initial conditions
 
 % Get pressure from state
-p_pore = state.pressure / psia;  % Convert to psia for consistency
+p_pore = state.pressure / 6894.76;  % Convert Pa to psi for consistency
 
 % Calculate depth-dependent total stress (lithostatic)
 % For 2D grid, use relative depth based on grid position
@@ -109,7 +109,7 @@ else
 end
 
 % Convert to consistent units
-k_vec = k_vec / milli / darcy;  % Convert to mD
+k_vec = k_vec / 9.869233e-16;  % Convert m² to mD
 
 %% ----
 %% Step 5 – Extract rock regions

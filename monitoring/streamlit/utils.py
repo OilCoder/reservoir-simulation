@@ -11,7 +11,7 @@ import time
 
 def get_data_path():
     """Get path to simulation data directory"""
-    return Path(__file__).parent.parent.parent / "MRST_simulation_scripts" / "data"
+    return Path("/workspace/data")
 
 
 def get_plot_path(plot_name):
@@ -37,20 +37,22 @@ def get_plot_age_minutes(plot_name):
 def count_snapshots():
     """Count available simulation snapshots"""
     data_path = get_data_path()
-    if not data_path.exists():
+    snapshots_path = data_path / "snapshots"
+    if not snapshots_path.exists():
         return 0
     
-    snapshot_files = list(data_path.glob("snap_*.mat"))
+    snapshot_files = list(snapshots_path.glob("snap_*.mat"))
     return len(snapshot_files)
 
 
 def get_latest_timestep():
     """Get the latest simulation timestep"""
     data_path = get_data_path()
-    if not data_path.exists():
+    snapshots_path = data_path / "snapshots"
+    if not snapshots_path.exists():
         return None
     
-    snapshot_files = list(data_path.glob("snap_*.mat"))
+    snapshot_files = list(snapshots_path.glob("snap_*.mat"))
     if not snapshot_files:
         return None
     
