@@ -481,3 +481,60 @@ fprintf('  ✅ Logical separation of static vs dynamic data\n');
 fprintf('  ✅ Python-compatible array ordering\n');
 
 fprintf('\n✅ OPTIMIZED DATASET READY FOR PYTHON PLOTTING!\n'); 
+
+fprintf('[INFO] Dataset export completed successfully!\n');
+fprintf('[INFO] All data exported to optimized structure in: %s\n', base_dir);
+
+%% ----
+%% Step 8 – Export additional data for dashboard
+%% ----
+
+fprintf('[INFO] Exporting additional dashboard data...\n');
+
+% Substep 8.1 – Check if fluid properties exist ________________
+fluid_properties_path = fullfile(base_dir, 'static', 'fluid_properties.mat');
+if exist(fluid_properties_path, 'file')
+    fprintf('[INFO] Fluid properties already exported by b_define_fluid.m\n');
+else
+    fprintf('[WARN] Fluid properties not found. Run b_define_fluid.m first.\n');
+end
+
+% Substep 8.2 – Check if cumulative data exist _________________
+cumulative_data_path = fullfile(base_dir, 'dynamic', 'wells', 'cumulative_data.mat');
+if exist(cumulative_data_path, 'file')
+    fprintf('[INFO] Cumulative data already exported by e_run_simulation.m\n');
+else
+    fprintf('[WARN] Cumulative data not found. Run e_run_simulation.m first.\n');
+end
+
+% Substep 8.3 – Check if flow data exist _______________________
+flow_data_path = fullfile(base_dir, 'dynamic', 'fields', 'flow_data.mat');
+if exist(flow_data_path, 'file')
+    fprintf('[INFO] Flow data already exported by e_run_simulation.m\n');
+else
+    fprintf('[WARN] Flow data not found. Run e_run_simulation.m first.\n');
+end
+
+% Substep 8.4 – Update metadata with additional info _____________
+metadata_path = fullfile(base_dir, 'metadata', 'metadata.mat');
+if exist(metadata_path, 'file')
+    load(metadata_path);
+else
+    metadata = struct();
+end
+
+% Add export information
+metadata.export_info = struct();
+metadata.export_info.export_date = datestr(now);
+metadata.export_info.export_script = 'f_export_dataset.m';
+metadata.export_info.data_structure = 'optimized_v2';
+metadata.export_info.additional_data = struct();
+metadata.export_info.additional_data.fluid_properties = exist(fluid_properties_path, 'file');
+metadata.export_info.additional_data.cumulative_data = exist(cumulative_data_path, 'file');
+metadata.export_info.additional_data.flow_data = exist(flow_data_path, 'file');
+
+% Save updated metadata
+save(metadata_path, 'metadata');
+
+fprintf('[INFO] Metadata updated with export information\n');
+fprintf('[INFO] Additional dashboard data export completed\n'); 

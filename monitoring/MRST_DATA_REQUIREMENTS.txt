@@ -1,0 +1,173 @@
+MRST DATA EXPORT REQUIREMENTS FOR DASHBOARD STREAMLIT
+================================================================
+
+CURRENT STATUS: 22/26 plots can be implemented with existing data
+MISSING: 4/26 plots require additional MRST exports
+
+================================================================
+1. FLUID PROPERTIES EXPORT (Categoría A-1, A-2)
+================================================================
+
+REQUIRED IN MRST SCRIPT: b_define_fluid.m
+ADD TO EXPORT: f_export_dataset.m
+
+NEW VARIABLES TO EXPORT:
+- kr_curves.sw: Vector de saturaciones de agua para curvas kr
+- kr_curves.krw: Permeabilidad relativa del agua
+- kr_curves.kro: Permeabilidad relativa del aceite
+- kr_curves.swc: Saturación de agua connata
+- kr_curves.sor: Saturación de aceite residual
+
+- pvt_data.pressure: Vector de presiones para PVT
+- pvt_data.bo: Factor volumétrico del aceite
+- pvt_data.bw: Factor volumétrico del agua
+- pvt_data.muo: Viscosidad del aceite
+- pvt_data.muw: Viscosidad del agua
+
+EXPORT LOCATION: /workspace/data/static/fluid_properties.mat
+STRUCTURE:
+fluid_properties = struct();
+fluid_properties.kr_curves = kr_curves;
+fluid_properties.pvt_data = pvt_data;
+save('/workspace/data/static/fluid_properties.mat', 'fluid_properties');
+
+================================================================
+2. VOLUMETRIC DATA EXPORT (Categorías D-3, D-4, F-3)
+================================================================
+
+REQUIRED IN MRST SCRIPT: e_run_simulation.m
+ADD TO EXPORT: f_export_dataset.m
+
+NEW VARIABLES TO CALCULATE AND EXPORT:
+- cumulative_data.time_days: Vector de tiempo
+- cumulative_data.well_names: Nombres de pozos
+- cumulative_data.cum_oil_prod: Producción acumulada de aceite por pozo [time, well]
+- cumulative_data.cum_water_prod: Producción acumulada de agua por pozo [time, well]
+- cumulative_data.cum_water_inj: Inyección acumulada de agua por pozo [time, well]
+- cumulative_data.pv_injected: PV inyectado acumulado [time]
+- cumulative_data.recovery_factor: Factor de recobro [time]
+
+- reservoir_data.ooip_initial: Aceite original en sitio (STB)
+- reservoir_data.pv_initial: Volumen poroso inicial (STB)
+- reservoir_data.voidage_ratio: Balance volumétrico [time]
+
+CALCULATIONS NEEDED:
+1. Integrate qOs, qWs over time for each well
+2. Calculate PV injected = sum(qWs * dt) / PV_initial
+3. Calculate RF = cum_oil_prod / OOIP_initial
+4. Calculate voidage_ratio = (inj - prod) / PV_initial
+
+EXPORT LOCATION: /workspace/data/dynamic/wells/cumulative_data.mat
+STRUCTURE:
+save('/workspace/data/dynamic/wells/cumulative_data.mat', 'cumulative_data');
+
+ADD TO METADATA: /workspace/data/metadata/metadata.mat
+reservoir_data = struct();
+reservoir_data.ooip_initial = OOIP_calculation;
+reservoir_data.pv_initial = PV_calculation;
+metadata.reservoir_data = reservoir_data;
+
+================================================================
+3. FLOW DATA EXPORT (Categoría G-8)
+================================================================
+
+REQUIRED IN MRST SCRIPT: e_run_simulation.m
+ADD TO EXPORT: f_export_dataset.m
+
+NEW VARIABLES TO CALCULATE AND EXPORT:
+- flow_data.time_days: Vector de tiempo
+- flow_data.vx: Velocidad x [time, y, x]
+- flow_data.vy: Velocidad y [time, y, x]
+- flow_data.velocity_magnitude: Magnitud de velocidad [time, y, x]
+- flow_data.streamlines: Datos de streamlines (opcional)
+
+CALCULATIONS NEEDED:
+1. Extract velocity fields from MRST simulation
+2. Calculate velocity magnitude = sqrt(vx^2 + vy^2)
+3. Generate streamlines using MRST functions
+
+EXPORT LOCATION: /workspace/data/dynamic/fields/flow_data.mat
+STRUCTURE:
+save('/workspace/data/dynamic/fields/flow_data.mat', 'flow_data');
+
+================================================================
+4. SENSITIVITY DATA EXPORT (Categoría H-2)
+================================================================
+
+REQUIRED: New MRST script for sensitivity analysis
+CREATE: sensitivity_analysis.m
+
+NEW VARIABLES TO EXPORT:
+- sensitivity_data.parameter_names: Nombres de parámetros variados
+- sensitivity_data.base_case_production: Producción caso base
+- sensitivity_data.varied_production: Producción casos variados [parameter, time]
+- sensitivity_data.sensitivity_matrix: Matriz de sensibilidad
+- sensitivity_data.tornado_data: Datos para gráfico tornado
+
+PARAMETERS TO VARY:
+- Porosidad base
+- Permeabilidad base
+- Viscosidades de fluidos
+- Presión inicial
+- Tasas de inyección
+
+EXPORT LOCATION: /workspace/data/sensitivity/sensitivity_data.mat
+STRUCTURE:
+save('/workspace/data/sensitivity/sensitivity_data.mat', 'sensitivity_data');
+
+================================================================
+IMPLEMENTATION PRIORITY
+================================================================
+
+PRIORITY 1 (Essential for basic dashboard):
+1. Fluid properties export (A-1, A-2)
+2. Volumetric data export (D-3, D-4, F-3)
+
+PRIORITY 2 (Advanced features):
+3. Flow data export (G-8)
+4. Sensitivity analysis (H-2)
+
+================================================================
+MRST SCRIPT MODIFICATIONS REQUIRED
+================================================================
+
+1. b_define_fluid.m:
+   - Add kr curve export
+   - Add PVT data export
+
+2. e_run_simulation.m:
+   - Add cumulative calculations
+   - Add velocity field extraction
+
+3. f_export_dataset.m:
+   - Add fluid_properties.mat export
+   - Add cumulative_data.mat export
+   - Add flow_data.mat export
+   - Update metadata with reservoir data
+
+4. New script: sensitivity_analysis.m
+   - Parameter variation loop
+   - Sensitivity calculations
+   - Data export
+
+================================================================
+VALIDATION REQUIREMENTS
+================================================================
+
+After implementing each export:
+1. Verify .mat files are created correctly
+2. Check data dimensions match expected format
+3. Validate data ranges are reasonable
+4. Test with existing monitoring scripts
+5. Update util_data_loader.py with new loaders
+
+================================================================
+NOTES
+================================================================
+
+- NEVER hardcode data in monitoring scripts
+- All data must come from MRST simulation
+- Maintain consistent units across all exports
+- Use descriptive variable names
+- Include metadata for data interpretation
+- Validate data integrity before dashboard implementation 

@@ -3,16 +3,15 @@
 Category G: Spatial Maps with Well Locations & Animated GIFs - REQUIRES REAL MRST DATA
 
 Generates individual maps and animations based on user guide:
-G-1: Pressure maps (with well locations) - REQUIRES REAL MRST DATA
-G-2: Effective stress maps (with well locations) - REQUIRES REAL MRST DATA
-G-3: Porosity maps (with well locations) - REQUIRES REAL MRST DATA
-G-4: Permeability maps (with well locations) - REQUIRES REAL MRST DATA
-G-5: Water saturation maps (with well locations) - REQUIRES REAL MRST DATA
+G-1: Mapas de presión (with well locations) - REQUIRES REAL MRST DATA
+G-2: Mapas de esfuerzo efectivo (with well locations) - REQUIRES REAL MRST DATA
+G-3: Mapas de porosidad (with well locations) - REQUIRES REAL MRST DATA
+G-4: Mapas de permeabilidad (with well locations) - REQUIRES REAL MRST DATA
+G-5: Mapas de saturación de agua (with well locations) - REQUIRES REAL MRST DATA
+G-6: Mapas de cambio de presión ΔP = p - p₀ - REQUIRES REAL MRST DATA
+G-7: Frente de agua Sw ≥ 0.8 - REQUIRES REAL MRST DATA
 
-IMPORTANT: This script now requires real MRST simulation data.
-No synthetic data generation. Will fail if data is not available.
-All maps show well locations for spatial context.
-Time-dependent maps can be generated as GIFs with ABSOLUTE color scales.
+Uses oct2py for proper .mat file reading from optimized data structure.
 """
 
 import numpy as np
@@ -22,6 +21,19 @@ from matplotlib.patches import Circle
 import glob
 import os
 from pathlib import Path
+
+# Import the optimized data loader
+try:
+    from util_data_loader import (
+        load_initial_conditions, load_field_arrays, load_static_data,
+        load_temporal_data, get_well_locations,
+        check_data_availability, print_data_summary
+    )
+    USE_OPTIMIZED_LOADER = True
+    print("✅ Using optimized data loader with oct2py")
+except ImportError:
+    USE_OPTIMIZED_LOADER = False
+    print("❌ Optimized data loader not available")
 
 
 def parse_octave_mat_file(filepath):
@@ -63,74 +75,84 @@ def parse_octave_mat_file(filepath):
 
 
 def load_initial_setup():
-    """Load initial reservoir setup data - REQUIRED FOR GRID DIMENSIONS"""
+    """Load initial reservoir setup data using optimized loader"""
     
-    data_path = Path("/workspace/data")
-    setup_file = data_path / "initial_setup.mat"
+    if not USE_OPTIMIZED_LOADER:
+        raise ImportError("❌ Optimized data loader not available")
     
-    if not setup_file.exists():
-        raise FileNotFoundError(
-            f"❌ MISSING DATA: Initial setup file not found: {setup_file}\n"
-            f"   Required: initial_setup.mat from MRST simulation\n"
-            f"   Run MRST simulation first.")
+    initial_data = load_initial_conditions()
+    static_data = load_static_data()
     
-    setup_data = parse_octave_mat_file(setup_file)
+    if not initial_data or not static_data:
+        raise ValueError("❌ Failed to load initial conditions or static data")
     
-    if not setup_data:
-        raise ValueError(
-            f"❌ INVALID DATA: Could not parse {setup_file}\n"
-            f"   Check MRST export format.")
+    # Combine data for compatibility
+    setup_data = {
+        'pressure': initial_data['pressure'],
+        'sw': initial_data['sw'],
+        'phi': initial_data['phi'],
+        'k': initial_data['k'],
+        'grid_x': static_data['grid_x'],
+        'grid_y': static_data['grid_y'],
+        'wells': static_data['wells']
+    }
     
     print("✅ Loaded initial setup successfully")
     return setup_data
 
 
 def load_all_snapshots():
-    """Load all snapshot files for animation - REQUIRED FOR TIME SERIES"""
+    """Load all snapshot data for animation using optimized loader"""
     
-    data_path = Path("/workspace/data")
+    if not USE_OPTIMIZED_LOADER:
+        raise ImportError("❌ Optimized data loader not available")
     
-    snapshot_files = sorted(glob.glob(str(data_path / "snapshots/snap_*.mat")))
+    # Load field arrays (time series data)
+    field_data = load_field_arrays()
+    temporal_data = load_temporal_data()
     
-    if not snapshot_files:
-        raise FileNotFoundError(
-            f"❌ MISSING DATA: No snapshot files found in {data_path}\n"
-            f"   Required: snapshots/snap_*.mat files from MRST simulation\n"
-            f"   Run MRST simulation and export_dataset.m first.")
+    if not field_data or not temporal_data:
+        raise ValueError("❌ Failed to load field arrays or temporal data")
+    
+    # Convert to snapshot format for compatibility
+    time_days = temporal_data['time_days']
+    n_timesteps = len(time_days)
     
     snapshots = []
-    for file_path in snapshot_files:
-        try:
-            data = parse_octave_mat_file(file_path)
-            if not data:
-                raise ValueError(f"Could not parse {file_path}")
-            snapshots.append(data)
-        except Exception as e:
-            raise ValueError(
-                f"❌ ERROR loading {file_path}: {e}\n"
-                f"   Check MRST snapshot export format.")
+    for t in range(n_timesteps):
+        snapshot = {
+            'pressure': field_data['pressure'][t, :, :],
+            'sw': field_data['sw'][t, :, :],
+            'phi': field_data['phi'][t, :, :],
+            'k': field_data['k'][t, :, :],
+            'sigma_eff': field_data['sigma_eff'][t, :, :],
+            'time_days': time_days[t]
+        }
+        snapshots.append(snapshot)
     
     print(f"✅ Loaded {len(snapshots)} snapshots for animation")
     return snapshots
 
 
-def get_well_locations():
-    """Get well locations for overlay on maps - FIXED PATTERN"""
+def get_well_locations_local():
+    """Get well locations for overlay on maps using optimized loader"""
     
-    # Standard well pattern (can be loaded from setup data if available)
+    if USE_OPTIMIZED_LOADER:
+        try:
+            # Use optimized data loader well locations
+            well_locations = get_well_locations()
+            return well_locations
+        except Exception:
+            pass
+    
+    # Fallback to standard well pattern
     producers = {
         'P1': (5, 5),
-        'P2': (15, 5),
-        'P3': (5, 15),
-        'P4': (15, 15)
+        'P2': (15, 5)
     }
     
     injectors = {
-        'I1': (10, 10),
-        'I2': (2, 10),
-        'I3': (18, 10),
-        'I4': (10, 2),
-        'I5': (10, 18)
+        'I1': (10, 10)
     }
     
     return producers, injectors

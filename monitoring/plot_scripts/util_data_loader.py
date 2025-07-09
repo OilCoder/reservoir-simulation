@@ -1,618 +1,586 @@
 #!/usr/bin/env python3
 """
-Utility functions for loading optimized MRST data structure
+MRST Data Loader - Optimized Structure with oct2py
 
-This module provides functions to load data from the optimized MRST export system:
-- initial/: Initial reservoir conditions (t=0)
-- static/: Data that never changes (grid, wells, rock regions)
-- dynamic/fields/: 3D time-dependent field arrays [time, y, x]
-- dynamic/wells/: Well operational data [time, well]
-- temporal/: Time vectors and schedules
-- metadata/: Dataset documentation
+This module provides functions to load data from the optimized MRST export structure
+using oct2py for proper .mat file reading.
+
+Data Structure:
+/workspace/data/
+├── initial/
+│   └── initial_conditions.mat
+├── static/
+│   ├── static_data.mat
+│   └── fluid_properties.mat
+├── temporal/
+│   ├── time_data.mat
+│   └── schedule_data.mat
+├── dynamic/
+│   ├── fields/
+│   │   ├── field_arrays.mat
+│   │   └── flow_data.mat
+│   └── wells/
+│       ├── well_data.mat
+│       └── cumulative_data.mat
+├── sensitivity/
+│   └── sensitivity_data.mat
+└── metadata/
+    └── metadata.mat
 """
 
 import numpy as np
-import scipy.io
+import matplotlib.pyplot as plt
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
+import os
+
+# Check if oct2py is available
+try:
+    import oct2py
+    OCT2PY_AVAILABLE = True
+except ImportError:
+    OCT2PY_AVAILABLE = False
+    print("[WARN] oct2py not available. Some functions may not work.")
 
 
-def parse_octave_mat_file(filepath: Path) -> Dict[str, Any]:
-    """
-    Parse Octave text format .mat file
+def check_data_availability():
+    """Check availability of all data files in the optimized structure.
     
-    Args:
-        filepath: Path to the .mat file
-        
     Returns:
-        Dictionary containing the loaded data
+        dict: Dictionary with availability status for each data category
     """
-    data = {}
-    current_var = None
-    reading_matrix = False
+    base_path = Path('/workspace/data')
     
-    with open(filepath, 'r') as f:
-        lines = f.readlines()
+    availability = {
+        'initial_conditions': False,
+        'static_data': False,
+        'fluid_properties': False,
+        'temporal_data': False,
+        'schedule_data': False,
+        'field_arrays': False,
+        'well_data': False,
+        'cumulative_data': False,
+        'flow_data': False,
+        'sensitivity_data': False,
+        'metadata': False
+    }
     
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-        
-        if line.startswith('#') or not line:
-            if line.startswith('# name:'):
-                current_var = line.split(':', 1)[1].strip()
-            elif line.startswith('# type: matrix'):
-                reading_matrix = True
-            elif line.startswith('# rows:'):
-                rows = int(line.split(':', 1)[1].strip())
-            elif line.startswith('# columns:'):
-                cols = int(line.split(':', 1)[1].strip())
-                if reading_matrix and current_var:
-                    matrix_data = []
-                    for j in range(i + 1, i + 1 + rows):
-                        if j < len(lines):
-                            row_data = [float(x) for x in lines[j].split()]
-                            matrix_data.extend(row_data)
-                    data[current_var] = np.array(matrix_data).reshape(rows, cols)
-                    i += rows
-                    reading_matrix = False
-                    current_var = None
-        i += 1
+    # Check each file
+    files_to_check = {
+        'initial_conditions': base_path / 'initial/initial_conditions.mat',
+        'static_data': base_path / 'static/static_data.mat',
+        'fluid_properties': base_path / 'static/fluid_properties.mat',
+        'temporal_data': base_path / 'temporal/time_data.mat',
+        'schedule_data': base_path / 'temporal/schedule_data.mat',
+        'field_arrays': base_path / 'dynamic/fields/field_arrays.mat',
+        'well_data': base_path / 'dynamic/wells/well_data.mat',
+        'cumulative_data': base_path / 'dynamic/wells/cumulative_data.mat',
+        'flow_data': base_path / 'dynamic/fields/flow_data.mat',
+        'sensitivity_data': base_path / 'sensitivity/sensitivity_data.mat',
+        'metadata': base_path / 'metadata/metadata.mat'
+    }
     
-    return data
+    for key, file_path in files_to_check.items():
+        availability[key] = file_path.exists()
+    
+    return availability
 
 
-def load_initial_conditions(data_path: str = "/workspace/data") -> Dict[str, np.ndarray]:
-    """
-    Load initial reservoir conditions (t=0)
+def print_data_summary():
+    """Print a summary of data availability."""
+    availability = check_data_availability()
     
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing initial conditions:
-        - pressure: [y, x] initial pressure in psia
-        - sw: [y, x] initial water saturation
-        - phi: [y, x] initial porosity
-        - k: [y, x] initial permeability in mD
-    """
-    data_path = Path(data_path)
-    initial_file = data_path / "initial" / "initial_conditions.mat"
+    print("\n📊 Data Availability Summary:")
+    print("=" * 50)
     
-    if not initial_file.exists():
-        # Fallback to old structure
-        initial_file = data_path / "initial" / "initial_setup.mat"
-        if not initial_file.exists():
-            raise FileNotFoundError(f"Initial conditions file not found: {initial_file}")
+    # Essential data
+    essential_files = ['initial_conditions', 'static_data', 'temporal_data', 'field_arrays', 'well_data', 'metadata']
+    print("Essential Data:")
+    for file in essential_files:
+        status = "✅" if availability[file] else "❌"
+        print(f"  {status} {file}")
     
+    # Optional data
+    optional_files = ['fluid_properties', 'schedule_data', 'cumulative_data', 'flow_data', 'sensitivity_data']
+    print("\nOptional Data:")
+    for file in optional_files:
+        status = "✅" if availability[file] else "❌"
+        print(f"  {status} {file}")
+    
+    # Count available files
+    total_files = len(availability)
+    available_files = sum(availability.values())
+    print(f"\nTotal: {available_files}/{total_files} files available ({100*available_files/total_files:.1f}%)")
+
+
+def load_initial_conditions():
+    """Load initial reservoir conditions."""
     try:
-        # Try scipy.io first (for binary .mat files)
-        data = scipy.io.loadmat(str(initial_file))
-        # Extract the actual data structure
-        if 'initial_data' in data:
-            initial_data = data['initial_data'][0, 0]  # Extract from structured array
-            result = {}
-            
-            # Handle structured array format from MRST export
-            if hasattr(initial_data, 'dtype') and initial_data.dtype.names:
-                # Structured array format
-                for field in ['pressure', 'sw', 'phi', 'k']:
-                    if field in initial_data.dtype.names:
-                        field_data = initial_data[field]
-                        # Extract from nested arrays
-                        if isinstance(field_data, np.ndarray) and field_data.size > 0:
-                            if field_data.dtype == 'O':  # Object array
-                                result[field] = field_data.flatten()[0]
-                            else:
-                                result[field] = field_data
-            else:
-                # Regular struct format
-                for field in ['pressure', 'sw', 'phi', 'k']:
-                    if hasattr(initial_data, field):
-                        result[field] = getattr(initial_data, field)
-            return result
-        elif 'initial_setup' in data:
-            # Old format compatibility
-            initial_setup = data['initial_setup'][0, 0]
-            result = {}
-            
-            # Handle structured array format
-            if hasattr(initial_setup, 'dtype') and initial_setup.dtype.names:
-                # Map old field names to new names
-                field_mapping = {
-                    'pressure_init': 'pressure',
-                    'sw_init': 'sw',
-                    'phi': 'phi',
-                    'k': 'k'
-                }
-                for old_field, new_field in field_mapping.items():
-                    if old_field in initial_setup.dtype.names:
-                        field_data = initial_setup[old_field]
-                        if isinstance(field_data, np.ndarray) and field_data.size > 0:
-                            if field_data.dtype == 'O':  # Object array
-                                result[new_field] = field_data.flatten()[0]
-                            else:
-                                result[new_field] = field_data
-            else:
-                # Regular struct format
-                if hasattr(initial_setup, 'pressure_init'):
-                    result['pressure'] = getattr(initial_setup, 'pressure_init')
-                if hasattr(initial_setup, 'sw_init'):
-                    result['sw'] = getattr(initial_setup, 'sw_init')
-                if hasattr(initial_setup, 'phi'):
-                    result['phi'] = getattr(initial_setup, 'phi')
-                if hasattr(initial_setup, 'k'):
-                    result['k'] = getattr(initial_setup, 'k')
-            return result
-    except Exception:
-        # Fallback to Octave text format parser
-        data = parse_octave_mat_file(initial_file)
-        if 'initial_data' in data:
-            return data['initial_data']
-        elif 'initial_setup' in data:
-            # Map old names to new names
-            result = {}
-            setup = data['initial_setup']
-            if 'pressure_init' in setup:
-                result['pressure'] = setup['pressure_init']
-            if 'sw_init' in setup:
-                result['sw'] = setup['sw_init']
-            if 'phi' in setup:
-                result['phi'] = setup['phi']
-            if 'k' in setup:
-                result['k'] = setup['k']
-            return result
-    
-    raise ValueError(f"Could not parse initial conditions from {initial_file}")
-
-
-def load_static_data(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Load static data (never changes during simulation)
-    
-    Args:
-        data_path: Base path to the data directory
+        file_path = '/workspace/data/initial/initial_conditions.mat'
+        data = oct2py.io.loadmat(file_path)
         
-    Returns:
-        Dictionary containing static data:
-        - rock_id: [y, x] rock region IDs
-        - grid_x: Grid x-coordinates
-        - grid_y: Grid y-coordinates
-        - wells: Well location and type information
-    """
-    data_path = Path(data_path)
-    static_file = data_path / "static" / "static_data.mat"
-    
-    if not static_file.exists():
-        raise FileNotFoundError(f"Static data file not found: {static_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(static_file))
-        if 'static_data' in data:
-            static_data = data['static_data'][0, 0]
-            result = {}
-            for field in ['rock_id', 'grid_x', 'grid_y', 'cell_centers_x', 'cell_centers_y']:
-                if hasattr(static_data, field):
-                    result[field] = getattr(static_data, field)
-            
-            # Handle wells structure
-            if hasattr(static_data, 'wells'):
-                wells = getattr(static_data, 'wells')[0, 0]
-                well_data = {}
-                for field in ['well_names', 'well_i', 'well_j', 'well_types']:
-                    if hasattr(wells, field):
-                        well_data[field] = getattr(wells, field)
-                result['wells'] = well_data
-            
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(static_file)
-        return data.get('static_data', data)
-    
-    raise ValueError(f"Could not parse static data from {static_file}")
-
-
-def load_dynamic_fields(data_path: str = "/workspace/data") -> Dict[str, np.ndarray]:
-    """
-    Load 3D dynamic field arrays [time, y, x]
-    
-    Args:
-        data_path: Base path to the data directory
+        # Extract initial_data struct
+        initial_data = data['initial_data']
         
-    Returns:
-        Dictionary containing 3D field arrays:
-        - pressure: [time, y, x] pressure in psia
-        - sw: [time, y, x] water saturation
-        - phi: [time, y, x] porosity
-        - k: [time, y, x] permeability in mD
-        - sigma_eff: [time, y, x] effective stress in psia
-    """
-    data_path = Path(data_path)
-    fields_file = data_path / "dynamic" / "fields" / "field_arrays.mat"
-    
-    if not fields_file.exists():
-        raise FileNotFoundError(f"Dynamic fields file not found: {fields_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(fields_file))
-        if 'fields_data' in data:
-            fields_data = data['fields_data'][0, 0]
-            result = {}
-            for field in ['pressure', 'sw', 'phi', 'k', 'sigma_eff']:
-                if hasattr(fields_data, field):
-                    result[field] = getattr(fields_data, field)
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(fields_file)
-        return data.get('fields_data', data)
-    
-    raise ValueError(f"Could not parse dynamic fields from {fields_file}")
-
-
-def load_well_data(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Load well operational data [time, well]
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing well data:
-        - time_days: Time vector in days
-        - well_names: List of well names
-        - qWs: [time, well] water rates in m³/day
-        - qOs: [time, well] oil rates in m³/day
-        - bhp: [time, well] bottom hole pressure in psia
-    """
-    data_path = Path(data_path)
-    wells_file = data_path / "dynamic" / "wells" / "well_data.mat"
-    
-    if not wells_file.exists():
-        raise FileNotFoundError(f"Well data file not found: {wells_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(wells_file))
-        if 'wells_dynamic' in data:
-            wells_data = data['wells_dynamic'][0, 0]
-            result = {}
-            for field in ['time_days', 'well_names', 'qWs', 'qOs', 'bhp']:
-                if hasattr(wells_data, field):
-                    result[field] = getattr(wells_data, field)
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(wells_file)
-        return data.get('wells_dynamic', data)
-    
-    raise ValueError(f"Could not parse well data from {wells_file}")
-
-
-def load_temporal_data(data_path: str = "/workspace/data") -> Dict[str, np.ndarray]:
-    """
-    Load temporal data (time vectors and schedules)
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing temporal data:
-        - time_days: Time vector in days
-        - dt_days: Timestep sizes in days
-        - control_indices: Control period indices
-    """
-    data_path = Path(data_path)
-    temporal_file = data_path / "temporal" / "time_data.mat"
-    
-    if not temporal_file.exists():
-        raise FileNotFoundError(f"Temporal data file not found: {temporal_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(temporal_file))
-        if 'temporal_data' in data:
-            temporal_data = data['temporal_data'][0, 0]  # Extract from structured array
-            result = {}
-            
-            # Handle structured array format from MRST export
-            if hasattr(temporal_data, 'dtype') and temporal_data.dtype.names:
-                # Structured array format
-                for field in ['time_days', 'dt_days', 'control_indices']:
-                    if field in temporal_data.dtype.names:
-                        field_data = temporal_data[field]
-                        # Extract from nested arrays
-                        if isinstance(field_data, np.ndarray) and field_data.size > 0:
-                            if field_data.dtype == 'O':  # Object array
-                                result[field] = field_data.flatten()[0].flatten()
-                            else:
-                                result[field] = field_data.flatten()
-            else:
-                # Regular struct format
-                for field in ['time_days', 'dt_days', 'control_indices']:
-                    if hasattr(temporal_data, field):
-                        result[field] = getattr(temporal_data, field)
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(temporal_file)
-        return data.get('temporal_data', data)
-    
-    raise ValueError(f"Could not parse temporal data from {temporal_file}")
-
-
-def load_fluid_properties(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Load fluid properties
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing fluid properties:
-        - sw: Water saturation range for kr curves
-        - krw: Water relative permeability
-        - kro: Oil relative permeability
-        - mu_water: Water viscosity in cP
-        - mu_oil: Oil viscosity in cP
-        - rho_water: Water density
-        - rho_oil: Oil density
-    """
-    data_path = Path(data_path)
-    fluid_file = data_path / "static" / "fluid_properties.mat"
-    
-    if not fluid_file.exists():
-        raise FileNotFoundError(f"Fluid properties file not found: {fluid_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(fluid_file))
-        if 'fluid_props' in data:
-            fluid_data = data['fluid_props'][0, 0]
-            result = {}
-            for field in ['sw', 'krw', 'kro', 'mu_water', 'mu_oil', 'rho_water', 'rho_oil', 'sWcon', 'sOres']:
-                if hasattr(fluid_data, field):
-                    result[field] = getattr(fluid_data, field)
-            return result
-        elif 'fluid_export' in data:
-            # Old format compatibility
-            fluid_data = data['fluid_export'][0, 0]
-            result = {}
-            for field in ['sw', 'krw', 'kro', 'mu_water', 'mu_oil', 'rho_water', 'rho_oil', 'sWcon', 'sOres']:
-                if hasattr(fluid_data, field):
-                    result[field] = getattr(fluid_data, field)
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(fluid_file)
-        if 'fluid_props' in data:
-            return data['fluid_props']
-        elif 'fluid_export' in data:
-            return data['fluid_export']
-    
-    raise ValueError(f"Could not parse fluid properties from {fluid_file}")
-
-
-def load_schedule_data(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Load schedule data for operational plots
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing schedule data:
-        - time_days: Time vector in days
-        - production_rates: Total production rates
-        - injection_rates: Total injection rates
-        - well_names: List of well names
-    """
-    data_path = Path(data_path)
-    schedule_file = data_path / "temporal" / "schedule_data.mat"
-    
-    if not schedule_file.exists():
-        # Fallback to old location
-        schedule_file = data_path / "temporal" / "schedule.mat"
-        if not schedule_file.exists():
-            raise FileNotFoundError(f"Schedule data file not found: {schedule_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(schedule_file))
-        if 'schedule_data' in data:
-            schedule_data = data['schedule_data'][0, 0]
-            result = {}
-            for field in ['time_days', 'production_rates', 'injection_rates', 'well_names', 'n_timesteps', 'n_wells']:
-                if hasattr(schedule_data, field):
-                    result[field] = getattr(schedule_data, field)
-            return result
-        elif 'schedule_export' in data:
-            # Old format compatibility
-            schedule_data = data['schedule_export'][0, 0]
-            result = {}
-            # Map old field names to new ones
-            if hasattr(schedule_data, 'time'):
-                result['time_days'] = getattr(schedule_data, 'time')
-            if hasattr(schedule_data, 'production_rates'):
-                result['production_rates'] = getattr(schedule_data, 'production_rates')
-            if hasattr(schedule_data, 'injection_rates'):
-                result['injection_rates'] = getattr(schedule_data, 'injection_rates')
-            if hasattr(schedule_data, 'well_names'):
-                result['well_names'] = getattr(schedule_data, 'well_names')
-            if hasattr(schedule_data, 'n_timesteps'):
-                result['n_timesteps'] = getattr(schedule_data, 'n_timesteps')
-            if hasattr(schedule_data, 'n_wells'):
-                result['n_wells'] = getattr(schedule_data, 'n_wells')
-            return result
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(schedule_file)
-        if 'schedule_data' in data:
-            return data['schedule_data']
-        elif 'schedule_export' in data:
-            # Map old field names
-            result = data['schedule_export'].copy()
-            if 'time' in result and 'time_days' not in result:
-                result['time_days'] = result['time']
-            return result
-    
-    raise ValueError(f"Could not parse schedule data from {schedule_file}")
-
-
-def load_metadata(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Load dataset metadata
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing metadata information
-    """
-    data_path = Path(data_path)
-    metadata_file = data_path / "metadata" / "metadata.mat"
-    
-    if not metadata_file.exists():
-        raise FileNotFoundError(f"Metadata file not found: {metadata_file}")
-    
-    try:
-        # Try scipy.io first
-        data = scipy.io.loadmat(str(metadata_file))
-        if 'metadata' in data:
-            return data['metadata']
-    except:
-        # Fallback to Octave text format
-        data = parse_octave_mat_file(metadata_file)
-        return data.get('metadata', data)
-    
-    raise ValueError(f"Could not parse metadata from {metadata_file}")
-
-
-def get_simulation_info(data_path: str = "/workspace/data") -> Dict[str, Any]:
-    """
-    Get basic simulation information
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary with simulation info:
-        - n_timesteps: Number of timesteps
-        - n_wells: Number of wells
-        - grid_shape: Grid dimensions [ny, nx]
-        - total_time_days: Total simulation time
-    """
-    try:
-        temporal = load_temporal_data(data_path)
-        initial = load_initial_conditions(data_path)
-        
-        info = {
-            'n_timesteps': len(temporal['time_days']),
-            'total_time_days': float(np.max(temporal['time_days'])),
-            'grid_shape': initial['pressure'].shape  # [ny, nx]
+        return {
+            'pressure': np.array(initial_data['pressure'][0,0]),  # [psi]
+            'sw': np.array(initial_data['sw'][0,0]),  # [-]
+            'phi': np.array(initial_data['phi'][0,0]),  # [-]
+            'k': np.array(initial_data['k'][0,0])  # [mD]
         }
         
-        try:
-            wells = load_well_data(data_path)
-            info['n_wells'] = len(wells['well_names'])
-        except:
-            info['n_wells'] = 'Unknown'
-        
-        return info
     except Exception as e:
-        raise ValueError(f"Could not get simulation info: {e}")
+        print(f"[ERROR] Failed to load initial conditions: {e}")
+        return None
 
 
-def load_snapshot_at_time(timestep: int, data_path: str = "/workspace/data") -> Dict[str, np.ndarray]:
-    """
-    Load a specific timestep snapshot from the 3D arrays
-    
-    Args:
-        timestep: Timestep index (0-based)
-        data_path: Base path to the data directory
-        
-    Returns:
-        Dictionary containing 2D arrays for the specified timestep:
-        - pressure: [y, x] pressure in psia
-        - sw: [y, x] water saturation
-        - phi: [y, x] porosity
-        - k: [y, x] permeability in mD
-        - sigma_eff: [y, x] effective stress in psia
-    """
-    fields = load_dynamic_fields(data_path)
-    temporal = load_temporal_data(data_path)
-    
-    if timestep >= len(temporal['time_days']):
-        raise ValueError(f"Timestep {timestep} out of range (max: {len(temporal['time_days'])-1})")
-    
-    snapshot = {}
-    for field_name, field_data in fields.items():
-        if len(field_data.shape) == 3:  # 3D array [time, y, x]
-            snapshot[field_name] = field_data[timestep, :, :]
-        else:
-            snapshot[field_name] = field_data
-    
-    # Add time information
-    snapshot['time_days'] = temporal['time_days'][timestep]
-    snapshot['timestep'] = timestep
-    
-    return snapshot
-
-
-# Convenience function for backward compatibility
-def load_snapshots(data_path: str = "/workspace/data") -> Tuple[List[Dict], List[int]]:
-    """
-    Load all snapshots (backward compatibility function)
-    
-    Args:
-        data_path: Base path to the data directory
-        
-    Returns:
-        Tuple of (snapshots list, timestep indices)
-    """
-    fields = load_dynamic_fields(data_path)
-    temporal = load_temporal_data(data_path)
-    
-    n_timesteps = len(temporal['time_days'])
-    snapshots = []
-    timesteps = list(range(n_timesteps))
-    
-    for t in range(n_timesteps):
-        snapshot = load_snapshot_at_time(t, data_path)
-        snapshots.append(snapshot)
-    
-    return snapshots, timesteps
-
-
-if __name__ == "__main__":
-    # Test the data loading functions
+def load_static_data():
+    """Load static reservoir data."""
     try:
-        print("Testing optimized data loading...")
+        file_path = '/workspace/data/static/static_data.mat'
+        data = oct2py.io.loadmat(file_path)
         
-        # Test basic info
-        info = get_simulation_info()
-        print(f"✅ Simulation info: {info}")
+        # Extract static_data struct
+        static_data = data['static_data']
         
-        # Test initial conditions
-        initial = load_initial_conditions()
-        print(f"✅ Initial conditions loaded: {list(initial.keys())}")
-        
-        # Test static data
-        static = load_static_data()
-        print(f"✅ Static data loaded: {list(static.keys())}")
-        
-        # Test dynamic fields
-        fields = load_dynamic_fields()
-        print(f"✅ Dynamic fields loaded: {list(fields.keys())}")
-        
-        # Test temporal data
-        temporal = load_temporal_data()
-        print(f"✅ Temporal data loaded: {list(temporal.keys())}")
-        
-        print("✅ All data loading tests passed!")
+        return {
+            'rock_id': np.array(static_data['rock_id'][0,0]),  # [-]
+            'grid_x': np.array(static_data['grid_x'][0,0]).flatten(),
+            'grid_y': np.array(static_data['grid_y'][0,0]).flatten(),
+            'cell_centers_x': np.array(static_data['cell_centers_x'][0,0]).flatten(),
+            'cell_centers_y': np.array(static_data['cell_centers_y'][0,0]).flatten(),
+            'wells': static_data['wells'][0,0]
+        }
         
     except Exception as e:
-        print(f"❌ Data loading test failed: {e}") 
+        print(f"[ERROR] Failed to load static data: {e}")
+        return None
+
+
+def load_temporal_data():
+    """Load temporal data (time vectors)."""
+    try:
+        file_path = '/workspace/data/temporal/time_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract temporal_data struct
+        temporal_data = data['temporal_data']
+        
+        return {
+            'time_days': np.array(temporal_data['time_days'][0,0]).flatten(),
+            'dt_days': np.array(temporal_data['dt_days'][0,0]).flatten(),
+            'control_indices': np.array(temporal_data['control_indices'][0,0]).flatten()
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load temporal data: {e}")
+        return None
+
+
+def load_field_arrays():
+    """Load dynamic field arrays."""
+    try:
+        file_path = '/workspace/data/dynamic/fields/field_arrays.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract fields_data struct (note: different name than field_arrays)
+        fields_data = data['fields_data']
+        
+        return {
+            'pressure': np.array(fields_data['pressure'][0,0]),  # [time, y, x] [psi]
+            'sw': np.array(fields_data['sw'][0,0]),  # [time, y, x] [-]
+            'phi': np.array(fields_data['phi'][0,0]),  # [time, y, x] [-]
+            'k': np.array(fields_data['k'][0,0]),  # [time, y, x] [mD]
+            'sigma_eff': np.array(fields_data['sigma_eff'][0,0])  # [time, y, x] [psi]
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load field arrays: {e}")
+        return None
+
+
+def load_well_data():
+    """Load well operational data."""
+    try:
+        file_path = '/workspace/data/dynamic/wells/well_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract wells_dynamic struct (note: different name than well_data)
+        wells_dynamic = data['wells_dynamic']
+        
+        return {
+            'time_days': np.array(wells_dynamic['time_days'][0,0]).flatten(),
+            'well_names': [str(name[0]) for name in wells_dynamic['well_names'][0,0]],
+            'qWs': np.array(wells_dynamic['qWs'][0,0]),  # [time, well] [STB/d]
+            'qOs': np.array(wells_dynamic['qOs'][0,0]),  # [time, well] [STB/d]
+            'bhp': np.array(wells_dynamic['bhp'][0,0])  # [time, well] [psi]
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load well data: {e}")
+        return None
+
+
+def load_metadata():
+    """Load dataset metadata."""
+    try:
+        file_path = '/workspace/data/metadata/metadata.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract metadata struct
+        metadata = data['metadata']
+        
+        return {
+            'dataset_info': metadata['dataset_info'][0,0],
+            'simulation': metadata['simulation'][0,0],
+            'structure': metadata['structure'][0,0],
+            'optimization': metadata['optimization'][0,0],
+            'units': metadata['units'][0,0],
+            'conventions': metadata['conventions'][0,0]
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load metadata: {e}")
+        return None
+
+
+def load_fluid_properties():
+    """Load fluid properties data (kr curves and PVT data).
+    
+    Returns:
+        dict: Fluid properties data with kr_curves and pvt_data
+    """
+    try:
+        file_path = '/workspace/data/static/fluid_properties.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract fluid_props struct (note: different name than fluid_properties)
+        fluid_props = data['fluid_props']
+        
+        # Handle different possible structures
+        result = {}
+        
+        # Try to extract kr curves
+        if 'sw' in fluid_props.dtype.names:
+            result['sw'] = np.array(fluid_props['sw'][0,0]).flatten()
+        if 'krw' in fluid_props.dtype.names:
+            result['krw'] = np.array(fluid_props['krw'][0,0]).flatten()
+        if 'kro' in fluid_props.dtype.names:
+            result['kro'] = np.array(fluid_props['kro'][0,0]).flatten()
+        if 'sWcon' in fluid_props.dtype.names:
+            result['sWcon'] = float(fluid_props['sWcon'][0,0])
+        if 'sOres' in fluid_props.dtype.names:
+            result['sOres'] = float(fluid_props['sOres'][0,0])
+        
+        # Try to extract viscosities
+        if 'mu_water' in fluid_props.dtype.names:
+            result['mu_water'] = float(fluid_props['mu_water'][0,0])
+        if 'mu_oil' in fluid_props.dtype.names:
+            result['mu_oil'] = float(fluid_props['mu_oil'][0,0])
+        
+        # Try to extract densities
+        if 'rho_water' in fluid_props.dtype.names:
+            result['rho_water'] = float(fluid_props['rho_water'][0,0])
+        if 'rho_oil' in fluid_props.dtype.names:
+            result['rho_oil'] = float(fluid_props['rho_oil'][0,0])
+        
+        return result
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load fluid properties: {e}")
+        return None
+
+
+def load_schedule_data():
+    """Load schedule data.
+    
+    Returns:
+        dict: Schedule data with time series and rates
+    """
+    try:
+        file_path = '/workspace/data/temporal/schedule_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract schedule_data struct
+        schedule_data = data['schedule_data']
+        
+        return {
+            'time_days': np.array(schedule_data['time_days'][0,0]).flatten(),
+            'n_timesteps': int(schedule_data['n_timesteps'][0,0]),
+            'n_wells': int(schedule_data['n_wells'][0,0]),
+            'well_names': [str(name[0]) for name in schedule_data['well_names'][0,0]],
+            'production_rates': np.array(schedule_data['production_rates'][0,0]).flatten(),
+            'injection_rates': np.array(schedule_data['injection_rates'][0,0]).flatten()
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load schedule data: {e}")
+        return None
+
+
+def load_cumulative_data():
+    """Load cumulative production/injection data.
+    
+    Returns:
+        dict: Cumulative data with time series and well information
+    """
+    try:
+        file_path = '/workspace/data/dynamic/wells/cumulative_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract cumulative_data struct
+        cumulative_data = data['cumulative_data']
+        
+        return {
+            'time_days': np.array(cumulative_data['time_days'][0,0]).flatten(),
+            'well_names': [str(name[0]) for name in cumulative_data['well_names'][0,0]],
+            'cum_oil_prod': np.array(cumulative_data['cum_oil_prod'][0,0]),
+            'cum_water_prod': np.array(cumulative_data['cum_water_prod'][0,0]),
+            'cum_water_inj': np.array(cumulative_data['cum_water_inj'][0,0]),
+            'pv_injected': np.array(cumulative_data['pv_injected'][0,0]).flatten(),
+            'recovery_factor': np.array(cumulative_data['recovery_factor'][0,0]).flatten()
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load cumulative data: {e}")
+        return None
+
+
+def load_flow_data():
+    """Load flow velocity data.
+    
+    Returns:
+        dict: Flow data with velocity fields
+    """
+    try:
+        file_path = '/workspace/data/dynamic/fields/flow_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract flow_data struct
+        flow_data = data['flow_data']
+        
+        return {
+            'time_days': np.array(flow_data['time_days'][0,0]).flatten(),
+            'vx': np.array(flow_data['vx'][0,0]),  # [time, y, x]
+            'vy': np.array(flow_data['vy'][0,0]),  # [time, y, x]
+            'velocity_magnitude': np.array(flow_data['velocity_magnitude'][0,0])  # [time, y, x]
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load flow data: {e}")
+        return None
+
+
+def load_sensitivity_data():
+    """Load sensitivity analysis data.
+    
+    Returns:
+        dict: Sensitivity data with parameter variations and tornado plot data
+    """
+    try:
+        file_path = '/workspace/data/sensitivity/sensitivity_data.mat'
+        data = oct2py.io.loadmat(file_path)
+        
+        # Extract sensitivity_data struct
+        sensitivity_data = data['sensitivity_data']
+        
+        return {
+            'parameter_names': [str(name[0]) for name in sensitivity_data['parameter_names'][0,0]],
+            'base_case_production': float(sensitivity_data['base_case_production'][0,0]),
+            'varied_production': np.array(sensitivity_data['varied_production'][0,0]),
+            'sensitivity_matrix': np.array(sensitivity_data['sensitivity_matrix'][0,0]),
+            'tornado_data': {
+                'parameter_names': [str(name[0]) for name in sensitivity_data['tornado_data'][0,0]['parameter_names'][0,0]],
+                'sensitivity_values': np.array(sensitivity_data['tornado_data'][0,0]['sensitivity_values'][0,0]).flatten(),
+                'production_low': np.array(sensitivity_data['tornado_data'][0,0]['production_low'][0,0]).flatten(),
+                'production_high': np.array(sensitivity_data['tornado_data'][0,0]['production_high'][0,0]).flatten()
+            },
+            'parameter_values': np.array(sensitivity_data['parameter_values'][0,0]),
+            'variation_levels': np.array(sensitivity_data['variation_levels'][0,0]).flatten()
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to load sensitivity data: {e}")
+        return None
+
+
+def load_reservoir_data():
+    """Load reservoir volumetric data from metadata.
+    
+    Returns:
+        dict: Reservoir data with OOIP, PV, and voidage information
+    """
+    try:
+        metadata = load_metadata()
+        if metadata and 'reservoir_data' in metadata:
+            reservoir_data = metadata['reservoir_data']
+            return {
+                'ooip_initial': float(reservoir_data['ooip_initial']),
+                'pv_initial': float(reservoir_data['pv_initial']),
+                'voidage_ratio': np.array(reservoir_data['voidage_ratio']).flatten()
+            }
+        else:
+            print("[WARN] Reservoir data not found in metadata")
+            return None
+            
+    except Exception as e:
+        print(f"[ERROR] Failed to load reservoir data: {e}")
+        return None
+
+
+def load_dynamic_fields():
+    """Alias for load_field_arrays for backward compatibility."""
+    return load_field_arrays()
+
+
+# Helper functions for specific plot requirements
+def get_well_locations():
+    """Get well locations from static data.
+    
+    Returns:
+        tuple: (producers, injectors) dictionaries with well names and locations
+    """
+    try:
+        static_data = load_static_data()
+        if static_data and 'wells' in static_data:
+            wells = static_data['wells']
+            
+            producers = {}
+            injectors = {}
+            
+            # Extract well information
+            well_names = wells['well_names'][0,0]
+            well_i = wells['well_i'][0,0]
+            well_j = wells['well_j'][0,0]
+            well_types = wells['well_types'][0,0]
+            
+            for i in range(len(well_names)):
+                name = str(well_names[i][0])
+                location = (int(well_i[i]), int(well_j[i]))
+                well_type = str(well_types[i][0])
+                
+                if well_type == 'producer':
+                    producers[name] = location
+                else:
+                    injectors[name] = location
+            
+            return producers, injectors
+        else:
+            # Default well pattern if no data available
+            producers = {
+                'P1': (5, 5),
+                'P2': (15, 5),
+                'P3': (5, 15),
+                'P4': (15, 15)
+            }
+            
+            injectors = {
+                'I1': (10, 10),
+                'I2': (2, 10),
+                'I3': (18, 10),
+                'I4': (10, 2),
+                'I5': (10, 18)
+            }
+            
+            return producers, injectors
+            
+    except Exception as e:
+        print(f"[ERROR] Failed to get well locations: {e}")
+        # Return default pattern
+        producers = {
+            'P1': (5, 5),
+            'P2': (15, 5),
+            'P3': (5, 15),
+            'P4': (15, 15)
+        }
+        
+        injectors = {
+            'I1': (10, 10),
+            'I2': (2, 10),
+            'I3': (18, 10),
+            'I4': (10, 2),
+            'I5': (10, 18)
+        }
+        
+        return producers, injectors
+
+
+def calculate_water_cut(well_data):
+    """Calculate water cut from well data.
+    
+    Args:
+        well_data: Dictionary from load_well_data()
+        
+    Returns:
+        dict: Water cut data with time and well information
+    """
+    try:
+        qWs = well_data['qWs']
+        qOs = well_data['qOs']
+        
+        # Calculate water cut: qw / (qw + qo)
+        total_liquid = qWs + qOs
+        water_cut = np.where(total_liquid > 0, qWs / total_liquid, 0)
+        
+        return {
+            'time_days': well_data['time_days'],
+            'well_names': well_data['well_names'],
+            'water_cut': water_cut
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to calculate water cut: {e}")
+        return None
+
+
+def calculate_voidage_ratio(schedule_data):
+    """Calculate voidage ratio from schedule data.
+    
+    Args:
+        schedule_data: Dictionary from load_schedule_data()
+        
+    Returns:
+        dict: Voidage ratio data
+    """
+    try:
+        production_rates = schedule_data['production_rates']
+        injection_rates = schedule_data['injection_rates']
+        
+        # Calculate voidage ratio: injection / production
+        voidage_ratio = np.where(production_rates > 0, injection_rates / production_rates, 0)
+        
+        return {
+            'time_days': schedule_data['time_days'],
+            'voidage_ratio': voidage_ratio
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to calculate voidage ratio: {e}")
+        return None
+
+
+def calculate_fractional_flow(well_data):
+    """Calculate fractional flow from well data.
+    
+    Args:
+        well_data: Dictionary from load_well_data()
+        
+    Returns:
+        dict: Fractional flow data
+    """
+    try:
+        qWs = well_data['qWs']
+        qOs = well_data['qOs']
+        
+        # Calculate fractional flow: qw / (qw + qo)
+        total_flow = qWs + qOs
+        fw = np.where(total_flow > 0, qWs / total_flow, 0)
+        
+        return {
+            'time_days': well_data['time_days'],
+            'well_names': well_data['well_names'],
+            'fractional_flow': fw
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to calculate fractional flow: {e}")
+        return None 

@@ -7,153 +7,103 @@ E-1: Pressure evolution (average + range) - REQUIRES REAL MRST DATA
 E-2: Effective stress evolution - REQUIRES REAL MRST DATA  
 E-3: Porosity evolution - REQUIRES REAL MRST DATA
 E-4: Permeability evolution - REQUIRES REAL MRST DATA
+E-5: Water saturation histogram evolution - REQUIRES REAL MRST DATA
 
-IMPORTANT: This script now requires real MRST simulation data.
-No synthetic data generation. Will fail if data is not available.
+Uses optimized data loader with oct2py for proper .mat file reading.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-import glob
 import os
 from pathlib import Path
 
-
-def parse_octave_mat_file(filepath):
-    """Parse Octave text format .mat file"""
-    
-    data = {}
-    current_var = None
-    reading_matrix = False
-    
-    with open(filepath, 'r') as f:
-        lines = f.readlines()
-    
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-        
-        if line.startswith('#') or not line:
-            if line.startswith('# name:'):
-                current_var = line.split(':', 1)[1].strip()
-            elif line.startswith('# type: matrix'):
-                reading_matrix = True
-            elif line.startswith('# rows:'):
-                rows = int(line.split(':', 1)[1].strip())
-            elif line.startswith('# columns:'):
-                cols = int(line.split(':', 1)[1].strip())
-                if reading_matrix and current_var:
-                    matrix_data = []
-                    for j in range(i + 1, i + 1 + rows):
-                        if j < len(lines):
-                            row_data = [float(x) for x in lines[j].split()]
-                            matrix_data.extend(row_data)
-                    data[current_var] = np.array(matrix_data).reshape(rows, cols)
-                    i += rows
-                    reading_matrix = False
-                    current_var = None
-        i += 1
-    
-    return data
-
-
-def load_snapshots():
-    """Load all simulation snapshots - REQUIRED FOR ALL E PLOTS"""
-    
-    data_path = Path("/workspace/data")
-    
-    snapshot_files = sorted(glob.glob(str(data_path / "snapshots/snap_*.mat")))
-    
-    if not snapshot_files:
-        raise FileNotFoundError(
-            f"❌ MISSING DATA: No snapshot files found in {data_path}\n"
-            f"   Required: snapshots/snap_*.mat files from MRST simulation\n"
-            f"   Run MRST simulation and export_dataset.m first.")
-    
-    print(f"📊 Found {len(snapshot_files)} snapshots")
-    
-    snapshots = []
-    timesteps = []
-    
-    for file_path in snapshot_files:
-        try:
-            filename = os.path.basename(file_path)
-            timestep = int(filename.replace('snap_', '').replace('.mat', ''))
-            
-            snapshot_data = parse_octave_mat_file(file_path)
-            
-            if not snapshot_data:
-                raise ValueError(
-                    f"❌ INVALID DATA: Could not parse {file_path}\n"
-                    f"   Check MRST snapshot export format.")
-            
-            snapshots.append(snapshot_data)
-            timesteps.append(timestep)
-            
-        except Exception as e:
-            raise ValueError(
-                f"❌ ERROR loading {file_path}: {e}\n"
-                f"   Check MRST snapshot export format.")
-    
-    if len(snapshots) == 0:
-        raise ValueError(
-            f"❌ NO VALID DATA: No snapshots could be loaded\n"
-            f"   Check MRST snapshot generation and export.")
-    
-    print(f"✅ Loaded {len(snapshots)} snapshots successfully")
-    return snapshots, timesteps
+# Import the optimized data loader
+try:
+    from util_data_loader import (
+        load_field_arrays, load_temporal_data,
+        check_data_availability, print_data_summary
+    )
+    USE_OPTIMIZED_LOADER = True
+    print("✅ Using optimized data loader with oct2py")
+except ImportError:
+    USE_OPTIMIZED_LOADER = False
+    print("❌ Optimized data loader not available")
 
 
 def plot_pressure_evolution(output_path=None):
-    """E-1: Pressure evolution - REQUIRES REAL MRST DATA
-    Question: How does reservoir pressure change over time?
+    """E-1: Evolución de presión promedio + rango
+    Pregunta: ¿Cómo cambia la presión del yacimiento con el tiempo?
+    X-axis: Tiempo (días)
+    Y-axis: Presión (psi)
     """
     
     if output_path is None:
         output_path = (Path(__file__).parent.parent / 
                       "plots" / "E-1_pressure_evolution.png")
     
-    # Load real MRST data - NO FALLBACK TO SYNTHETIC
-    snapshots, timesteps = load_snapshots()
-    n_steps = len(snapshots)
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ E-1 requires optimized data loader with oct2py")
+        return False
     
-    # Check for required data in first snapshot
-    if 'pressure' not in snapshots[0]:
-        raise ValueError(
-            f"❌ MISSING DATA: 'pressure' not found in snapshots\n"
-            f"   Required variables: pressure\n"
-            f"   Available variables: {list(snapshots[0].keys())}\n"
-            f"   Check MRST extract_snapshot.m export.")
-    
-    pressure_avg = np.zeros(n_steps)
-    pressure_min = np.zeros(n_steps)
-    pressure_max = np.zeros(n_steps)
-    time_days = np.zeros(n_steps)
-    
-    for i, snapshot in enumerate(snapshots):
-        pressure_psi = snapshot['pressure'].flatten()
+    # Load MRST data using optimized loader
+    try:
+        field_data = load_field_arrays()
+        temporal_data = load_temporal_data()
         
-        if len(pressure_psi) == 0:
+        if not field_data or not temporal_data:
+            raise ValueError("No field or temporal data available")
+        
+        # Check for required data
+        if 'pressure' not in field_data:
             raise ValueError(
-                f"❌ EMPTY DATA: Pressure array is empty at timestep {timesteps[i]}\n"
-                f"   Check MRST pressure calculation.")
+                f"❌ MISSING DATA: 'pressure' not found in field data\n"
+                f"   Required variables: pressure\n"
+                f"   Available variables: {list(field_data.keys())}\n"
+                f"   Check MRST field arrays export.")
         
-        pressure_avg[i] = np.mean(pressure_psi)
-        pressure_min[i] = np.min(pressure_psi)
-        pressure_max[i] = np.max(pressure_psi)
+        pressure_data = field_data['pressure']  # [time, y, x]
+        time_days = temporal_data['time_days']
         
-        # Get time in days if available
-        if 'time_days' in snapshot:
-            time_days[i] = snapshot['time_days']
-        else:
-            time_days[i] = timesteps[i]  # Use timestep as fallback
+        if len(pressure_data.shape) != 3:
+            raise ValueError(
+                f"❌ INVALID DATA: Pressure data should be 3D [time, y, x]\n"
+                f"   Current shape: {pressure_data.shape}")
+        
+        # Calculate statistics for each timestep
+        n_steps = pressure_data.shape[0]
+        pressure_avg = np.zeros(n_steps)
+        pressure_min = np.zeros(n_steps)
+        pressure_max = np.zeros(n_steps)
+        
+        for i in range(n_steps):
+            pressure_snapshot = pressure_data[i, :, :].flatten()
+            pressure_avg[i] = np.mean(pressure_snapshot)
+            pressure_min[i] = np.min(pressure_snapshot)
+            pressure_max[i] = np.max(pressure_snapshot)
+        
+    except Exception as e:
+        print(f"❌ E-1 REQUIRES REAL MRST DATA: {e}")
+        return False
     
+    # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
     
-    ax.plot(time_days, pressure_avg, 'b-', linewidth=4, label='Average Pressure', 
-            marker='o', markersize=6)
+    # Plot average pressure
+    ax.plot(time_days, pressure_avg, 'b-', linewidth=4, 
+           label='Presión Promedio', marker='o', markersize=6)
+    
+    # Add range as filled area
     ax.fill_between(time_days, pressure_min, pressure_max, 
-                    alpha=0.3, color='blue', label='Min-Max Range')
+                    alpha=0.3, color='blue', label='Rango Min-Max')
+    
+    ax.set_xlabel('Tiempo (días)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Presión (psi)', fontsize=14, fontweight='bold')
+    ax.set_title('E-1: Evolución de Presión del Yacimiento\n¿Cómo cambia la presión del yacimiento con el tiempo?', 
+                fontsize=16, fontweight='bold')
+    
+    # Move legend outside plot area
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
+    ax.grid(True, alpha=0.3)
     
     # Add statistics outside plot area
     initial_avg = pressure_avg[0]
@@ -161,29 +111,21 @@ def plot_pressure_evolution(output_path=None):
     pressure_change = final_avg - initial_avg
     pressure_decline_rate = pressure_change / (time_days[-1] - time_days[0]) if len(time_days) > 1 else 0
     
-    stats_text = (f'Pressure Statistics:\n'
-                 f'Initial: {initial_avg:.1f} psi\n'
+    stats_text = (f'Estadísticas de Presión:\n'
+                 f'Inicial: {initial_avg:.1f} psi\n'
                  f'Final: {final_avg:.1f} psi\n'
-                 f'Change: {pressure_change:+.1f} psi\n'
-                 f'Rate: {pressure_decline_rate:.2f} psi/day\n'
-                 f'Time span: {time_days[0]:.1f} - {time_days[-1]:.1f} days')
+                 f'Cambio: {pressure_change:+.1f} psi\n'
+                 f'Tasa: {pressure_decline_rate:.2f} psi/día\n'
+                 f'Tiempo: {time_days[0]:.1f} - {time_days[-1]:.1f} días')
     
-    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, va='top', ha='left',
-            fontsize=11, bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, 
+            va='top', ha='left', fontsize=11, 
+            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
     
-    # Add data source info
-    ax.text(1.02, 0.65, 'Source: MRST\nSnapshot data\n(Real simulation)', 
+    # Add source info
+    ax.text(1.02, 0.65, 'Fuente: MRST\nDatos de campo\n(Simulación real)', 
             transform=ax.transAxes, va='top', ha='left', fontsize=10,
             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    ax.set_xlabel('Time (days)', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Pressure (psi)', fontsize=14, fontweight='bold')
-    ax.set_title('E-1: Reservoir Pressure Evolution\nQuestion: How does reservoir pressure change over time?', 
-                 fontsize=16, fontweight='bold')
-    
-    # Move legend outside plot area
-    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
-    ax.grid(True, alpha=0.3)
     
     # Adjust layout
     plt.subplots_adjust(right=0.75)
@@ -192,89 +134,106 @@ def plot_pressure_evolution(output_path=None):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    print(f"✅ Pressure evolution plot saved: {output_path}")
+    print(f"✅ E-1 Pressure evolution plot saved: {output_path}")
+    return True
 
 
 def plot_stress_evolution(output_path=None):
-    """E-2: Effective stress evolution - REQUIRES REAL MRST DATA
-    Question: How does effective stress change with depletion?
+    """E-2: Evolución de esfuerzo efectivo promedio + rango
+    Pregunta: ¿Cómo cambia el esfuerzo efectivo con el agotamiento?
+    X-axis: Tiempo (días)
+    Y-axis: Esfuerzo efectivo (psi)
     """
     
     if output_path is None:
         output_path = (Path(__file__).parent.parent / 
                       "plots" / "E-2_stress_evolution.png")
     
-    # Load real MRST data - NO FALLBACK TO SYNTHETIC
-    snapshots, timesteps = load_snapshots()
-    n_steps = len(snapshots)
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ E-2 requires optimized data loader with oct2py")
+        return False
     
-    # Check for required data in first snapshot
-    if 'sigma_eff' not in snapshots[0]:
-        raise ValueError(
-            f"❌ MISSING DATA: 'sigma_eff' not found in snapshots\n"
-            f"   Required variables: sigma_eff (effective stress)\n"
-            f"   Available variables: {list(snapshots[0].keys())}\n"
-            f"   Check MRST extract_snapshot.m export.")
-    
-    stress_avg = np.zeros(n_steps)
-    stress_min = np.zeros(n_steps)
-    stress_max = np.zeros(n_steps)
-    time_days = np.zeros(n_steps)
-    
-    for i, snapshot in enumerate(snapshots):
-        stress_psi = snapshot['sigma_eff'].flatten()
+    # Load MRST data using optimized loader
+    try:
+        field_data = load_field_arrays()
+        temporal_data = load_temporal_data()
         
-        if len(stress_psi) == 0:
+        if not field_data or not temporal_data:
+            raise ValueError("No field or temporal data available")
+        
+        # Check for required data
+        if 'sigma_eff' not in field_data:
             raise ValueError(
-                f"❌ EMPTY DATA: Stress array is empty at timestep {timesteps[i]}\n"
-                f"   Check MRST stress calculation.")
+                f"❌ MISSING DATA: 'sigma_eff' not found in field data\n"
+                f"   Required variables: sigma_eff\n"
+                f"   Available variables: {list(field_data.keys())}\n"
+                f"   Check MRST field arrays export.")
         
-        stress_avg[i] = np.mean(stress_psi)
-        stress_min[i] = np.min(stress_psi)
-        stress_max[i] = np.max(stress_psi)
+        stress_data = field_data['sigma_eff']  # [time, y, x]
+        time_days = temporal_data['time_days']
         
-        # Get time in days if available
-        if 'time_days' in snapshot:
-            time_days[i] = snapshot['time_days']
-        else:
-            time_days[i] = timesteps[i]  # Use timestep as fallback
+        if len(stress_data.shape) != 3:
+            raise ValueError(
+                f"❌ INVALID DATA: Stress data should be 3D [time, y, x]\n"
+                f"   Current shape: {stress_data.shape}")
+        
+        # Calculate statistics for each timestep
+        n_steps = stress_data.shape[0]
+        stress_avg = np.zeros(n_steps)
+        stress_min = np.zeros(n_steps)
+        stress_max = np.zeros(n_steps)
+        
+        for i in range(n_steps):
+            stress_snapshot = stress_data[i, :, :].flatten()
+            stress_avg[i] = np.mean(stress_snapshot)
+            stress_min[i] = np.min(stress_snapshot)
+            stress_max[i] = np.max(stress_snapshot)
+        
+    except Exception as e:
+        print(f"❌ E-2 REQUIRES REAL MRST DATA: {e}")
+        return False
     
+    # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
     
-    ax.plot(time_days, stress_avg, 'r-', linewidth=4, label='Average Stress', 
-            marker='s', markersize=6)
+    # Plot average stress
+    ax.plot(time_days, stress_avg, 'r-', linewidth=4, 
+           label='Esfuerzo Efectivo Promedio', marker='s', markersize=6)
+    
+    # Add range as filled area
     ax.fill_between(time_days, stress_min, stress_max, 
-                    alpha=0.3, color='red', label='Min-Max Range')
+                    alpha=0.3, color='red', label='Rango Min-Max')
+    
+    ax.set_xlabel('Tiempo (días)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Esfuerzo Efectivo (psi)', fontsize=14, fontweight='bold')
+    ax.set_title('E-2: Evolución de Esfuerzo Efectivo\n¿Cómo cambia el esfuerzo efectivo con el agotamiento?', 
+                fontsize=16, fontweight='bold')
+    
+    # Move legend outside plot area
+    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
+    ax.grid(True, alpha=0.3)
     
     # Add statistics outside plot area
     initial_avg = stress_avg[0]
     final_avg = stress_avg[-1]
     stress_change = final_avg - initial_avg
-    stress_rate = stress_change / (time_days[-1] - time_days[0]) if len(time_days) > 1 else 0
+    stress_increase_rate = stress_change / (time_days[-1] - time_days[0]) if len(time_days) > 1 else 0
     
-    stats_text = (f'Stress Statistics:\n'
-                 f'Initial: {initial_avg:.1f} psi\n'
+    stats_text = (f'Estadísticas de Esfuerzo:\n'
+                 f'Inicial: {initial_avg:.1f} psi\n'
                  f'Final: {final_avg:.1f} psi\n'
-                 f'Change: {stress_change:+.1f} psi\n'
-                 f'Rate: {stress_rate:.2f} psi/day\n'
-                 f'Time span: {time_days[0]:.1f} - {time_days[-1]:.1f} days')
+                 f'Cambio: {stress_change:+.1f} psi\n'
+                 f'Tasa: {stress_increase_rate:.2f} psi/día\n'
+                 f'Tiempo: {time_days[0]:.1f} - {time_days[-1]:.1f} días')
     
-    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, va='top', ha='left',
-            fontsize=11, bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.8))
+    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, 
+            va='top', ha='left', fontsize=11, 
+            bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.8))
     
-    # Add data source info
-    ax.text(1.02, 0.65, 'Source: MRST\nSnapshot data\n(Real simulation)', 
+    # Add source info
+    ax.text(1.02, 0.65, 'Fuente: MRST\nDatos de campo\n(Simulación real)', 
             transform=ax.transAxes, va='top', ha='left', fontsize=10,
             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    ax.set_xlabel('Time (days)', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Effective Stress (psi)', fontsize=14, fontweight='bold')
-    ax.set_title('E-2: Effective Stress Evolution\nQuestion: How does effective stress change with depletion?', 
-                 fontsize=16, fontweight='bold')
-    
-    # Move legend outside plot area
-    ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
-    ax.grid(True, alpha=0.3)
     
     # Adjust layout
     plt.subplots_adjust(right=0.75)
@@ -283,89 +242,106 @@ def plot_stress_evolution(output_path=None):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    print(f"✅ Stress evolution plot saved: {output_path}")
+    print(f"✅ E-2 Stress evolution plot saved: {output_path}")
+    return True
 
 
 def plot_porosity_evolution(output_path=None):
-    """E-3: Porosity evolution - REQUIRES REAL MRST DATA
-    Question: How much does porosity change due to compaction?
+    """E-3: Evolución de porosidad promedio + rango
+    Pregunta: ¿Cómo cambia la porosidad con la compactación?
+    X-axis: Tiempo (días)
+    Y-axis: Porosidad (-)
     """
     
     if output_path is None:
         output_path = (Path(__file__).parent.parent / 
                       "plots" / "E-3_porosity_evolution.png")
     
-    # Load real MRST data - NO FALLBACK TO SYNTHETIC
-    snapshots, timesteps = load_snapshots()
-    n_steps = len(snapshots)
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ E-3 requires optimized data loader with oct2py")
+        return False
     
-    # Check for required data in first snapshot
-    if 'phi' not in snapshots[0]:
-        raise ValueError(
-            f"❌ MISSING DATA: 'phi' not found in snapshots\n"
-            f"   Required variables: phi (porosity)\n"
-            f"   Available variables: {list(snapshots[0].keys())}\n"
-            f"   Check MRST extract_snapshot.m export.")
-    
-    porosity_avg = np.zeros(n_steps)
-    porosity_min = np.zeros(n_steps)
-    porosity_max = np.zeros(n_steps)
-    time_days = np.zeros(n_steps)
-    
-    for i, snapshot in enumerate(snapshots):
-        porosity = snapshot['phi'].flatten()
+    # Load MRST data using optimized loader
+    try:
+        field_data = load_field_arrays()
+        temporal_data = load_temporal_data()
         
-        if len(porosity) == 0:
+        if not field_data or not temporal_data:
+            raise ValueError("No field or temporal data available")
+        
+        # Check for required data
+        if 'phi' not in field_data:
             raise ValueError(
-                f"❌ EMPTY DATA: Porosity array is empty at timestep {timesteps[i]}\n"
-                f"   Check MRST porosity calculation.")
+                f"❌ MISSING DATA: 'phi' not found in field data\n"
+                f"   Required variables: phi\n"
+                f"   Available variables: {list(field_data.keys())}\n"
+                f"   Check MRST field arrays export.")
         
-        porosity_avg[i] = np.mean(porosity)
-        porosity_min[i] = np.min(porosity)
-        porosity_max[i] = np.max(porosity)
+        phi_data = field_data['phi']  # [time, y, x]
+        time_days = temporal_data['time_days']
         
-        # Get time in days if available
-        if 'time_days' in snapshot:
-            time_days[i] = snapshot['time_days']
-        else:
-            time_days[i] = timesteps[i]  # Use timestep as fallback
+        if len(phi_data.shape) != 3:
+            raise ValueError(
+                f"❌ INVALID DATA: Porosity data should be 3D [time, y, x]\n"
+                f"   Current shape: {phi_data.shape}")
+        
+        # Calculate statistics for each timestep
+        n_steps = phi_data.shape[0]
+        phi_avg = np.zeros(n_steps)
+        phi_min = np.zeros(n_steps)
+        phi_max = np.zeros(n_steps)
+        
+        for i in range(n_steps):
+            phi_snapshot = phi_data[i, :, :].flatten()
+            phi_avg[i] = np.mean(phi_snapshot)
+            phi_min[i] = np.min(phi_snapshot)
+            phi_max[i] = np.max(phi_snapshot)
+        
+    except Exception as e:
+        print(f"❌ E-3 REQUIRES REAL MRST DATA: {e}")
+        return False
     
+    # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
     
-    ax.plot(time_days, porosity_avg, 'g-', linewidth=4, label='Average Porosity', 
-            marker='^', markersize=6)
-    ax.fill_between(time_days, porosity_min, porosity_max, 
-                    alpha=0.3, color='green', label='Min-Max Range')
+    # Plot average porosity
+    ax.plot(time_days, phi_avg, 'g-', linewidth=4, 
+           label='Porosidad Promedio', marker='^', markersize=6)
     
-    # Add statistics outside plot area
-    initial_avg = porosity_avg[0]
-    final_avg = porosity_avg[-1]
-    porosity_change = final_avg - initial_avg
-    porosity_change_percent = (porosity_change / initial_avg) * 100 if initial_avg != 0 else 0
+    # Add range as filled area
+    ax.fill_between(time_days, phi_min, phi_max, 
+                    alpha=0.3, color='green', label='Rango Min-Max')
     
-    stats_text = (f'Porosity Statistics:\n'
-                 f'Initial: {initial_avg:.4f}\n'
-                 f'Final: {final_avg:.4f}\n'
-                 f'Change: {porosity_change:+.4f}\n'
-                 f'% Change: {porosity_change_percent:+.2f}%\n'
-                 f'Time span: {time_days[0]:.1f} - {time_days[-1]:.1f} days')
-    
-    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, va='top', ha='left',
-            fontsize=11, bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    # Add data source info
-    ax.text(1.02, 0.65, 'Source: MRST\nSnapshot data\n(Real simulation)', 
-            transform=ax.transAxes, va='top', ha='left', fontsize=10,
-            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    ax.set_xlabel('Time (days)', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Porosity (-)', fontsize=14, fontweight='bold')
-    ax.set_title('E-3: Porosity Evolution\nQuestion: How much does porosity change due to compaction?', 
-                 fontsize=16, fontweight='bold')
+    ax.set_xlabel('Tiempo (días)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Porosidad (-)', fontsize=14, fontweight='bold')
+    ax.set_title('E-3: Evolución de Porosidad\n¿Cómo cambia la porosidad con la compactación?', 
+                fontsize=16, fontweight='bold')
     
     # Move legend outside plot area
     ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
     ax.grid(True, alpha=0.3)
+    
+    # Add statistics outside plot area
+    initial_avg = phi_avg[0]
+    final_avg = phi_avg[-1]
+    phi_change = final_avg - initial_avg
+    phi_reduction_rate = phi_change / (time_days[-1] - time_days[0]) if len(time_days) > 1 else 0
+    
+    stats_text = (f'Estadísticas de Porosidad:\n'
+                 f'Inicial: {initial_avg:.4f}\n'
+                 f'Final: {final_avg:.4f}\n'
+                 f'Cambio: {phi_change:+.4f}\n'
+                 f'Tasa: {phi_reduction_rate:.6f} /día\n'
+                 f'Tiempo: {time_days[0]:.1f} - {time_days[-1]:.1f} días')
+    
+    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, 
+            va='top', ha='left', fontsize=11, 
+            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+    
+    # Add source info
+    ax.text(1.02, 0.65, 'Fuente: MRST\nDatos de campo\n(Simulación real)', 
+            transform=ax.transAxes, va='top', ha='left', fontsize=10,
+            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
     
     # Adjust layout
     plt.subplots_adjust(right=0.75)
@@ -374,90 +350,106 @@ def plot_porosity_evolution(output_path=None):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    print(f"✅ Porosity evolution plot saved: {output_path}")
+    print(f"✅ E-3 Porosity evolution plot saved: {output_path}")
+    return True
 
 
 def plot_permeability_evolution(output_path=None):
-    """E-4: Permeability evolution - REQUIRES REAL MRST DATA
-    Question: How much does permeability change due to compaction?
+    """E-4: Evolución de permeabilidad promedio + rango
+    Pregunta: ¿Cómo cambia la permeabilidad con la compactación?
+    X-axis: Tiempo (días)
+    Y-axis: Permeabilidad (mD)
     """
     
     if output_path is None:
         output_path = (Path(__file__).parent.parent / 
                       "plots" / "E-4_permeability_evolution.png")
     
-    # Load real MRST data - NO FALLBACK TO SYNTHETIC
-    snapshots, timesteps = load_snapshots()
-    n_steps = len(snapshots)
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ E-4 requires optimized data loader with oct2py")
+        return False
     
-    # Check for required data in first snapshot
-    if 'k' not in snapshots[0]:
-        raise ValueError(
-            f"❌ MISSING DATA: 'k' not found in snapshots\n"
-            f"   Required variables: k (permeability)\n"
-            f"   Available variables: {list(snapshots[0].keys())}\n"
-            f"   Check MRST extract_snapshot.m export.")
-    
-    perm_avg = np.zeros(n_steps)
-    perm_min = np.zeros(n_steps)
-    perm_max = np.zeros(n_steps)
-    time_days = np.zeros(n_steps)
-    
-    for i, snapshot in enumerate(snapshots):
-        permeability = snapshot['k'].flatten()
+    # Load MRST data using optimized loader
+    try:
+        field_data = load_field_arrays()
+        temporal_data = load_temporal_data()
         
-        if len(permeability) == 0:
+        if not field_data or not temporal_data:
+            raise ValueError("No field or temporal data available")
+        
+        # Check for required data
+        if 'k' not in field_data:
             raise ValueError(
-                f"❌ EMPTY DATA: Permeability array is empty at timestep {timesteps[i]}\n"
-                f"   Check MRST permeability calculation.")
+                f"❌ MISSING DATA: 'k' not found in field data\n"
+                f"   Required variables: k\n"
+                f"   Available variables: {list(field_data.keys())}\n"
+                f"   Check MRST field arrays export.")
         
-        perm_avg[i] = np.mean(permeability)
-        perm_min[i] = np.min(permeability)
-        perm_max[i] = np.max(permeability)
+        k_data = field_data['k']  # [time, y, x]
+        time_days = temporal_data['time_days']
         
-        # Get time in days if available
-        if 'time_days' in snapshot:
-            time_days[i] = snapshot['time_days']
-        else:
-            time_days[i] = timesteps[i]  # Use timestep as fallback
+        if len(k_data.shape) != 3:
+            raise ValueError(
+                f"❌ INVALID DATA: Permeability data should be 3D [time, y, x]\n"
+                f"   Current shape: {k_data.shape}")
+        
+        # Calculate statistics for each timestep
+        n_steps = k_data.shape[0]
+        k_avg = np.zeros(n_steps)
+        k_min = np.zeros(n_steps)
+        k_max = np.zeros(n_steps)
+        
+        for i in range(n_steps):
+            k_snapshot = k_data[i, :, :].flatten()
+            k_avg[i] = np.mean(k_snapshot)
+            k_min[i] = np.min(k_snapshot)
+            k_max[i] = np.max(k_snapshot)
+        
+    except Exception as e:
+        print(f"❌ E-4 REQUIRES REAL MRST DATA: {e}")
+        return False
     
+    # Create figure
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
     
-    # Plot on log scale for permeability
-    ax.semilogy(time_days, perm_avg, 'orange', linewidth=4, 
-               label='Average Permeability', marker='d', markersize=6)
-    ax.fill_between(time_days, perm_min, perm_max, 
-                    alpha=0.3, color='orange', label='Min-Max Range')
+    # Plot average permeability
+    ax.plot(time_days, k_avg, 'purple', linewidth=4, 
+           label='Permeabilidad Promedio', marker='d', markersize=6)
     
-    # Add statistics outside plot area
-    initial_avg = perm_avg[0]
-    final_avg = perm_avg[-1]
-    perm_change = final_avg - initial_avg
-    perm_change_percent = (perm_change / initial_avg) * 100 if initial_avg != 0 else 0
+    # Add range as filled area
+    ax.fill_between(time_days, k_min, k_max, 
+                    alpha=0.3, color='purple', label='Rango Min-Max')
     
-    stats_text = (f'Permeability Statistics:\n'
-                 f'Initial: {initial_avg:.1f} mD\n'
-                 f'Final: {final_avg:.1f} mD\n'
-                 f'Change: {perm_change:+.1f} mD\n'
-                 f'% Change: {perm_change_percent:+.2f}%\n'
-                 f'Time span: {time_days[0]:.1f} - {time_days[-1]:.1f} days')
-    
-    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, va='top', ha='left',
-            fontsize=11, bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
-    
-    # Add data source info
-    ax.text(1.02, 0.65, 'Source: MRST\nSnapshot data\n(Real simulation)', 
-            transform=ax.transAxes, va='top', ha='left', fontsize=10,
-            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
-    
-    ax.set_xlabel('Time (days)', fontsize=14, fontweight='bold')
-    ax.set_ylabel('Permeability (mD)', fontsize=14, fontweight='bold')
-    ax.set_title('E-4: Permeability Evolution\nQuestion: How much does permeability change due to compaction?', 
-                 fontsize=16, fontweight='bold')
+    ax.set_xlabel('Tiempo (días)', fontsize=14, fontweight='bold')
+    ax.set_ylabel('Permeabilidad (mD)', fontsize=14, fontweight='bold')
+    ax.set_title('E-4: Evolución de Permeabilidad\n¿Cómo cambia la permeabilidad con la compactación?', 
+                fontsize=16, fontweight='bold')
     
     # Move legend outside plot area
     ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5), fontsize=12)
     ax.grid(True, alpha=0.3)
+    
+    # Add statistics outside plot area
+    initial_avg = k_avg[0]
+    final_avg = k_avg[-1]
+    k_change = final_avg - initial_avg
+    k_reduction_rate = k_change / (time_days[-1] - time_days[0]) if len(time_days) > 1 else 0
+    
+    stats_text = (f'Estadísticas de Permeabilidad:\n'
+                 f'Inicial: {initial_avg:.2f} mD\n'
+                 f'Final: {final_avg:.2f} mD\n'
+                 f'Cambio: {k_change:+.2f} mD\n'
+                 f'Tasa: {k_reduction_rate:.4f} mD/día\n'
+                 f'Tiempo: {time_days[0]:.1f} - {time_days[-1]:.1f} días')
+    
+    ax.text(1.02, 0.98, stats_text, transform=ax.transAxes, 
+            va='top', ha='left', fontsize=11, 
+            bbox=dict(boxstyle='round', facecolor='plum', alpha=0.8))
+    
+    # Add source info
+    ax.text(1.02, 0.65, 'Fuente: MRST\nDatos de campo\n(Simulación real)', 
+            transform=ax.transAxes, va='top', ha='left', fontsize=10,
+            bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
     
     # Adjust layout
     plt.subplots_adjust(right=0.75)
@@ -466,7 +458,117 @@ def plot_permeability_evolution(output_path=None):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    print(f"✅ Permeability evolution plot saved: {output_path}")
+    print(f"✅ E-4 Permeability evolution plot saved: {output_path}")
+    return True
+
+
+def plot_saturation_histogram_evolution(output_path=None):
+    """E-5: Evolución de histograma de saturación de agua
+    Pregunta: ¿Cómo evoluciona la distribución de saturación de agua?
+    X-axis: Saturación de agua Sw (-)
+    Y-axis: Frecuencia (# celdas)
+    """
+    
+    if output_path is None:
+        output_path = (Path(__file__).parent.parent / 
+                      "plots" / "E-5_saturation_histogram_evolution.png")
+    
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ E-5 requires optimized data loader with oct2py")
+        return False
+    
+    # Load MRST data using optimized loader
+    try:
+        field_data = load_field_arrays()
+        temporal_data = load_temporal_data()
+        
+        if not field_data or not temporal_data:
+            raise ValueError("No field or temporal data available")
+        
+        # Check for required data
+        if 'sw' not in field_data:
+            raise ValueError(
+                f"❌ MISSING DATA: 'sw' not found in field data\n"
+                f"   Required variables: sw\n"
+                f"   Available variables: {list(field_data.keys())}\n"
+                f"   Check MRST field arrays export.")
+        
+        sw_data = field_data['sw']  # [time, y, x]
+        time_days = temporal_data['time_days']
+        
+        if len(sw_data.shape) != 3:
+            raise ValueError(
+                f"❌ INVALID DATA: Saturation data should be 3D [time, y, x]\n"
+                f"   Current shape: {sw_data.shape}")
+        
+    except Exception as e:
+        print(f"❌ E-5 REQUIRES REAL MRST DATA: {e}")
+        return False
+    
+    # Create figure with subplots for different timesteps
+    n_steps = sw_data.shape[0]
+    
+    # Select key timesteps for histogram display
+    if n_steps >= 4:
+        timestep_indices = [0, n_steps//3, 2*n_steps//3, n_steps-1]
+    elif n_steps >= 2:
+        timestep_indices = [0, n_steps-1]
+    else:
+        timestep_indices = [0]
+    
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    axes = axes.flatten()
+    
+    colors = ['blue', 'green', 'orange', 'red']
+    
+    for i, timestep_idx in enumerate(timestep_indices):
+        if i < len(axes):
+            ax = axes[i]
+            
+            # Get saturation data for this timestep
+            sw_snapshot = sw_data[timestep_idx, :, :].flatten()
+            
+            # Create histogram
+            ax.hist(sw_snapshot, bins=20, alpha=0.7, color=colors[i], 
+                   edgecolor='black', linewidth=1)
+            
+            ax.set_xlabel('Saturación de Agua Sw (-)', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Frecuencia (# celdas)', fontsize=12, fontweight='bold')
+            ax.set_title(f'Tiempo = {time_days[timestep_idx]:.1f} días', 
+                        fontsize=14, fontweight='bold')
+            ax.grid(True, alpha=0.3)
+            
+            # Add statistics
+            stats_text = (f'Media: {np.mean(sw_snapshot):.3f}\n'
+                         f'Desv.Est: {np.std(sw_snapshot):.3f}\n'
+                         f'Min: {np.min(sw_snapshot):.3f}\n'
+                         f'Max: {np.max(sw_snapshot):.3f}')
+            
+            ax.text(0.98, 0.98, stats_text, transform=ax.transAxes, 
+                   va='top', ha='right', fontsize=10, 
+                   bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+    
+    # Hide unused subplots
+    for i in range(len(timestep_indices), len(axes)):
+        axes[i].set_visible(False)
+    
+    # Add overall title
+    fig.suptitle('E-5: Evolución de Histograma de Saturación de Agua\n¿Cómo evoluciona la distribución de saturación de agua?', 
+                fontsize=16, fontweight='bold')
+    
+    # Add source info
+    fig.text(0.99, 0.01, 'Fuente: MRST (Simulación real)', 
+             ha='right', va='bottom', fontsize=10,
+             bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+    
+    plt.tight_layout()
+    
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.close()
+    
+    print(f"✅ E-5 Saturation histogram evolution plot saved: {output_path}")
+    return True
 
 
 def main():
@@ -474,22 +576,39 @@ def main():
     print("📈 Generating Category E: Global Evolution...")
     print("=" * 70)
     print("⚠️  IMPORTANT: This script requires real MRST simulation data.")
-    print("   E-1, E-2, E-3, E-4: Require real MRST snapshots (no synthetic fallback)")
+    print("   E-1, E-2, E-3, E-4, E-5: ALL require real MRST data (no synthetic fallback)")
+    print("   Uses optimized data loader with oct2py")
     print("=" * 70)
     
-    # Generate all plots for Category E - will fail if data not available
-    try:
-        plot_pressure_evolution()
-        plot_stress_evolution()
-        plot_porosity_evolution()
-        plot_permeability_evolution()
-    except (FileNotFoundError, ValueError) as e:
-        print(f"\n❌ CATEGORY E INCOMPLETE: {e}")
-        print(f"   To fix: Run MRST simulation and ensure snapshot export")
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ Cannot proceed without optimized data loader")
+        print("   Install oct2py: pip install oct2py")
         return False
     
-    print("✅ Category E evolution plots complete!")
-    return True
+    # Check data availability first
+    print("📊 Checking data availability...")
+    availability = check_data_availability()
+    print_data_summary()
+    
+    # ALL plots require real MRST data - will fail if not available
+    success = True
+    
+    if not plot_pressure_evolution():
+        success = False
+    if not plot_stress_evolution():
+        success = False
+    if not plot_porosity_evolution():
+        success = False
+    if not plot_permeability_evolution():
+        success = False
+    if not plot_saturation_histogram_evolution():
+        success = False
+    
+    if success:
+        print("✅ Category E global evolution plots complete!")
+    else:
+        print("❌ Category E incomplete - missing MRST data")
+    return success
 
 
 if __name__ == "__main__":

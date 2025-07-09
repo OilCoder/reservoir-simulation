@@ -1,175 +1,235 @@
 #!/usr/bin/env python3
 """
-MRST Monitoring System - Launcher único
-Genera plots individuales organizados por categorías y lanza dashboard
+MRST Monitoring System - Launch Script
+
+This script launches the MRST monitoring system with categorized plots.
+Uses oct2py for proper .mat file reading from the optimized data structure.
+
+Categories:
+- A: Fluid & Rock Properties (Individual)
+- B: Initial Conditions  
+- C: Geometry (Individual)
+- D: Operations (Individual)
+- E: Global Evolution
+- G: Spatial Maps with Well Locations & Animations
+- H: Multiphysics
+
+Data Structure:
+/workspace/data/
+├── initial/
+│   └── initial_conditions.mat
+├── static/
+│   └── static_data.mat
+├── temporal/
+│   └── time_data.mat
+├── dynamic/
+│   ├── fields/
+│   │   └── field_arrays.mat
+│   └── wells/
+│       └── well_data.mat
+└── metadata/
+    └── metadata.mat
 """
 
-import subprocess
+import os
 import sys
-import time
-import webbrowser
+import subprocess
 from pathlib import Path
+import argparse
+
+# Add the plot_scripts directory to the path
+script_dir = Path(__file__).parent
+plot_scripts_dir = script_dir / "plot_scripts"
+sys.path.insert(0, str(plot_scripts_dir))
+
+# Try to import the optimized data loader
+try:
+    from plot_scripts.util_data_loader import (
+        check_data_availability, print_data_summary
+    )
+    USE_OPTIMIZED_LOADER = True
+    print("✅ Using optimized data loader with oct2py")
+except ImportError:
+    USE_OPTIMIZED_LOADER = False
+    print("❌ Optimized data loader not available")
 
 
-def kill_existing_streamlit():
-    """Kill any existing Streamlit processes"""
+def check_oct2py_installation():
+    """Check if oct2py is installed"""
     try:
-        subprocess.run(["pkill", "-f", "streamlit"],
-                       capture_output=True, text=True)
-        print("🧹 Cleaning previous processes...")
-        time.sleep(1)
-    except Exception as e:
-        print(f"⚠️  Error cleaning processes: {e}")
+        import oct2py
+        print("✅ oct2py is installed")
+        return True
+    except ImportError:
+        print("❌ oct2py is not installed")
+        print("   Install with: pip install oct2py")
+        return False
 
 
-def generate_plots():
-    """Generate all individual monitoring plots by category"""
-    print("🎨 Generating individual plots by category...")
+def check_data_structure():
+    """Check if the optimized data structure exists"""
+    data_dir = Path("/workspace/data")
     
-    script_dir = Path(__file__).parent
+    if not data_dir.exists():
+        print(f"❌ Data directory not found: {data_dir}")
+        return False
     
-    # Category-based plot scripts (A-H) - Only use these to avoid duplicates
-    category_scripts = [
-        # Category A: Fluid & Rock Properties
-        "plot_category_a_fluid_rock_individual.py",
-        
-        # Category B: Initial Conditions  
-        "plot_category_b_initial_conditions.py",
-        
-        # Category C: Geometry & Configuration
-        "plot_category_c_geometry_individual.py",
-        
-        # Category D: Operations & Scheduling
-        "plot_category_d_operations_individual.py",
-        
-        # Category E: Global Evolution
-        "plot_category_e_global_evolution.py",
-        
-        # Category G: Spatial Maps with Well Locations & Animations
-        "plot_category_g_maps_animated.py",
-        
-        # Category H: Multiphysics Analysis
-        "plot_category_h_multiphysics.py"
+    required_structure = [
+        "initial/initial_conditions.mat",
+        "static/static_data.mat", 
+        "temporal/time_data.mat",
+        "dynamic/fields/field_arrays.mat",
+        "dynamic/wells/well_data.mat",
+        "metadata/metadata.mat"
     ]
     
-    all_scripts = category_scripts
+    missing_files = []
+    for file_path in required_structure:
+        full_path = data_dir / file_path
+        if not full_path.exists():
+            missing_files.append(file_path)
     
-    for script in all_scripts:
-        script_path = script_dir / "plot_scripts" / script
-        if script_path.exists():
-            print(f"  📊 Executing {script}...")
-            try:
-                result = subprocess.run([sys.executable, str(script_path)],
-                                        capture_output=True, text=True)
-                if result.returncode == 0:
-                    print(f"  ✅ {script} completed")
-                else:
-                    print(f"  ❌ Error in {script}: {result.stderr}")
-            except Exception as e:
-                print(f"  ❌ Error executing {script}: {e}")
-        else:
-            print(f"  ⚠️  Script not found: {script_path}")
+    if missing_files:
+        print("❌ Missing data files:")
+        for file_path in missing_files:
+            print(f"   - {file_path}")
+        return False
+    
+    print("✅ Optimized data structure found")
+    return True
 
 
-def launch_dashboard():
-    """Launch Streamlit dashboard in background"""
-    script_dir = Path(__file__).parent
-    app_path = script_dir / "streamlit" / "app.py"
+def run_category_script(category):
+    """Run a specific category script"""
+    script_name = f"plot_category_{category}.py"
+    script_path = plot_scripts_dir / script_name
     
-    if not app_path.exists():
-        print(f"❌ App not found: {app_path}")
-        return
+    if not script_path.exists():
+        print(f"❌ Category script not found: {script_path}")
+        return False
     
-    print("\n🚀 Starting dashboard...")
-    print("=" * 60)
-    print("🌐 MRST MONITORING DASHBOARD")
-    print("=" * 60)
-    print("📋 Individual plots generated: ✅ COMPLETED")
-    print("🎯 Categories A-H organized by scientific questions")
-    print("🗺️  Spatial maps include well locations")
-    print("🎬 Animated GIFs for time-dependent maps")
-    print("🚀 Starting Streamlit in background...")
+    print(f"🚀 Running {script_name}...")
+    print("=" * 50)
     
     try:
-        # Launch Streamlit in background
-        process = subprocess.Popen([
-            "streamlit", "run", str(app_path),
-            "--server.port", "8502",
-            "--server.address", "0.0.0.0",
-            "--browser.gatherUsageStats", "false"
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run([
+            sys.executable, str(script_path)
+        ], capture_output=True, text=True, cwd=str(plot_scripts_dir))
         
-        # Wait a moment for Streamlit to start
-        time.sleep(3)
-        
-        # Check if process is still running
-        if process.poll() is None:
-            print("✅ Streamlit started successfully!")
-            print("")
-            print("🎉" * 20)
-            print("✅ DASHBOARD READY!")
-            print("🎉" * 20)
-            print("")
-            print("🔗 COPY one of these URLs and paste in your browser:")
-            print("   👉 http://localhost:8502")
-            print("   👉 http://127.0.0.1:8502")
-            print("   👉 http://0.0.0.0:8502")
-            print("")
-            print("📊 DASHBOARD FEATURES:")
-            print("   • Individual plots (no subplots)")
-            print("   • 8 scientific categories (A-H)")
-            print("   • Well locations on all spatial maps")
-            print("   • Animated GIFs for time evolution")
-            print("   • Each plot answers specific questions")
-            print("")
-            print("⚠️  IMPORTANT:")
-            print("   - Server is running in background")
-            print("   - If one URL doesn't work, try the others")
-            print("   - To stop the server, run:")
-            print("     pkill -f streamlit")
-            print("=" * 60)
-            
-            # Try to open browser automatically
-            try:
-                webbrowser.open("http://localhost:8502")
-                print("🌐 Trying to open browser automatically...")
-            except Exception:
-                print("⚠️  Could not open browser automatically")
-                print("   Please copy the URL manually")
-                
+        if result.returncode == 0:
+            print(f"✅ {script_name} completed successfully")
+            if result.stdout:
+                print(result.stdout)
         else:
-            print("❌ Error: Streamlit could not start")
-            print("💡 Try running manually:")
-            print(f"   streamlit run {app_path}")
+            print(f"❌ {script_name} failed")
+            if result.stderr:
+                print(result.stderr)
+            return False
             
     except Exception as e:
-        print(f"\n❌ Error: {e}")
-        print("💡 Verify that Streamlit is installed:")
-        print("   pip install streamlit")
+        print(f"❌ Error running {script_name}: {e}")
+        return False
+    
+    return True
+
+
+def run_all_categories():
+    """Run all category scripts"""
+    categories = ['a_fluid_rock_individual', 'b_initial_conditions', 
+                 'c_geometry_individual', 'd_operations_individual',
+                 'e_global_evolution', 'f_well_performance', 
+                 'g_maps_animated', 'h_multiphysics']
+    
+    print("🚀 Running all monitoring categories...")
+    print("=" * 70)
+    
+    success_count = 0
+    total_count = len(categories)
+    
+    for category in categories:
+        print(f"\n📊 Category {category.upper()}:")
+        if run_category_script(category):
+            success_count += 1
+        else:
+            print(f"⚠️  Category {category} failed - continuing with others")
+    
+    print(f"\n📈 Summary: {success_count}/{total_count} categories completed")
+    
+    if success_count == total_count:
+        print("✅ All monitoring categories completed successfully!")
+    else:
+        print(f"⚠️  {total_count - success_count} categories failed")
+    
+    return success_count == total_count
 
 
 def main():
-    print("🛢️  MRST MONITORING SYSTEM - INDIVIDUAL PLOTS")
-    print("=" * 50)
-    print("🎯 Generating plots organized by categories A-H")
-    print("📊 Each plot addresses specific scientific questions")
-    print("🗺️  All spatial maps show well locations")
-    print("🎬 Time-dependent maps available as animated GIFs")
-    print("=" * 50)
+    """Main function"""
+    parser = argparse.ArgumentParser(
+        description="MRST Monitoring System - Launch Script")
+    parser.add_argument(
+        '--category', '-c', 
+        choices=['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'all'],
+        default='all',
+        help='Category to run (default: all)')
+    parser.add_argument(
+        '--check-only', action='store_true',
+        help='Only check data availability without running plots')
     
-    # Step 1: Clean up any existing processes
-    kill_existing_streamlit()
+    args = parser.parse_args()
     
-    # Step 2: Generate individual plots by category
-    generate_plots()
+    print("🔍 MRST Monitoring System - Launch Script")
+    print("=" * 70)
+    print("📊 Using optimized data structure with oct2py")
+    print("=" * 70)
     
-    # Step 3: Launch dashboard
-    launch_dashboard()
+    # Check prerequisites
+    if not check_oct2py_installation():
+        print("❌ Cannot proceed without oct2py")
+        return False
     
-    print("\n🏁 Process completed!")
-    print("💡 Dashboard is running in background")
-    print("📈 Navigate between categories A-H using sidebar")
+    if not USE_OPTIMIZED_LOADER:
+        print("❌ Cannot proceed without optimized data loader")
+        return False
+    
+    # Check data structure
+    if not check_data_structure():
+        print("❌ Cannot proceed without optimized data structure")
+        print("   Run MRST simulation first to generate data")
+        return False
+    
+    # Check data availability
+    print("\n📊 Checking data availability...")
+    try:
+        availability = check_data_availability()
+        print_data_summary()
+    except Exception as e:
+        print(f"❌ Error checking data availability: {e}")
+        return False
+    
+    if args.check_only:
+        print("✅ Data availability check completed")
+        return True
+    
+    # Run selected category or all
+    if args.category == 'all':
+        return run_all_categories()
+    else:
+        category_map = {
+            'a': 'a_fluid_rock_individual',
+            'b': 'b_initial_conditions', 
+            'c': 'c_geometry_individual',
+            'd': 'd_operations_individual',
+            'e': 'e_global_evolution',
+            'f': 'f_well_performance',
+            'g': 'g_maps_animated',
+            'h': 'h_multiphysics'
+        }
+        
+        category_name = category_map[args.category]
+        return run_category_script(category_name)
 
 
 if __name__ == "__main__":
-    main() 
+    success = main()
+    sys.exit(0 if success else 1) 

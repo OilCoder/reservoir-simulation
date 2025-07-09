@@ -96,11 +96,15 @@ fluid:
     density: 850.0          # Oil density [kg/m³]
     viscosity: 2.0          # Oil viscosity [cP]
     formation_volume_factor: 1.2  # Oil FVF [-]
+    compressibility: 1.0e-5  # Oil compressibility [1/psi]
+    reference_pressure: 2900.0  # Reference pressure for PVT [psi]
     
   water:
     density: 1000.0         # Water density [kg/m³]
     viscosity: 0.5          # Water viscosity [cP]
     formation_volume_factor: 1.0   # Water FVF [-]
+    compressibility: 3.0e-6  # Water compressibility [1/psi]
+    reference_pressure: 2900.0  # Reference pressure for PVT [psi]
     
   # Relative permeability curves
   relative_permeability:
@@ -113,12 +117,48 @@ fluid:
       connate_saturation: 0.15     # Swc [-]
       endpoint_krmax: 0.85         # Maximum krw [-]
       corey_exponent: 2.5          # Corey exponent [-]
+    
+    # PVT pressure range for curves
+    pvt_pressure_range:
+      min: 1000.0          # Minimum pressure [psi]
+      max: 5000.0          # Maximum pressure [psi]
+      num_points: 50       # Number of pressure points
+    
+    # Saturation range for kr curves
+    saturation_range:
+      num_points: 100      # Number of saturation points
+      smoothing_factor: 0.1 # Smoothing factor for curves
 
 # Initial Conditions
 initial_conditions:
   pressure: 2900.0          # Initial reservoir pressure [psi]
   water_saturation: 0.20    # Initial water saturation [-]
   temperature: 176.0        # Reservoir temperature [°F]
+
+# Reservoir Volumetric Data
+reservoir_volumetrics:
+  # Grid volume calculations
+  cell_volume: 889.0        # Cell volume [ft³] (dx * dy * dz)
+  total_cells: 400          # Total number of cells (nx * ny)
+  total_volume: 355600.0    # Total reservoir volume [ft³]
+  
+  # Pore volume calculations
+  average_porosity: 0.20    # Average porosity for PV calculation [-]
+  total_pore_volume: 71120.0  # Total pore volume [ft³]
+  
+  # Oil in place calculations
+  initial_oil_saturation: 0.80  # Initial oil saturation [-]
+  oil_formation_volume_factor: 1.2  # Oil FVF [RB/STB]
+  oil_in_place: 47413.3     # Original oil in place [STB]
+  
+  # Water in place calculations
+  initial_water_saturation: 0.20  # Initial water saturation [-]
+  water_formation_volume_factor: 1.0  # Water FVF [RB/STB]
+  water_in_place: 14224.0   # Initial water in place [STB]
+  
+  # Conversion factors
+  ft3_to_bbl: 0.178108      # ft³ to barrels conversion
+  bbl_to_ft3: 5.614583      # barrels to ft³ conversion
 
 # Boundary Conditions
 boundary_conditions:
