@@ -1,4 +1,4 @@
-function calculate_volumetric_data(G, rock, fluid, schedule, states, wellSols, config)
+function s10_calculate_volumetric_data(G, rock, fluid, schedule, states, wellSols, config)
 % calculate_volumetric_data - Calculate and export volumetric data
 %
 % Calculates cumulative production/injection, recovery factors, and flow

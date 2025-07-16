@@ -25,6 +25,12 @@ function s99_run_workflow()
 % Substep 1.1 – Clear workspace and initialize ________________
 clear all; close all; clc;
 
+% Set XDG_RUNTIME_DIR environment variable to avoid warnings
+if isempty(getenv('XDG_RUNTIME_DIR'))
+    setenv('XDG_RUNTIME_DIR', '/tmp/runtime-root');
+    fprintf('[INFO] Set XDG_RUNTIME_DIR to avoid warnings\n');
+end
+
 fprintf('=== MRST Geomechanical Simulation - Phase 1 ===\n');
 fprintf('Starting complete workflow at %s\n', datestr(now));
 
@@ -78,7 +84,7 @@ all_vars_exist = validate_workflow_results(required_vars);
 %% Step 5 – Generate completion report
 %% ----
 
-s13_generate_completion_report(G, rock, states, schedule, timing, all_vars_exist);
+s13_generate_completion_report();
 
 end
 

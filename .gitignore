@@ -17,3 +17,8 @@ octave-workspace
 # test and debug
 /test
 /debug
+
+# Coding tools and IDEs
+.vscode/
+.claude/
+.clinerules/

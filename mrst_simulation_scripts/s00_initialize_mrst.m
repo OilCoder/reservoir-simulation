@@ -24,6 +24,10 @@ try
     % Navigate to project root to use load_mrst function
     cd('..');
     
+    % Define mrstPath before using it
+    mrstPath = '/opt/mrst';
+    addpath(mrstPath);
+    
     % Call the existing load_mrst function
     load_mrst();
     fprintf('[INFO] MRST loaded successfully using load_mrst()\n');

@@ -1,4 +1,4 @@
-function export_initial_conditions(G, rock, states, base_dir)
+function s11a_export_initial_conditions(G, rock, states, base_dir)
 % export_initial_conditions - Export initial reservoir conditions
 %
 % Exports initial pressure, saturation, porosity, and permeability
@@ -32,7 +32,7 @@ ny = G.cartDims(2);
 %% ----
 
 % Initial pressure field (2D matrix)
-if isfield(states{1}, 'pressure')
+if iscell(states) && length(states) > 0 && isfield(states{1}, 'pressure')
     initial_data.pressure = reshape(states{1}.pressure / 6894.76, [nx, ny])';  % Convert Pa to psi
 else
     % Use config default if not available
@@ -42,7 +42,7 @@ else
 end
 
 % Initial water saturation (2D matrix)
-if isfield(states{1}, 's') && size(states{1}.s, 2) >= 2
+if iscell(states) && length(states) > 0 && isfield(states{1}, 's') && size(states{1}.s, 2) >= 2
     initial_data.sw = reshape(states{1}.s(:,1), [nx, ny])';  % Water saturation [-]
 else
     % Use config default if not available

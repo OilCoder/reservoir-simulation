@@ -4,16 +4,14 @@
   "runArgs": ["--gpus", "all", "--init"],
   "workspaceFolder": "/workspaces/simulation",
   "remoteUser": "root",
-  "settings": {
-    "python.pythonPath": "/opt/conda/envs/simulation/bin/python",
-    "octave.execPath": "octave"
-  },
 
 
   "postCreateCommand": "sh -c '\
+    conda init bash && \
+    echo \"conda activate simulation\" >> /root/.bashrc && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
-    export NVM_DIR=\"$HOME/.nvm\" && \
-    . \"$NVM_DIR/nvm.sh\" && \
+    export NVM_DIR=\"/root/.nvm\" && \
+    . \"/root/.nvm/nvm.sh\" && \
     nvm install 22 && \
     nvm use 22 && \
     npm install -g @smithery/cli @anthropic-ai/claude-code \
@@ -27,8 +25,18 @@
         "leafvmaple.octave",
         "saoudrizwan.claude-dev",
         "anthropic.claude-code",
-        "optuna.optuna-dashboard"
-      ]
+        "optuna.optuna-dashboard",
+        "tusindfryd.octave-formatter",
+        "oderwat.indent-rainbow",
+        "mechatroner.rainbow-csv",
+        "ms-toolsai.datawrangler",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.jupyter-renderers"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/conda/envs/simulation/bin/python",
+        "python.terminal.activateEnvironment": true
+      }
     }
   }
 }

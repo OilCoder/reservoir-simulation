@@ -1,4 +1,4 @@
-function export_static_data(G, rock, schedule, base_dir)
+function s11b_export_static_data(G, rock, schedule, base_dir)
 % export_static_data - Export static reservoir data
 %
 % Exports rock regions, grid geometry, and well locations to the

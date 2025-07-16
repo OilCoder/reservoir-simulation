@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(conda info:*)",
+      "Bash(conda activate:*)",
+      "Bash(conda list:*)",
+      "Bash(streamlit run:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(grep:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   }

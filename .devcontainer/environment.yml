@@ -10,5 +10,10 @@ dependencies:
   - numpy
   - pandas
   - scikit-learn
+  - scipy
+  - matplotlib
+  - seaborn
+  - plotly
   - optuna
+  - oct2py
   - streamlit

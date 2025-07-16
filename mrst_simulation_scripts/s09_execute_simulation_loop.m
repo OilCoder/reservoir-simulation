@@ -1,4 +1,4 @@
-function [states, wellSols, sim_time] = execute_simulation_loop(G, rock, fluid, schedule, state0, config)
+function [states, wellSols, sim_time] = s09_execute_simulation_loop(G, rock, fluid, schedule, state0, config)
 % execute_simulation_loop - Run main simulation loop
 %
 % Executes the main MRST simulation loop with simplified incompressible

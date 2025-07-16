@@ -1,4 +1,4 @@
-function export_dynamic_fields(G, rock, states, base_dir)
+function s11c_export_dynamic_fields(G, rock, states, base_dir)
 % export_dynamic_fields - Export dynamic field arrays
 %
 % Exports 3D arrays of pressure, saturation, porosity, permeability,
@@ -40,7 +40,7 @@ sigma_eff_3d = zeros(n_steps, ny, nx);
 for t = 1:n_steps
     try
         % Extract snapshot data using existing function
-        [sigma_eff, phi, k, rock_id] = extract_snapshot(G, rock, states{t}, t);
+        [sigma_eff, phi, k, rock_id] = s12_extract_snapshot(G, rock, states{t}, t);
         
         % Store in 3D arrays (already in correct 2D format from extract_snapshot)
         pressure_3d(t, :, :) = reshape(states{t}.pressure / 6894.76, [nx, ny])';  % Convert Pa to psi

@@ -1,4 +1,4 @@
-function [state0, config] = setup_simulation_state(G, rock)
+function [state0, config] = s07b_setup_state(G, rock)
 % setup_simulation_state - Initialize simulation state and configuration
 %
 % Sets up initial pressure and saturation state for MRST simulation

@@ -49,7 +49,7 @@ fprintf('[INFO] Starting optimized dataset export...\n');
 %% ----
 
 try
-    s11a_export_initial_conditions(G, rock, fluid, states{1});
+    s11a_export_initial_conditions(G, rock, states, base_dir);
     fprintf('[INFO] Initial conditions exported\n');
 catch ME
     fprintf('[WARN] Could not export initial conditions: %s\n', ME.message);
@@ -60,7 +60,7 @@ end
 %% ----
 
 try
-    s11b_export_static_data(G, rock);
+    s11b_export_static_data(G, rock, schedule, base_dir);
     fprintf('[INFO] Static data exported\n');
 catch ME
     fprintf('[WARN] Could not export static data: %s\n', ME.message);
@@ -101,7 +101,7 @@ end
 %% ----
 
 try
-    s11c_export_dynamic_fields(states, wellSols);
+    s11c_export_dynamic_fields(G, rock, states, base_dir);
     fprintf('[INFO] Dynamic fields exported\n');
 catch ME
     fprintf('[WARN] Could not export dynamic fields: %s\n', ME.message);
@@ -167,7 +167,7 @@ end
 %% ----
 
 try
-    s11d_export_metadata(G, schedule, temporal_data);
+    s11d_export_metadata(G, schedule, temporal_data, base_dir);
     fprintf('[INFO] Metadata exported\n');
 catch ME
     fprintf('[WARN] Could not export metadata: %s\n', ME.message);

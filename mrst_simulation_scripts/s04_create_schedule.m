@@ -96,4 +96,8 @@ fprintf('  Total time: %.1f days\n', sum(timesteps)/86400);
 fprintf('  Timesteps: %d\n', length(timesteps));
 fprintf('  Wells: %d\n', length(W));
 
+% Save schedule variable for later use
+save('../data/temporal/schedule.mat', 'schedule');
+fprintf('[INFO] Schedule saved to ../data/temporal/schedule.mat\n');
+
 end

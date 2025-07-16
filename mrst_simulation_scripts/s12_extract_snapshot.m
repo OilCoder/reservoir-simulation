@@ -1,4 +1,4 @@
-function [sigma_eff, phi, k, rock_id] = extract_snapshot(G, rock, state, timestep)
+function [sigma_eff, phi, k, rock_id] = s12_extract_snapshot(G, rock, state, timestep)
 % extract_snapshot - Extract 20x20 matrices from simulation state
 %
 % Extracts and processes simulation data into 20x20 matrices for ML training:

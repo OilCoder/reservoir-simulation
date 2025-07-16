@@ -1,21 +1,34 @@
-function generate_completion_report(G, rock, states, schedule, timing, all_vars_exist)
+function s13_generate_completion_report()
 % generate_completion_report - Generate final workflow completion report
 %
 % Creates a comprehensive report of the simulation workflow execution
 % including timing, results summary, and validation status.
 %
 % Args:
-%   G: MRST grid structure
-%   rock: MRST rock structure with regions
-%   states: Cell array of simulation states
-%   schedule: MRST schedule structure
-%   timing: Structure with timing information
-%   all_vars_exist: Boolean indicating if all variables exist
+%   None (loads variables from data files)
 %
 % Returns:
 %   None (prints completion report)
 %
 % Requires: MRST
+
+% Load all required variables from data files
+load('../data/initial/initial_conditions.mat', 'G');
+load('../data/static/static_data.mat', 'rock');
+load('../data/static/fluid_properties.mat', 'fluid');
+load('../data/temporal/schedule.mat', 'schedule');
+load('../data/dynamic/fields/field_arrays.mat', 'states');
+load('../data/dynamic/wells/well_data.mat', 'wellSols');
+
+% Simple validation that all variables loaded successfully
+all_vars_exist = exist('G', 'var') && exist('rock', 'var') && exist('fluid', 'var') && ...
+                exist('schedule', 'var') && exist('states', 'var') && exist('wellSols', 'var');
+
+% Create a simple timing structure if not available
+if ~exist('timing', 'var')
+    timing = struct('setup_time', 0, 'fluid_time', 0, 'regions_time', 0, ...
+                   'schedule_time', 0, 'simulation_time', 0, 'export_time', 0);
+end
 
 %% ----
 %% Step 1 – Calculate total workflow time

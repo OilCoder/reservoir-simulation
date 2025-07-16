@@ -1,5 +1,5 @@
-function export_metadata(G, schedule, temporal_data, n_wells, fields_file, base_dir)
-% export_metadata - Export comprehensive dataset metadata
+function s11d_export_metadata(G, schedule, temporal_data, base_dir)
+% s11d_export_metadata - Export comprehensive dataset metadata
 %
 % Creates comprehensive metadata with dataset information, simulation
 % parameters, data structure details, and optimization information.
@@ -46,7 +46,7 @@ metadata.dataset_info.format = 'Optimized with deduplication';
 
 metadata.simulation.total_time_days = max(temporal_data.time_days);
 metadata.simulation.n_timesteps = n_steps;
-metadata.simulation.n_wells = n_wells;
+metadata.simulation.n_wells = length(schedule.control(1).W);
 metadata.simulation.grid_size = [nx, ny];
 
 %% ----
@@ -75,8 +75,13 @@ metadata.structure.variables = {
 %% Step 5 – File sizes and optimization
 %% ----
 
-fields_info = dir(fields_file);
-total_size_MB = fields_info.bytes / (1024^2);
+fields_file = fullfile(base_dir, 'dynamic', 'fields', 'field_arrays.mat');
+if exist(fields_file, 'file')
+    fields_info = dir(fields_file);
+    total_size_MB = fields_info.bytes / (1024^2);
+else
+    total_size_MB = 0;
+end
 
 metadata.optimization.total_size_MB = total_size_MB;
 metadata.optimization.deduplication = 'Rock regions, time vectors, and grid stored once';
