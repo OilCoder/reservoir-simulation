@@ -1,5 +1,5 @@
-function fluid = b_define_fluid(config_file)
-% b_define_fluid - Create MRST fluid structure from configuration
+function fluid = s02_define_fluid(config_file)
+% s02_define_fluid - Create MRST fluid structure from configuration
 %
 % Creates two-phase oil-water fluid with properties from configuration.
 % Uses MRST initSimpleFluid function with realistic relative permeability curves.
@@ -109,12 +109,16 @@ fluid_properties.kr_curves.swc = swc;
 fluid_properties.kr_curves.sor = sor;
 
 fluid_properties_path = '../data/static/fluid_properties.mat';
-if ~exist('../data/static', 'dir')
-    mkdir('../data/static');
+try
+    if ~exist('../data/static', 'dir')
+        mkdir('../data/static');
+    end
+    save(fluid_properties_path, 'fluid_properties');
+    fprintf('[INFO] Fluid properties exported to: %s\n', fluid_properties_path);
+catch ME
+    fprintf('[WARN] Could not save fluid properties: %s\n', ME.message);
+    fprintf('[INFO] Continuing with fluid definition...\n');
 end
-save(fluid_properties_path, 'fluid_properties');
-
-fprintf('[INFO] Fluid properties exported to: %s\n', fluid_properties_path);
 
 %% ----
 %% Step 6 – Verify fluid structure
@@ -132,4 +136,4 @@ end
 function y = interpTable(x, x_data, y_data)
 y = interp1(x_data, y_data, x, 'pchip', 'extrap');
 y = max(0, min(1, y));
-end 
+end

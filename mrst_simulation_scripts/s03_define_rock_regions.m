@@ -1,5 +1,5 @@
-function rock = c_define_rock_regions(rock)
-% c_define_rock_regions - Generate rock.regions vector and assign lithology parameters
+function rock = s03_define_rock_regions(rock)
+% s03_define_rock_regions - Generate rock.regions vector and assign lithology parameters
 %
 % Assigns geomechanical parameters (c_φ, n, k₀) by lithology to facilitate
 % scaling to multiple rock types without rewriting setup_field.m
@@ -103,4 +103,4 @@ assert(isfield(rock, 'perm0'), 'Initial permeability not stored');
 
 fprintf('[INFO] Rock regions and lithology parameters defined\n');
 
-end 
+end

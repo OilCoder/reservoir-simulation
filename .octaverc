@@ -1,15 +1,18 @@
-% Configuración de MRST
-if exist('/workspace/mrst/startup.m', 'file')
-    addpath('/workspace/mrst');
-    cd('/workspace/mrst');
-    startup;
-    cd('/workspace');
-    fprintf('MRST iniciado correctamente\n');
+% MRST Configuration
+if exist('/opt/mrst/startup.m', 'file')
+    addpath('/opt/mrst');
+    cd('/opt/mrst');
+    try
+        startup;
+        fprintf('MRST started successfully\n');
+    catch ME
+        fprintf('Warning: MRST startup had issues: %s\n', ME.message);
+    end
+    cd('/workspaces/simulation');
 else
-    fprintf('Advertencia: MRST no encontrado en /workspace/mrst\n');
+    fprintf('Warning: MRST not found in /opt/mrst\n');
 end
 
-% Configuración adicional
+% Additional configuration
 more off;
 format compact;
-graphics_toolkit('gnuplot');

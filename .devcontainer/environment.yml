@@ -1,0 +1,14 @@
+name: simulation
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch
+  - torchvision
+  - torchaudio
+  - tensorflow
+  - numpy
+  - pandas
+  - scikit-learn
+  - optuna
+  - streamlit

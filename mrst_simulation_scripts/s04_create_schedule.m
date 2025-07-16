@@ -1,5 +1,5 @@
-function schedule = d_create_schedule(G, rock, fluid, config_file)
-% d_create_schedule - Create MRST simulation schedule with wells and timesteps
+function schedule = s04_create_schedule(G, rock, fluid, config_file)
+% s04_create_schedule - Create MRST simulation schedule with wells and timesteps
 %
 % Creates schedule with producer and injector wells based on configuration.
 % Uses MRST functions for well creation and schedule setup.
@@ -96,4 +96,4 @@ fprintf('  Total time: %.1f days\n', sum(timesteps)/86400);
 fprintf('  Timesteps: %d\n', length(timesteps));
 fprintf('  Wells: %d\n', length(W));
 
-end 
+end

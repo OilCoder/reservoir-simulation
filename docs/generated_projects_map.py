@@ -18,7 +18,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 OUTPUT_FILE = PROJECT_ROOT / "docs" / "project_map.md"
 
 # Target directories to document
-TARGET_DIRS = ["sim_scripts", "src", "tests"]
+TARGET_DIRS = ["mrst_simulation_scripts", "tests", "monitoring"]
 
 # File extensions to process
 EXTENSIONS = {

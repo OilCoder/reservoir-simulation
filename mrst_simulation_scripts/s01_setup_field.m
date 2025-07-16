@@ -1,5 +1,5 @@
-function [G, rock, fluid] = a_setup_field(config_file)
-% a_setup_field - Create MRST grid and rock properties from configuration
+function [G, rock, fluid] = s01_setup_field(config_file)
+% s01_setup_field - Create MRST grid and rock properties from configuration
 %
 % Creates 20x20 cartesian grid with heterogeneous porosity and permeability
 % based on reservoir configuration file. Uses MRST functions exclusively.
@@ -60,7 +60,7 @@ fprintf('[INFO] Using grid dimensions for porosity: %dx%d\n', nx_grid, ny_grid);
 poro_pattern = poro_base + poro_var * sin(2*pi*X/nx_grid) .* cos(2*pi*Y/ny_grid);
 
 % Add random variation
-rng(42);  % For reproducibility
+rand('seed', 42);  % For reproducibility
 poro_random = poro_var * 0.5 * (rand(ny_grid, nx_grid) - 0.5);
 
 % Final porosity field
@@ -112,4 +112,4 @@ fluid.name = 'placeholder';
 
 fprintf('[INFO] Setup field completed successfully\n');
 
-end 
+end
