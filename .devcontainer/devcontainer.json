@@ -31,7 +31,8 @@
         "mechatroner.rainbow-csv",
         "ms-toolsai.datawrangler",
         "ms-toolsai.vscode-jupyter-cell-tags",
-        "ms-toolsai.jupyter-renderers"
+        "ms-toolsai.jupyter-renderers",
+        "bierner.markdown-mermaid"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/opt/conda/envs/simulation/bin/python",
