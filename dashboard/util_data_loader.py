@@ -100,11 +100,22 @@ class MRSTDataLoader:
             # 📊 Load MAT file using oct2py
             data = oct2py.io.loadmat(str(file_path))
             
+            # Handle 3D data structure
+            pressure_data = np.array(data['pressure'])
+            sw_data = np.array(data['sw'])
+            phi_data = np.array(data['phi'])
+            k_data = np.array(data['k'])
+            
+            # Add depth coordinate if available
+            depth_data = np.array(data['depth']) if 'depth' in data else None
+            
             return {
-                'pressure': np.array(data['pressure']),  # [psi]
-                'sw': np.array(data['sw']),  # [-]
-                'phi': np.array(data['phi']),  # [-]
-                'k': np.array(data['k'])  # [mD]
+                'pressure': pressure_data,  # [psi] - can be 2D or 3D
+                'sw': sw_data,  # [-] - can be 2D or 3D
+                'phi': phi_data,  # [-] - can be 2D or 3D
+                'k': k_data,  # [mD] - can be 2D or 3D
+                'depth': depth_data,  # [ft] - depth of each cell
+                'is_3d': len(pressure_data.shape) == 3  # Flag for 3D data
             }
             
         except Exception as e:
@@ -132,13 +143,29 @@ class MRSTDataLoader:
             # 📊 Load MAT file using oct2py
             data = oct2py.io.loadmat(str(file_path))
             
+            # Handle 3D grid data
+            rock_id_data = np.array(data['rock_id'])
+            
+            # Check if we have 3D grid data
+            if 'grid_z' in data:
+                grid_z = np.array(data['grid_z']).flatten()
+                cell_centers_z = np.array(data['cell_centers_z']).flatten()
+                is_3d = True
+            else:
+                grid_z = None
+                cell_centers_z = None
+                is_3d = False
+            
             return {
-                'rock_id': np.array(data['rock_id']),  # [-]
+                'rock_id': rock_id_data,  # [-] - can be 2D or 3D
                 'grid_x': np.array(data['grid_x']).flatten(),  # [m]
                 'grid_y': np.array(data['grid_y']).flatten(),  # [m]
+                'grid_z': grid_z,  # [m] - None for 2D
                 'cell_centers_x': np.array(data['cell_centers_x']).flatten(),  # [m]
                 'cell_centers_y': np.array(data['cell_centers_y']).flatten(),  # [m]
-                'wells': data.get('wells', {})
+                'cell_centers_z': cell_centers_z,  # [m] - None for 2D
+                'wells': data.get('wells', {}),
+                'is_3d': is_3d  # Flag for 3D data
             }
             
         except Exception as e:
@@ -152,6 +179,7 @@ class MRSTDataLoader:
         Returns:
             dict: Field arrays including pressure, saturation evolution over time
         """
+        # Use unified field arrays file (handles both 2D and 3D)
         file_path = self.file_map['field_arrays']
         
         if not file_path.exists():
@@ -166,12 +194,34 @@ class MRSTDataLoader:
             # 📊 Load MAT file using oct2py
             data = oct2py.io.loadmat(str(file_path))
             
+            # Handle both 2D and 3D field arrays
+            # Check if data has fields_data structure (3D export) or direct fields (2D export)
+            if 'fields_data' in data:
+                # 3D export structure
+                fields = data['fields_data'][0][0]
+                pressure_data = np.array(fields['pressure'])
+                sw_data = np.array(fields['sw'])
+                phi_data = np.array(fields['phi'])
+                k_data = np.array(fields['k'])
+                sigma_eff_data = np.array(fields['sigma_eff'])
+            else:
+                # 2D export structure
+                pressure_data = np.array(data['pressure'])
+                sw_data = np.array(data['sw'])
+                phi_data = np.array(data['phi'])
+                k_data = np.array(data['k'])
+                sigma_eff_data = np.array(data.get('sigma_eff', data['pressure']))
+            
+            # Check dimensionality
+            is_3d = len(pressure_data.shape) == 4  # [time, z, y, x] for 3D
+            
             return {
-                'pressure': np.array(data['pressure']),  # [time, y, x] [psi]
-                'sw': np.array(data['sw']),  # [time, y, x] [-]
-                'phi': np.array(data['phi']),  # [time, y, x] [-]
-                'k': np.array(data['k']),  # [time, y, x] [mD]
-                'sigma_eff': np.array(data.get('sigma_eff', data['pressure']))  # [time, y, x] [psi]
+                'pressure': pressure_data,  # [time, y, x] or [time, z, y, x] [psi]
+                'sw': sw_data,  # [time, y, x] or [time, z, y, x] [-]
+                'phi': phi_data,  # [time, y, x] or [time, z, y, x] [-]
+                'k': k_data,  # [time, y, x] or [time, z, y, x] [mD]
+                'sigma_eff': sigma_eff_data,  # [time, y, x] or [time, z, y, x] [psi]
+                'is_3d': is_3d  # Flag for 3D data
             }
             
         except Exception as e:
@@ -302,9 +352,9 @@ class MRSTDataLoader:
             return {
                 'dataset_info': data.get('dataset_info', {}),
                 'simulation': data.get('simulation', {}),
-                'grid_dimensions': data.get('grid_dimensions', [20, 20, 1]),
-                'total_time': data.get('total_time', 365),
-                'n_timesteps': data.get('n_timesteps', 50),
+                'grid_dimensions': data.get('grid_dimensions', None),
+                'total_time': data.get('total_time', None),
+                'n_timesteps': data.get('n_timesteps', None),
                 'units': data.get('units', {}),
                 'conventions': data.get('conventions', {})
             }
@@ -333,13 +383,25 @@ class MRSTDataLoader:
         dataset['cumulative_data'] = self.load_cumulative_data()
         dataset['metadata'] = self.load_metadata()
         
-        # 🔄 Load wells information from configuration
+        # 🔄 Load wells and configuration information
         try:
-            from config_reader import load_simulation_config, get_well_parameters
-            config = load_simulation_config()
-            dataset['wells'] = get_well_parameters(config)
+            # Try to load configuration
+            config_path = Path(self.data_root).parent / "config" / "reservoir_config.yaml"
+            if config_path.exists():
+                import yaml
+                with open(config_path, 'r') as f:
+                    config = yaml.safe_load(f)
+                dataset['config'] = config
+                
+                # Extract well information from config
+                if 'wells' in config:
+                    dataset['wells'] = config['wells']
+            else:
+                dataset['config'] = None
+                dataset['wells'] = None
         except Exception as e:
-            warnings.warn(f"Failed to load wells from configuration: {e}")
+            warnings.warn(f"Failed to load configuration: {e}")
+            dataset['config'] = None
             dataset['wells'] = None
         
         return dataset

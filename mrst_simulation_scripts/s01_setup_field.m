@@ -24,19 +24,38 @@ config = util_read_config(config_file);
 % Substep 1.2 – Extract grid parameters from config _____________
 nx = config.grid.nx;
 ny = config.grid.ny;
+nz = config.grid.nz;
 dx = config.grid.dx * 0.3048;  % Convert ft to meters
 dy = config.grid.dy * 0.3048;  % Convert ft to meters
-dz = config.grid.dz * 0.3048;  % Convert ft to meters
 
-fprintf('[INFO] Creating %dx%d grid with %.1f x %.1f ft cells\n', nx, ny, config.grid.dx, config.grid.dy);
+% Handle variable layer thickness
+if iscell(config.grid.dz) || length(config.grid.dz) > 1
+    dz_layers = config.grid.dz * 0.3048;  % Convert ft to meters
+else
+    dz_layers = repmat(config.grid.dz * 0.3048, nz, 1);
+end
+
+fprintf('[INFO] Creating %dx%dx%d grid with %.1f x %.1f ft cells\n', nx, ny, nz, config.grid.dx, config.grid.dy);
 
 %% ----
 %% Step 2 – Create MRST grid
 %% ----
 
 % Substep 2.1 – Create cartesian grid ___________________________
-G = cartGrid([nx, ny], [nx*dx, ny*dy]);
+G = cartGrid([nx, ny, nz], [nx*dx, ny*dy, sum(dz_layers)]);
 G = computeGeometry(G);
+
+% Set variable layer thickness if needed
+if length(dz_layers) > 1
+    % Update grid cell heights based on layers
+    z_tops = [0; cumsum(dz_layers(1:end-1))];
+    z_bottoms = cumsum(dz_layers);
+    
+    for k = 1:nz
+        layer_cells = (k-1)*nx*ny + 1 : k*nx*ny;
+        G.cells.centroids(layer_cells, 3) = (z_tops(k) + z_bottoms(k)) / 2;
+    end
+end
 
 fprintf('[INFO] Grid created with %d cells\n', G.cells.num);
 
@@ -44,46 +63,51 @@ fprintf('[INFO] Grid created with %d cells\n', G.cells.num);
 %% Step 3 – Create rock properties
 %% ----
 
-% Substep 3.1 – Generate heterogeneous porosity from config _____
-poro_base = config.porosity.base_value;
-poro_var = config.porosity.variation_amplitude;
+% Substep 3.1 – Generate porosity from geological layers ________
+poro_vec = zeros(G.cells.num, 1);
+layer_id = zeros(G.cells.num, 1);
 
-% Use actual grid dimensions
-nx_grid = nx;
-ny_grid = ny;
-fprintf('[INFO] Using grid dimensions for porosity: %dx%d\n', nx_grid, ny_grid);
+fprintf('[INFO] Assigning rock properties by geological layers\n');
 
-% Create spatial correlation using simple 2D pattern
-[X, Y] = meshgrid(1:nx_grid, 1:ny_grid);  % X, Y are ny_grid x nx_grid
+% Assign properties based on geological layers
+for c = 1:G.cells.num
+    cell_depth = G.cells.centroids(c, 3) / 0.3048;  % Convert m to ft
+    
+    % Find which geological layer this cell belongs to
+    found_layer = false;
+    for i = 1:length(config.rock.layers)
+        layer = config.rock.layers{i};
+        if cell_depth >= layer.depth_range(1) && cell_depth <= layer.depth_range(2)
+            poro_vec(c) = layer.porosity;
+            layer_id(c) = layer.id;
+            found_layer = true;
+            break;
+        end
+    end
+    
+    % If no layer found, use default values
+    if ~found_layer
+        poro_vec(c) = config.porosity.base_value;
+        layer_id(c) = 1;
+    end
+end
 
-% Element‐wise porosity pattern
-poro_pattern = poro_base + poro_var * sin(2*pi*X/nx_grid) .* cos(2*pi*Y/ny_grid);
+% Substep 3.2 – Generate permeability from geological layers ____
+perm_vec = zeros(G.cells.num, 1);
 
-% Add random variation
-rand('seed', 42);  % For reproducibility
-poro_random = poro_var * 0.5 * (rand(ny_grid, nx_grid) - 0.5);
-
-% Final porosity field
-poro_field = poro_pattern + poro_random;
-
-% Apply bounds from config
-poro_field = max(config.porosity.min_value, min(config.porosity.max_value, poro_field));
-
-% Convert to vector for MRST (transpose for column-major ordering)
-poro_vec = reshape(poro_field', [], 1);
-
-% Substep 3.2 – Generate permeability from porosity and config ___
-% Use Kozeny-Carman type relation
-perm_base = config.permeability.base_value * 9.869233e-16;  % mD to m²
-poro_ref = poro_base;
-
-% k = k0 * (phi/phi0)^n
-perm_vec = perm_base * (poro_vec / poro_ref).^3;
-
-% Apply bounds from config
-perm_min = config.permeability.min_value * 9.869233e-16;   % mD to m²
-perm_max = config.permeability.max_value * 9.869233e-16;  % mD to m²
-perm_vec = max(perm_min, min(perm_max, perm_vec));
+% Assign permeability based on geological layers
+for c = 1:G.cells.num
+    cell_depth = G.cells.centroids(c, 3) / 0.3048;  % Convert m to ft
+    
+    % Find which geological layer this cell belongs to
+    for i = 1:length(config.rock.layers)
+        layer = config.rock.layers{i};
+        if cell_depth >= layer.depth_range(1) && cell_depth <= layer.depth_range(2)
+            perm_vec(c) = layer.permeability * 9.869233e-16;  % mD to m²
+            break;
+        end
+    end
+end
 
 % Substep 3.3 – Create rock structure ___________________________
 rock = makeRock(G, perm_vec, poro_vec);
@@ -92,8 +116,8 @@ rock = makeRock(G, perm_vec, poro_vec);
 rock.poro0 = poro_vec;  % Initial porosity
 rock.perm0 = perm_vec;  % Initial permeability
 
-% Add rock regions (will be updated by define_rock_regions)
-rock.regions = ones(G.cells.num, 1);
+% Add rock regions based on geological layers
+rock.regions = layer_id;
 
 fprintf('[INFO] Rock properties created\n');
 fprintf('  Porosity: %.3f ± %.3f (range: %.3f - %.3f)\n', ...

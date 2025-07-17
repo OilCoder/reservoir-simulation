@@ -101,6 +101,7 @@ end
 %% ----
 
 try
+    % Use unified export function (handles both 2D and 3D automatically)
     s11c_export_dynamic_fields(G, rock, states, base_dir);
     fprintf('[INFO] Dynamic fields exported\n');
 catch ME
