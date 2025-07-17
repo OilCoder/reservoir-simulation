@@ -6,10 +6,10 @@
 grid:
   nx: 20                      # Number of cells in X direction
   ny: 20                      # Number of cells in Y direction
-  nz: 1                       # Number of cells in Z direction (2D simulation)
+  nz: 10                      # Number of cells in Z direction (3D simulation)
   dx: 164.0                   # Cell size in X direction [ft]
   dy: 164.0                   # Cell size in Y direction [ft]
-  dz: 33.0                    # Cell thickness [ft]
+  dz: [50.0, 40.0, 35.0, 30.0, 25.0, 20.0, 15.0, 10.0, 8.0, 5.0]  # Variable layer thickness [ft]
 
 # General Settings
 general:
@@ -42,46 +42,98 @@ permeability:
 # Rock Properties
 rock:
   reference_pressure: 2900.0
-  # compressibility: 3.1e-6  # Removed global compressibility
-  n_regions: 3
   
-  # Compaction coefficients by region
-  compaction_coefficients:
-    region_1: 1.0e-5           # Tight rock compaction [1/psi]
-    region_2: 3.0e-5           # Medium rock compaction [1/psi]
-    region_3: 5.0e-5           # Loose rock compaction [1/psi]
-  
-  # Permeability-porosity exponents by region
-  permeability_exponents:
-    region_1: 8                # Tight rock k-phi exponent [-]
-    region_2: 6                # Medium rock k-phi exponent [-]
-    region_3: 4                # Loose rock k-phi exponent [-]
-  
-  # Rock regions definition with porosity_range
-  regions:
+  # Geological layers (from top to bottom)
+  layers:
     - id: 1
-      name: "Sandstone"
-      porosity_range: [0.18, 0.22]   # Porosity range [min, max]
-      lithology: "sandstone"
-      porosity_multiplier: 1.0
-      permeability_multiplier: 1.0
-      compressibility: 3.1e-6
-    
-    - id: 2
-      name: "Shale"
-      porosity_range: [0.05, 0.18]   # Porosity range [min, max]
+      name: "Shale Cap"
+      depth_range: [7900, 7950]      # Depth range [top, bottom] [ft]
+      thickness: 50.0                # Layer thickness [ft]
       lithology: "shale"
-      porosity_multiplier: 0.3
-      permeability_multiplier: 0.01
-      compressibility: 1.4e-6
-    
+      porosity: 0.08                 # Average porosity [-]
+      permeability: 0.1              # Average permeability [mD]
+      compressibility: 1.0e-6        # Rock compressibility [1/psi]
+      
+    - id: 2  
+      name: "Reservoir Sand 1"
+      depth_range: [7950, 7990]      # Depth range [ft]
+      thickness: 40.0                # Layer thickness [ft]
+      lithology: "sandstone"
+      porosity: 0.25                 # Average porosity [-]
+      permeability: 200.0            # Average permeability [mD]
+      compressibility: 3.1e-6        # Rock compressibility [1/psi]
+      
     - id: 3
+      name: "Shale Barrier"
+      depth_range: [7990, 8025]      # Depth range [ft]
+      thickness: 35.0                # Layer thickness [ft]
+      lithology: "shale"
+      porosity: 0.10                 # Average porosity [-]
+      permeability: 0.5              # Average permeability [mD]
+      compressibility: 1.2e-6        # Rock compressibility [1/psi]
+      
+    - id: 4
+      name: "Reservoir Sand 2"
+      depth_range: [8025, 8055]      # Depth range [ft]
+      thickness: 30.0                # Layer thickness [ft]
+      lithology: "sandstone"
+      porosity: 0.22                 # Average porosity [-]
+      permeability: 150.0            # Average permeability [mD]
+      compressibility: 3.5e-6        # Rock compressibility [1/psi]
+      
+    - id: 5
       name: "Limestone"
-      porosity_range: [0.22, 0.35]   # Porosity range [min, max]
+      depth_range: [8055, 8080]      # Depth range [ft]
+      thickness: 25.0                # Layer thickness [ft]
       lithology: "limestone"
-      porosity_multiplier: 0.7
-      permeability_multiplier: 0.5
-      compressibility: 2.1e-6
+      porosity: 0.18                 # Average porosity [-]
+      permeability: 80.0             # Average permeability [mD]
+      compressibility: 2.1e-6        # Rock compressibility [1/psi]
+      
+    - id: 6
+      name: "Tight Sand"
+      depth_range: [8080, 8100]      # Depth range [ft]
+      thickness: 20.0                # Layer thickness [ft]
+      lithology: "sandstone"
+      porosity: 0.15                 # Average porosity [-]
+      permeability: 25.0             # Average permeability [mD]
+      compressibility: 2.8e-6        # Rock compressibility [1/psi]
+      
+    - id: 7
+      name: "Reservoir Sand 3"
+      depth_range: [8100, 8115]      # Depth range [ft]
+      thickness: 15.0                # Layer thickness [ft]
+      lithology: "sandstone"
+      porosity: 0.20                 # Average porosity [-]
+      permeability: 120.0            # Average permeability [mD]
+      compressibility: 3.2e-6        # Rock compressibility [1/psi]
+      
+    - id: 8
+      name: "Shale Seal"
+      depth_range: [8115, 8125]      # Depth range [ft]
+      thickness: 10.0                # Layer thickness [ft]
+      lithology: "shale"
+      porosity: 0.06                 # Average porosity [-]
+      permeability: 0.05             # Average permeability [mD]
+      compressibility: 1.0e-6        # Rock compressibility [1/psi]
+      
+    - id: 9
+      name: "Aquifer Sand"
+      depth_range: [8125, 8133]      # Depth range [ft]
+      thickness: 8.0                 # Layer thickness [ft]
+      lithology: "sandstone"
+      porosity: 0.28                 # Average porosity [-]
+      permeability: 300.0            # Average permeability [mD]
+      compressibility: 4.0e-6        # Rock compressibility [1/psi]
+      
+    - id: 10
+      name: "Basement"
+      depth_range: [8133, 8138]      # Depth range [ft]
+      thickness: 5.0                 # Layer thickness [ft]
+      lithology: "granite"
+      porosity: 0.02                 # Average porosity [-]
+      permeability: 0.001            # Average permeability [mD]
+      compressibility: 0.5e-6        # Rock compressibility [1/psi]
 
 # Fluid Properties (structure expected by simulation scripts)
 fluid:
@@ -137,9 +189,37 @@ fluid:
 
 # Initial Conditions
 initial_conditions:
-  pressure: 2900.0            # Initial reservoir pressure [psi]
-  water_saturation: 0.20      # Initial water saturation [-]
+  # Reference conditions (at datum depth)
+  datum_depth: 8000.0         # Reference depth [ft]
+  datum_pressure: 2900.0      # Pressure at datum depth [psi]
   temperature: 176.0          # Reservoir temperature [°F]
+  
+  # Pressure gradients
+  pressure_gradient: 0.433    # Pore pressure gradient [psi/ft]
+  
+  # Fluid contacts
+  oil_water_contact: 8150.0   # Oil-water contact depth [ft]
+  gas_oil_contact: 7950.0     # Gas-oil contact depth [ft] (if applicable)
+  
+  # Initial saturations by zone
+  gas_zone:
+    gas_saturation: 0.70      # Gas saturation in gas cap [-]
+    oil_saturation: 0.15      # Oil saturation in gas cap [-]
+    water_saturation: 0.15    # Water saturation in gas cap [-]
+  
+  oil_zone:
+    oil_saturation: 0.80      # Oil saturation in oil zone [-]
+    water_saturation: 0.20    # Water saturation in oil zone [-]
+  
+  water_zone:
+    water_saturation: 1.0     # Water saturation in water zone [-]
+    
+  # Capillary pressure parameters
+  capillary_pressure:
+    enabled: true             # Enable capillary pressure calculations
+    height_function: "leverett" # "leverett" or "brooks_corey"
+    displacement_pressure: 2.0  # Entry pressure [psi]
+    transition_zone_height: 50.0 # Transition zone height [ft]
 
 # Boundary Conditions
 boundary_conditions:
@@ -167,8 +247,8 @@ wells:
 
 # Simulation Parameters
 simulation:
-  total_time: 365.0             # Total simulation time [days]
-  num_timesteps: 50             # Number of timesteps
+  total_time: 3650.0             # Total simulation time [days]
+  num_timesteps: 500             # Number of timesteps
   timestep_type: "linear"       # "linear", "logarithmic", "custom"
   timestep_multiplier: 1.1      # Multiplier for increasing timesteps
   custom_timesteps: null        # List of custom timesteps [0.1, 1, 5, 10 …] if "custom"
@@ -177,7 +257,7 @@ simulation:
   solver:
     tolerance: 1.0e-6            # Convergence tolerance
     max_iterations: 25           # Maximum iterations per timestep
-    linear_solver: "direct"      # "direct", "iterative"
+    linear_solver: "iterative"      # "direct", "iterative"
     pressure_drop_factor: 0.9    # Well pressure drop factor [-]
 
 # Geomechanical Properties

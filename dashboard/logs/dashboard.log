@@ -1,0 +1,7 @@
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://0.0.0.0:8501
+
+/workspaces/simulation/dashboard/util_data_loader.py:316: UserWarning: Failed to load cumulative data: 'pv_injected'
+  warnings.warn(f"Failed to load cumulative data: {e}")

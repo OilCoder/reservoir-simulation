@@ -14,7 +14,11 @@
       "Bash(curl:*)",
       "Bash(chmod:*)",
       "Bash(grep:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(echo:*)",
+      "Bash(timeout:*)",
+      "Bash(pkill:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }
