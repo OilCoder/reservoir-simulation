@@ -14,6 +14,31 @@ The project uses a VSCode dev container with:
 - Python ML stack in conda environment `simulation`
 - Streamlit dashboard for data visualization
 
+## AI Code Governance System
+
+This project implements a **deterministic code generation system** in `.claude/` that transforms traditional AI-assisted development:
+
+### Core Philosophy
+- **Prevention over Correction**: Block violations before code generation, not after
+- **Complete Determinism**: 100% compliance with project standards guaranteed
+- **Self-Validation**: System applies its own rules to its own code
+- **Complete Traceability**: Full audit trail of every code generation session
+
+### System Architecture
+```
+UserPrompt → Context Injection → [Orchestration] → Pre-Validation → Code Generation → Post-Processing → Metadata Tracking
+```
+
+### Key Components
+- **Rules System** (`.claude/rules/`): 9 comprehensive coding standards
+- **Validation Pipeline** (`.claude/tools/`): 10 specialized validators with 4-layer architecture
+- **MCP Integration** (`.claude/.mcp.json`): 6 servers for extended capabilities
+- **Orchestration System**: Parallel subagent coordination with sequential thinking
+- **Complete Metadata**: Git integration, environment capture, session tracking
+
+### Workflow Documentation
+See `flujo_trabajo_generacion_codigo.md` for complete technical analysis including Mermaid diagrams.
+
 ## Key Commands
 
 ### Run Complete Simulation
