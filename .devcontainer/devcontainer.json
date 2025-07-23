@@ -32,7 +32,9 @@
         "ms-toolsai.datawrangler",
         "ms-toolsai.vscode-jupyter-cell-tags",
         "ms-toolsai.jupyter-renderers",
-        "bierner.markdown-mermaid"
+        "bierner.markdown-mermaid",
+        "Anthropic.claude-code",
+        "ms-azuretools.vscode-containers"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/opt/conda/envs/simulation/bin/python",
