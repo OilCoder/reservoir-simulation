@@ -1,0 +1,106 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(mkdir:*)",
+      "Bash(python:*)",
+      "Bash(octave:*)",
+      "Bash(conda info:*)",
+      "Bash(conda activate:*)",
+      "Bash(conda list:*)",
+      "Bash(streamlit run:*)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(grep:*)",
+      "Bash(pip install:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(echo:*)",
+      "Bash(timeout:*)",
+      "Bash(pkill:*)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Edit",
+      "Write",
+      "MultiEdit",
+      "Read",
+      "Grep",
+      "Glob"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(sudo:*)"
+    ]
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/inject_context.py"
+          },
+          {
+            "type": "command", 
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/orchestrate_subagents.py",
+            "condition": "complex_task"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/validate_code_style.py"
+          },
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/validate_scope.py"
+          },
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/validate_kiss.py"
+          },
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/route_files.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/validate_documentation.py"
+          },
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/auto_format.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /workspaces/simulation && python /workspaces/simulation/.claude/tools/metadata_tracker.py"
+          }
+        ]
+      }
+    ]
+  }
+}

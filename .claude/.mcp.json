@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "memory": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/@modelcontextprotocol/server-memory/dist/index.js"],
+      "description": "Session state and validation history tracking"
+    },
+    "filesystem": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js", "--root", "/workspaces/simulation"],
+      "description": "Controlled file operations with validation"
+    },
+    "sequentialthinking": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/@modelcontextprotocol/server-sequential-thinking/dist/index.js"],
+      "description": "Enforce structured Step/Substep problem solving"
+    },
+    "git": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/@cyanheads/git-mcp-server/dist/index.js"],
+      "cwd": "/workspaces/simulation",
+      "description": "Comprehensive Git operations and repository analysis"
+    },
+    "obsidian": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/obsidian-mcp/dist/index.js", "--vault-path", "/workspaces/simulation/docs/knowledge"],
+      "description": "Knowledge base integration for documentation and notes"
+    },
+    "puppeteer": {
+      "command": "node",
+      "args": ["/root/.nvm/versions/node/v22.17.1/lib/node_modules/@hisma/server-puppeteer/dist/index.js"],
+      "description": "Browser automation for web scraping and documentation capture"
+    }
+  }
+}
