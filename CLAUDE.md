@@ -30,7 +30,7 @@ This project follows strict coding standards for geomechanical ML development us
 
 ### Documentation
 - Pattern: `NN_<slug>.md`
-- Location: `/docs/English/` or `/docs/Spanish/`
+- Location: `/obsidian-vault/English/` or `/obsidian-vault/Spanish/`
 
 ## Code Style Requirements
 
@@ -147,7 +147,7 @@ cd ../project-feature-b && claude
 - Create new script: Use pattern `sNN_verb_noun.ext`
 - Add test: Place in `/tests/` with pattern `test_NN_folder_module.ext`
 - Debug code: Use `/debug/` folder with `dbg_slug.ext` pattern
-- Document: Add to `/docs/English/` with `NN_slug.md` pattern
+- Document: Add to `/obsidian-vault/English/` with `NN_slug.md` pattern
 - Parallel work: Use git worktrees or Task tool for concurrent development
 
 ## Enforcement

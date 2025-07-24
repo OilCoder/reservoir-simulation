@@ -12,17 +12,9 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
     },
-    "git": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-git", "--repository-path", "/workspace"]
-    },
     "obsidian": {
       "command": "npx",
       "args": ["-y", "obsidian-mcp", "/workspace/obsidian-vault"]
-    },
-    "puppeteer": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
     }
   }
 }

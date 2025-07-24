@@ -1,21 +1,26 @@
 """
-Auto-generates project_map.md by scanning the entire Reservoir Simulation project.
+Auto-generates project_map.md by scanning the entire Geomechanical ML project.
 
-Completely dynamic generation following DATA_GENERATION_POLICY:
-- No hardcoded directory lists
-- No hardcoded descriptions
+Part of Claude Code management tools for tracking and documenting project structure.
+Located in .claude/scripts/ as it's a development utility, not project documentation.
+
+Features:
+- Completely dynamic generation following DATA_GENERATION_POLICY
+- No hardcoded directory lists or descriptions
 - Everything extracted from actual code content
-- Comprehensive function documentation
+- Comprehensive function and class documentation
+- Ignores .claude/ directory to avoid self-referencing
+- Supports both Python (.py) and MATLAB/Octave (.m) files
 """
 
 import re
 import ast
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 from pathlib import Path
 from datetime import datetime
 
 # Configure project root and output
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent  # Go up from .claude/scripts/ to workspace/
 OUTPUT_FILE = PROJECT_ROOT / "docs" / "project_map.md"
 
 # Code file extensions
@@ -24,7 +29,8 @@ CODE_EXTENSIONS = {".py", ".m"}
 # Directories to ignore
 IGNORE_DIRS = {
     "__pycache__", ".git", ".vscode", "node_modules", 
-    ".pytest_cache", ".mypy_cache", "dist", "build"
+    ".pytest_cache", ".mypy_cache", "dist", "build",
+    ".claude"  # Ignore Claude Code configuration directory
 }
 
 def parse_docstring(docstring: str) -> Dict[str, str]:
@@ -240,7 +246,7 @@ def scan_project_tree() -> Dict:
     print(f"Total files processed: {processed_files}")
     return project_tree
 
-def generate_tree_structure(tree: Dict, prefix: str = "", is_last: bool = True) -> str:
+def generate_tree_structure(tree: Dict, prefix: str = "") -> str:
     """Generate ASCII tree structure."""
     result = ""
     
@@ -268,10 +274,9 @@ def generate_tree_structure(tree: Dict, prefix: str = "", is_last: bool = True) 
         
         if item_type == 'dir':
             result += f"{current_prefix}{name}/\n"
-            result += generate_tree_structure(item_data, next_prefix, is_last_item)
+            result += generate_tree_structure(item_data, next_prefix)
         else:
-            # File
-            file_type = item_data.get('type', 'Unknown')
+            # File - show type info in comment
             result += f"{current_prefix}{name}\n"
     
     return result

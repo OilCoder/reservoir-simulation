@@ -57,12 +57,12 @@ for i = 1:length(lines)
     line = strtrim(lines{i});
     
     % Skip empty lines and comments
-    if isempty(line) || startsWith(line, '#')
+    if isempty(line) || (length(line) >= 1 && line(1) == '#')
         continue;
     end
     
     % Detect section headers (no indentation, ends with colon)
-    if ~startsWith(line, ' ') && endsWith(line, ':')
+    if ~(length(line) >= 1 && line(1) == ' ') && (length(line) >= 1 && line(end) == ':')
         current_section = strtrim(line(1:end-1));
         current_subsection = '';
         current_list_key = '';
@@ -72,7 +72,7 @@ for i = 1:length(lines)
     end
     
     % Detect subsection headers (2-space indentation, ends with colon)
-    if startsWith(line, '  ') && ~startsWith(line, '    ') && endsWith(line, ':')
+    if (length(line) >= 2 && strncmp(line, '  ', 2)) && ~(length(line) >= 4 && strncmp(line, '    ', 4)) && (length(line) >= 1 && line(end) == ':')
         current_subsection = strtrim(line(3:end-1));
         current_list_key = '';
         list_index = 0;
@@ -83,7 +83,7 @@ for i = 1:length(lines)
     end
     
     % Detect list items (starts with dash)
-    if contains(line, '- ')
+    if ~isempty(strfind(line, '- '))
         dash_pos = strfind(line, '- ');
         indent_level = dash_pos(1) - 1;
         
@@ -91,7 +91,7 @@ for i = 1:length(lines)
             list_index = list_index + 1;
             item_content = strtrim(line(dash_pos(1)+2:end));
             
-            if contains(item_content, ':')
+            if ~isempty(strfind(item_content, ':'))
                 % List item with properties
                 current_list_key = sprintf('item_%d', list_index);
                 if ~isempty(current_section) && ~isempty(current_subsection)
@@ -123,7 +123,7 @@ for i = 1:length(lines)
     end
     
     % Parse key-value pairs
-    if contains(line, ':')
+    if ~isempty(strfind(line, ':'))
         colon_pos = strfind(line, ':');
         key = strtrim(line(1:colon_pos(1)-1));
         value = strtrim(line(colon_pos(1)+1:end));
@@ -194,7 +194,7 @@ elseif strcmp(value_str, 'false')
 end
 
 % Handle arrays [a, b, c]
-if startsWith(value_str, '[') && endsWith(value_str, ']')
+if (length(value_str) >= 1 && value_str(1) == '[') && (length(value_str) >= 1 && value_str(end) == ']')
     array_content = value_str(2:end-1);
     if isempty(strtrim(array_content))
         parsed_value = [];
@@ -218,8 +218,8 @@ if startsWith(value_str, '[') && endsWith(value_str, ']')
 end
 
 % Handle quoted strings
-if (startsWith(value_str, '"') && endsWith(value_str, '"')) || ...
-   (startsWith(value_str, '''') && endsWith(value_str, ''''))
+if ((length(value_str) >= 2 && value_str(1) == '"' && value_str(end) == '"')) || ...
+   ((length(value_str) >= 2 && value_str(1) == '''' && value_str(end) == ''''))
     parsed_value = value_str(2:end-1);
     return;
 end
@@ -232,7 +232,7 @@ if ~isnan(num_value)
 end
 
 % Handle scientific notation
-if contains(value_str, 'e') || contains(value_str, 'E')
+if ~isempty(strfind(value_str, 'e')) || ~isempty(strfind(value_str, 'E'))
     num_value = str2double(value_str);
     if ~isnan(num_value)
         parsed_value = num_value;

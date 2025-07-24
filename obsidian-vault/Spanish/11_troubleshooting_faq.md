@@ -88,7 +88,7 @@ Error: 'util_read_config' undefined near line 20 column 10
 ls mrst_simulation_scripts/util_read_config.m
 
 # Si no existe, crear el archivo
-cp docs/Spanish/examples/util_read_config.m mrst_simulation_scripts/
+cp obsidian-vault/Spanish/examples/util_read_config.m mrst_simulation_scripts/
 
 # Verificar permisos
 chmod 644 mrst_simulation_scripts/util_read_config.m

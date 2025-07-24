@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-streamlit-patterns.sh",
+            "args": ["$FILE_PATH", "$CONTENT"]
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-viz-components.sh",
+            "args": ["$FILE_PATH", "$NEW_STRING"]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-dashboard-structure.sh",
+            "args": ["$FILE_PATH"]
+          }
+        ]
+      }
+    ]
+  }
+}

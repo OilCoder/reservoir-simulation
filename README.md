@@ -197,8 +197,8 @@ GitHub Actions automatically:
 
 ## 📚 Documentation
 
-- [Setup Guide](docs/English/00_setup_guide.md) - Complete setup instructions
-- [Code Examples](docs/English/01_code_generation_examples.md) - Proper code examples
+- [Setup Guide](obsidian-vault/English/00_setup_guide.md) - Complete setup instructions
+- [Code Examples](obsidian-vault/English/01_code_generation_examples.md) - Proper code examples
 - [Project Rules](rules/) - Detailed coding standards
 
 ## 🤝 Contributing
