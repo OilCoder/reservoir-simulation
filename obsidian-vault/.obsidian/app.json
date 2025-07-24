@@ -1,0 +1,13 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "root",
+  "newLinkFormat": "relative",
+  "useMarkdownLinks": true,
+  "showUnsupportedFiles": false,
+  "showInlineTitle": true,
+  "promptDelete": true,
+  "defaultViewMode": "preview",
+  "attachmentFolderPath": "attachments",
+  "theme": "system",
+  "interfaceLanguage": "en"
+}

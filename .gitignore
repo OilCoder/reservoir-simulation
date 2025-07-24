@@ -1,0 +1,48 @@
+# Project-specific gitignore
+
+# Test directory - all test files are excluded from version control
+/tests/
+
+# Debug directory - all debug scripts are excluded from version control  
+/debug/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Octave/MATLAB
+*.m~
+*.mat
+*.asv
+octave-workspace
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+*.log
+*.tmp
+/output/
+/results/
+
+# Claude Code local settings
+.claude/settings.local.json
+CLAUDE.local.md

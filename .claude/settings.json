@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-write-validation.sh",
+            "args": ["$FILE_PATH", "$CONTENT"]
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-code-style.sh",
+            "args": ["$FILE_PATH", "$NEW_STRING"]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/cleanup-print-statements.sh",
+            "args": ["$FILE_PATH"]
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📋 Project rules loaded from /workspace/rules/'"
+          }
+        ]
+      }
+    ]
+  }
+}
