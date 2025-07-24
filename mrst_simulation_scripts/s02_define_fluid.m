@@ -108,10 +108,10 @@ fluid_properties.kr_curves.kro = kro;
 fluid_properties.kr_curves.swc = swc;
 fluid_properties.kr_curves.sor = sor;
 
-fluid_properties_path = '../data/static/fluid_properties.mat';
+fluid_properties_path = '../data/simulation_data/static/fluid_properties.mat';
 try
-    if ~exist('../data/static', 'dir')
-        mkdir('../data/static');
+    if ~exist('../data/simulation_data/static', 'dir')
+        mkdir('../data/simulation_data/static');
     end
     save(fluid_properties_path, 'fluid_properties');
     fprintf('[INFO] Fluid properties exported to: %s\n', fluid_properties_path);

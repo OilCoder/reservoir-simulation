@@ -18,15 +18,16 @@ function util_ensure_directories()
 %% ----
 
 % Substep 1.1 – List all required directories __________________
-% Updated for optimized data structure
+% Updated for simulation-specific data structure
 required_dirs = {
     '../data'                           % Base data directory
-    '../data/initial'                   % Initial reservoir conditions
-    '../data/static'                    % Static data (grid, wells, rock regions)
-    '../data/dynamic/fields'            % 3D time-dependent field arrays
-    '../data/dynamic/wells'             % Well operational data
-    '../data/temporal'                  % Time vectors and schedules
-    '../data/metadata'                  % Dataset documentation
+    '../data/simulation_data'           % MRST simulation data container
+    '../data/simulation_data/initial'   % Initial reservoir conditions
+    '../data/simulation_data/static'    % Static data (grid, wells, rock regions)
+    '../data/simulation_data/dynamic/fields'    % 3D time-dependent field arrays
+    '../data/simulation_data/dynamic/wells'     % Well operational data
+    '../data/simulation_data/temporal'  % Time vectors and schedules
+    '../data/simulation_data/metadata'  % Dataset documentation
 };
 
 fprintf('[INFO] Creating optimized data structure directories...\n');
@@ -65,7 +66,7 @@ end
 % Substep 3.1 – Test write permissions _________________________
 fprintf('[INFO] Testing write permissions...\n');
 
-critical_dirs = {'../data'};
+critical_dirs = {'../data', '../data/simulation_data'};
 all_writable = true;
 
 for i = 1:length(critical_dirs)

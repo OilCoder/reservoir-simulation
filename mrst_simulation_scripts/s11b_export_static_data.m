@@ -104,7 +104,7 @@ static_data.wells = well_data;
 %% Step 5 – Save static data
 %% ----
 
-static_file = fullfile(base_dir, 'static', 'static_data.mat');
+static_file = fullfile(base_dir, 'simulation_data', 'static', 'static_data.mat');
 save(static_file, 'static_data', '-v7');
 fprintf('[INFO] Static data saved: %s\n', static_file);
 

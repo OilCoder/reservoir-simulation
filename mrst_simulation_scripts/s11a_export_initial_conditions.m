@@ -97,7 +97,7 @@ end
 %% Step 3 – Save initial conditions
 %% ----
 
-initial_file = fullfile(base_dir, 'initial', 'initial_conditions.mat');
+initial_file = fullfile(base_dir, 'simulation_data', 'initial', 'initial_conditions.mat');
 save(initial_file, 'initial_data', '-v7');
 fprintf('[INFO] Initial conditions saved: %s\n', initial_file);
 

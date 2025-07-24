@@ -90,7 +90,7 @@ end
 %% Step 5 – File sizes and optimization
 %% ----
 
-fields_file = fullfile(base_dir, 'dynamic', 'fields', 'field_arrays.mat');
+fields_file = fullfile(base_dir, 'simulation_data', 'dynamic', 'fields', 'field_arrays.mat');
 if exist(fields_file, 'file')
     fields_info = dir(fields_file);
     total_size_MB = fields_info.bytes / (1024^2);
@@ -125,7 +125,7 @@ metadata.conventions.well_indexing = 'Zero-based in Python, one-based in MATLAB'
 %% Step 7 – Save metadata
 %% ----
 
-metadata_file = fullfile(base_dir, 'metadata', 'metadata.mat');
+metadata_file = fullfile(base_dir, 'simulation_data', 'metadata', 'metadata.mat');
 save(metadata_file, 'metadata', '-v7');
 fprintf('[INFO] Metadata saved: %s\n', metadata_file);
 

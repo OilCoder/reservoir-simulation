@@ -1,7 +1,7 @@
 function s06_export_dataset(G, rock, fluid, schedule, states, wellSols)
 % s06_export_dataset - Optimized MRST data export system with deduplication and organized structure
 %
-% Exports simulation results to: ../data/ with optimized folder organization
+% Exports simulation results to: ../data/simulation_data/ with optimized folder organization
 %
 % Args:
 %   G: MRST grid structure
@@ -89,7 +89,7 @@ try
     temporal_data.control_indices = schedule.step.control;
     
     % Save temporal data
-    temporal_file = fullfile(base_dir, 'temporal', 'time_data.mat');
+    temporal_file = fullfile(base_dir, 'simulation_data', 'temporal', 'time_data.mat');
     save(temporal_file, 'temporal_data', '-v7');
     fprintf('[INFO] Temporal data saved: %s\n', temporal_file);
 catch ME
@@ -153,7 +153,7 @@ try
         end
         
         % Save well data
-        wells_file = fullfile(base_dir, 'dynamic', 'wells', 'well_data.mat');
+        wells_file = fullfile(base_dir, 'simulation_data', 'dynamic', 'wells', 'well_data.mat');
         save(wells_file, 'wells_dynamic', '-v7');
         fprintf('[INFO] Well operational data saved: %s\n', wells_file);
     else
@@ -195,12 +195,12 @@ fprintf('Timesteps: %d\n', n_steps);
 fprintf('Wells: %d\n', n_wells);
 
 fprintf('\nData structure:\n');
-fprintf('  /workspace/data/initial/           - Initial conditions\n');
-fprintf('  /workspace/data/static/            - Static data (grid, wells, rock)\n');
-fprintf('  /workspace/data/dynamic/fields/    - 3D field arrays [time, y, x]\n');
-fprintf('  /workspace/data/dynamic/wells/     - Well operational data\n');
-fprintf('  /workspace/data/temporal/          - Time vectors\n');
-fprintf('  /workspace/data/metadata/          - Documentation\n');
+fprintf('  /workspace/data/simulation_data/initial/           - Initial conditions\n');
+fprintf('  /workspace/data/simulation_data/static/            - Static data (grid, wells, rock)\n');
+fprintf('  /workspace/data/simulation_data/dynamic/fields/    - 3D field arrays [time, y, x]\n');
+fprintf('  /workspace/data/simulation_data/dynamic/wells/     - Well operational data\n');
+fprintf('  /workspace/data/simulation_data/temporal/          - Time vectors\n');
+fprintf('  /workspace/data/simulation_data/metadata/          - Documentation\n');
 
 fprintf('\n✅ OPTIMIZED DATASET READY FOR PYTHON PLOTTING!\n'); 
 

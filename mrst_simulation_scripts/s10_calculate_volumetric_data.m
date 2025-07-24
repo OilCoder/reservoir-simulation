@@ -139,7 +139,7 @@ cumulative_data.pv_injected = pv_injected;
 cumulative_data.recovery_factor = recovery_factor;
 
 % Save cumulative data
-cumulative_data_path = '../data/dynamic/wells/cumulative_data.mat';
+cumulative_data_path = '../data/simulation_data/dynamic/wells/cumulative_data.mat';
 save(cumulative_data_path, 'cumulative_data');
 
 fprintf('[INFO] Cumulative data exported to: %s\n', cumulative_data_path);
@@ -152,13 +152,13 @@ flow_data.vy = vy;
 flow_data.velocity_magnitude = velocity_magnitude;
 
 % Save flow data
-flow_data_path = '../data/dynamic/fields/flow_data.mat';
+flow_data_path = '../data/simulation_data/dynamic/fields/flow_data.mat';
 save(flow_data_path, 'flow_data');
 
 fprintf('[INFO] Flow data exported to: %s\n', flow_data_path);
 
 % Update metadata with reservoir data
-metadata_path = '../data/metadata/metadata.mat';
+metadata_path = '../data/simulation_data/metadata/metadata.mat';
 if exist(metadata_path, 'file')
     load(metadata_path);
 else

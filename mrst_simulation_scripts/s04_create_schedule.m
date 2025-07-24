@@ -97,7 +97,7 @@ fprintf('  Timesteps: %d\n', length(timesteps));
 fprintf('  Wells: %d\n', length(W));
 
 % Save schedule variable for later use
-save('../data/temporal/schedule.mat', 'schedule');
-fprintf('[INFO] Schedule saved to ../data/temporal/schedule.mat\n');
+save('../data/simulation_data/temporal/schedule.mat', 'schedule');
+fprintf('[INFO] Schedule saved to ../data/simulation_data/temporal/schedule.mat\n');
 
 end

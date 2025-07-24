@@ -120,12 +120,12 @@ if ~exist(data_dir, 'dir')
 else
     % Check for optimized data structure files
     required_files = {
-        'initial/initial_conditions.mat',
-        'static/static_data.mat', 
-        'temporal/time_data.mat',
-        'dynamic/fields/field_arrays.mat',
-        'dynamic/wells/well_data.mat',
-        'metadata/metadata.mat'
+        'simulation_data/initial/initial_conditions.mat',
+        'simulation_data/static/static_data.mat', 
+        'simulation_data/temporal/time_data.mat',
+        'simulation_data/dynamic/fields/field_arrays.mat',
+        'simulation_data/dynamic/wells/well_data.mat',
+        'simulation_data/metadata/metadata.mat'
     };
     
     missing_files = 0;

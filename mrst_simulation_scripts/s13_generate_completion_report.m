@@ -13,12 +13,12 @@ function s13_generate_completion_report()
 % Requires: MRST
 
 % Load all required variables from data files
-load('../data/initial/initial_conditions.mat', 'G');
-load('../data/static/static_data.mat', 'rock');
-load('../data/static/fluid_properties.mat', 'fluid');
-load('../data/temporal/schedule.mat', 'schedule');
-load('../data/dynamic/fields/field_arrays.mat', 'states');
-load('../data/dynamic/wells/well_data.mat', 'wellSols');
+load('../data/simulation_data/initial/initial_conditions.mat', 'G');
+load('../data/simulation_data/static/static_data.mat', 'rock');
+load('../data/simulation_data/static/fluid_properties.mat', 'fluid');
+load('../data/simulation_data/temporal/schedule.mat', 'schedule');
+load('../data/simulation_data/dynamic/fields/field_arrays.mat', 'states');
+load('../data/simulation_data/dynamic/wells/well_data.mat', 'wellSols');
 
 % Simple validation that all variables loaded successfully
 all_vars_exist = exist('G', 'var') && exist('rock', 'var') && exist('fluid', 'var') && ...
@@ -92,7 +92,7 @@ end
 %% ----
 
 fprintf('\nNext steps:\n');
-fprintf('  1. Examine snapshot data in ../data/\n');
+fprintf('  1. Examine snapshot data in ../data/simulation_data/\n');
 fprintf('  2. Review metadata.yaml for dataset details\n');
 fprintf('  3. Use monitoring/plot_scripts/ for visualization\n');
 fprintf('  4. Proceed to Phase 2 (ML model development)\n');

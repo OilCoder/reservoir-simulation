@@ -86,7 +86,7 @@ fields_data.dimensions.nz = nz;
 fields_data.dimensions.n_timesteps = n_steps;
 
 % Save field data
-fields_file = fullfile(base_dir, 'dynamic', 'fields', 'field_arrays.mat');
+fields_file = fullfile(base_dir, 'simulation_data', 'dynamic', 'fields', 'field_arrays.mat');
 save(fields_file, 'fields_data', '-v7');
 if nz == 1
     fprintf('[INFO] 2D Dynamic fields saved: %s\n', fields_file);
@@ -116,7 +116,7 @@ if n_steps > 0
     static_data.dimensions.ny = ny;
     static_data.dimensions.nz = nz;
     
-    static_file = fullfile(base_dir, 'static', 'static_data.mat');
+    static_file = fullfile(base_dir, 'simulation_data', 'static', 'static_data.mat');
     save(static_file, 'static_data', '-v7');
     if nz == 1
         fprintf('[INFO] Static 2D data saved: %s\n', static_file);
