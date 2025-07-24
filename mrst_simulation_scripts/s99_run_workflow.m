@@ -57,8 +57,8 @@ util_ensure_directories();
 %% Step 2 – Setup simulation components
 %% ----
 
-config_file = '../config/reservoir_config.yaml';
-[G, rock, fluid, schedule, timing] = s07a_setup_components(config_file);
+config_dir = './config/';
+[G, rock, fluid, schedule, timing] = s07a_setup_components(config_dir);
 
 %% ----
 %% Step 3 – Run simulation and export

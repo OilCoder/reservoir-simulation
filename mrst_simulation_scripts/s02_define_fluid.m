@@ -1,11 +1,11 @@
-function fluid = s02_define_fluid(config_file)
+function fluid = s02_define_fluid(config_dir)
 % s02_define_fluid - Create MRST fluid structure from configuration
 %
 % Creates two-phase oil-water fluid with properties from configuration.
 % Uses MRST initSimpleFluid function with realistic relative permeability curves.
 %
 % Args:
-%   config_file: Path to YAML configuration file
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   fluid: MRST fluid structure with oil-water properties
@@ -16,8 +16,11 @@ function fluid = s02_define_fluid(config_file)
 %% Step 1 – Load configuration
 %% ----
 
-% Substep 1.1 – Read configuration file ________________________
-config = util_read_config(config_file);
+% Substep 1.1 – Read configuration files ________________________
+if nargin < 1
+    config_dir = './config/';
+end
+config = util_read_config(config_dir);
 
 fprintf('[INFO] Creating two-phase oil-water fluid\n');
 

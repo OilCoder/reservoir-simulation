@@ -1,0 +1,54 @@
+# Wells and Simulation Schedule Configuration
+# This file contains well definitions, simulation parameters, and output settings
+# Used by: s04_create_schedule.m
+
+# Wells Configuration (structure expected by simulation scripts)
+wells:
+  producers:
+    - name: "PROD1"
+      location: [15, 10]        # Grid coordinates [i, j]
+      control_type: "bhp"       # "bhp" or "rate"
+      target_bhp: 2175.0        # Target BHP [psi]
+      target_rate: 314.0        # Target rate [bbl/day] (if rate control)
+      radius: 0.33              # Wellbore radius [ft]
+      
+  injectors:
+    - name: "INJ1"
+      location: [5, 10]         # Grid coordinates [i, j]
+      control_type: "rate"      # "bhp" or "rate"
+      target_bhp: 3625.0        # Target BHP [psi]
+      target_rate: 251.0        # Target injection rate [bbl/day]
+      radius: 0.33              # Wellbore radius [ft]
+      fluid_type: "water"       # Injected fluid type
+
+# Simulation Parameters
+simulation:
+  total_time: 3650.0             # Total simulation time [days]
+  num_timesteps: 500             # Number of timesteps
+  timestep_type: "linear"       # "linear", "logarithmic", "custom"
+  timestep_multiplier: 1.1      # Multiplier for increasing timesteps
+  custom_timesteps: null        # List of custom timesteps [0.1, 1, 5, 10 …] if "custom"
+  
+  # Solver settings
+  solver:
+    tolerance: 1.0e-6            # Convergence tolerance
+    max_iterations: 25           # Maximum iterations per timestep
+    linear_solver: "iterative"      # "direct", "iterative"
+    pressure_drop_factor: 0.9    # Well pressure drop factor [-]
+
+# Output Configuration
+output:
+  base_directory: "data/raw"      # Base output directory
+  filename_prefix: "snap"         # Snapshot filename prefix
+  save_format: "matlab"           # "matlab", "hdf5", "csv"
+  
+  # Variables to extract
+  variables:
+    - "effective_stress"          # σ_eff
+    - "porosity"                   # φ
+    - "permeability"               # k
+    - "rock_id"                    # Rock region ID
+    - "pressure"                   # Pressure
+    - "water_saturation"           # Sw
+    - "flow_rate_inj"              # Injection flow rate [bbl/day]
+    - "flow_rate_prod"             # Production flow rate [bbl/day]

@@ -1,0 +1,69 @@
+# Initial Conditions and Reservoir State Configuration
+# This file contains initial conditions, boundary conditions, and project metadata
+# Used by: s07b_setup_state.m
+
+# Initial Conditions
+initial_conditions:
+  # Reference conditions (at datum depth)
+  datum_depth: 8000.0         # Reference depth [ft]
+  datum_pressure: 2900.0      # Pressure at datum depth [psi]
+  temperature: 176.0          # Reservoir temperature [°F]
+  
+  # Pressure gradients
+  pressure_gradient: 0.433    # Pore pressure gradient [psi/ft]
+  
+  # Fluid contacts
+  oil_water_contact: 8150.0   # Oil-water contact depth [ft]
+  gas_oil_contact: 7950.0     # Gas-oil contact depth [ft] (if applicable)
+  
+  # Initial saturations by zone
+  gas_zone:
+    gas_saturation: 0.70      # Gas saturation in gas cap [-]
+    oil_saturation: 0.15      # Oil saturation in gas cap [-]
+    water_saturation: 0.15    # Water saturation in gas cap [-]
+  
+  oil_zone:
+    oil_saturation: 0.80      # Oil saturation in oil zone [-]
+    water_saturation: 0.20    # Water saturation in oil zone [-]
+  
+  water_zone:
+    water_saturation: 1.0     # Water saturation in water zone [-]
+    
+  # Capillary pressure parameters
+  capillary_pressure:
+    enabled: true             # Enable capillary pressure calculations
+    height_function: "leverett" # "leverett" or "brooks_corey"
+    displacement_pressure: 2.0  # Entry pressure [psi]
+    transition_zone_height: 50.0 # Transition zone height [ft]
+
+# Boundary Conditions
+boundary_conditions:
+  type: "no_flow"             # Boundary type: "no_flow", "constant_pressure", "aquifer"
+  pressure: 2900.0            # Boundary pressure [psi] (if applicable)
+
+# Metadata
+metadata:
+  project_name: "MRST Geomechanical Simulation"
+  description: "2D reservoir simulation with geomechanical coupling"
+  author: "Simulation Team"
+  version: "2.0"
+  created_date: "2025-01-15"
+  last_modified: "2025-01-20"
+  units:
+    length: "feet"
+    pressure: "psi"
+    permeability: "millidarcy"
+    time: "days"
+    temperature: "fahrenheit"
+    volume: "barrels"
+    rate: "barrels_per_day"
+    
+  # Unit conversion factors
+  conversion_factors:
+    ft_to_m: 0.3048               # Feet to meters
+    psi_to_pa: 6894.76            # PSI to Pascals
+    md_to_m2: 9.869233e-16        # Millidarcy to m²
+    bbl_per_day_to_m3_per_s: 1.589873e-7  # bbl/day to m³/s
+    cp_to_pa_s: 1.0e-3            # Centipoise to Pa·s
+    days_to_seconds: 86400        # Days to seconds
+    m_to_ft: 3.28084              # Meters to feet

@@ -1,11 +1,11 @@
-function config = util_read_config(config_file)
-%util_read_config - Read and parse reservoir configuration from YAML file
+function config = util_read_config(config_dir)
+%util_read_config - Read and parse reservoir configuration from multiple YAML files
 %
-% Loads reservoir simulation configuration from YAML file and returns
-% structured configuration data for MRST simulation workflow.
+% Loads reservoir simulation configuration from multiple YAML files and merges
+% them into a single structured configuration for MRST simulation workflow.
 %
 % Args:
-%   config_file: Path to YAML configuration file
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   config: Structure containing all simulation parameters
@@ -13,20 +13,83 @@ function config = util_read_config(config_file)
 % Requires: None (pure Octave/MATLAB)
 
 % ----
-% Step 1 – Input validation
+% Step 1 – Input validation and setup
 % ----
 
+% Set default config directory if not provided
 if nargin < 1
-    error('util_read_config:MissingInput', 'Configuration file path is required');
+    config_dir = './config/';
+else
+    % Ensure config_dir ends with '/'
+    if ~strcmp(config_dir(end), '/')
+        config_dir = [config_dir '/'];
+    end
 end
 
-if ~exist(config_file, 'file')
-    error('util_read_config:FileNotFound', 'Configuration file not found: %s', config_file);
+% Check if config directory exists
+if ~exist(config_dir, 'dir')
+    error('util_read_config:DirNotFound', 'Configuration directory not found: %s', config_dir);
+end
+
+% Define the 4 configuration files to load
+config_files = {
+    'rock_properties_config.yaml';
+    'fluid_properties_config.yaml';
+    'wells_schedule_config.yaml';
+    'initial_conditions_config.yaml'
+};
+
+% Verify all config files exist
+for i = 1:length(config_files)
+    full_path = [config_dir config_files{i}];
+    if ~exist(full_path, 'file')
+        error('util_read_config:FileNotFound', 'Configuration file not found: %s', full_path);
+    end
 end
 
 % ----
-% Step 2 – Read YAML file content
+% Step 2 – Load and merge all configuration files
 % ----
+
+% Initialize merged config structure
+config = struct();
+
+% Load each configuration file and merge into main config
+for i = 1:length(config_files)
+    config_file = [config_dir config_files{i}];
+    fprintf('Loading configuration from: %s\n', config_file);
+    
+    % Parse individual config file
+    file_config = parse_yaml_file(config_file);
+    
+    % Merge into main config structure
+    config = merge_config_structures(config, file_config);
+end
+
+% ----
+% Step 3 – Validate required sections
+% ----
+
+required_sections = {'grid', 'rock', 'fluid', 'wells', 'simulation', 'initial_conditions'};
+for i = 1:length(required_sections)
+    section = required_sections{i};
+    if ~isfield(config, section)
+        warning('util_read_config:MissingSection', 'Required section "%s" not found in configuration', section);
+    end
+end
+
+fprintf('Configuration loaded successfully from %d files in: %s\n', length(config_files), config_dir);
+
+end
+
+function file_config = parse_yaml_file(config_file)
+%parse_yaml_file - Parse a single YAML configuration file
+%
+% Args:
+%   config_file: Full path to YAML file
+%
+% Returns:
+%   file_config: Structure containing parsed configuration
 
 % Read file line by line
 fid = fopen(config_file, 'r');
@@ -43,11 +106,8 @@ while ~feof(fid)
 end
 fclose(fid);
 
-% ----
-% Step 3 – Parse YAML content
-% ----
-
-config = struct();
+% Parse YAML content
+file_config = struct();
 current_section = '';
 current_subsection = '';
 current_list_key = '';
@@ -67,7 +127,7 @@ for i = 1:length(lines)
         current_subsection = '';
         current_list_key = '';
         list_index = 0;
-        config.(current_section) = struct();
+        file_config.(current_section) = struct();
         continue;
     end
     
@@ -77,7 +137,7 @@ for i = 1:length(lines)
         current_list_key = '';
         list_index = 0;
         if ~isempty(current_section)
-            config.(current_section).(current_subsection) = struct();
+            file_config.(current_section).(current_subsection) = struct();
         end
         continue;
     end
@@ -95,7 +155,7 @@ for i = 1:length(lines)
                 % List item with properties
                 current_list_key = sprintf('item_%d', list_index);
                 if ~isempty(current_section) && ~isempty(current_subsection)
-                    config.(current_section).(current_subsection).(current_list_key) = struct();
+                    file_config.(current_section).(current_subsection).(current_list_key) = struct();
                 end
                 
                 % Parse the first property on the same line
@@ -105,17 +165,17 @@ for i = 1:length(lines)
                     value = strtrim(item_content(colon_pos(1)+1:end));
                     parsed_value = parse_yaml_value(value);
                     if ~isempty(current_section) && ~isempty(current_subsection)
-                        config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
+                        file_config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
                     end
                 end
             else
                 % Simple list item
                 parsed_value = parse_yaml_value(item_content);
                 if ~isempty(current_section) && ~isempty(current_subsection)
-                    if ~isfield(config.(current_section), current_subsection)
-                        config.(current_section).(current_subsection) = {};
+                    if ~isfield(file_config.(current_section), current_subsection)
+                        file_config.(current_section).(current_subsection) = {};
                     end
-                    config.(current_section).(current_subsection){end+1} = parsed_value;
+                    file_config.(current_section).(current_subsection){end+1} = parsed_value;
                 end
             end
         end
@@ -135,35 +195,43 @@ for i = 1:length(lines)
             % Property of list item
             parsed_value = parse_yaml_value(value);
             if ~isempty(current_section) && ~isempty(current_subsection)
-                config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
+                file_config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
             end
         elseif indent_level >= 4 && ~isempty(current_subsection)
             % Property of subsection
             parsed_value = parse_yaml_value(value);
             if ~isempty(current_section)
-                config.(current_section).(current_subsection).(key) = parsed_value;
+                file_config.(current_section).(current_subsection).(key) = parsed_value;
             end
         elseif indent_level >= 2 && ~isempty(current_section)
             % Property of section
             parsed_value = parse_yaml_value(value);
-            config.(current_section).(key) = parsed_value;
+            file_config.(current_section).(key) = parsed_value;
         end
     end
 end
 
-% ----
-% Step 4 – Validate required sections
-% ----
-
-required_sections = {'grid', 'rock', 'fluid', 'wells', 'simulation', 'initial_conditions'};
-for i = 1:length(required_sections)
-    section = required_sections{i};
-    if ~isfield(config, section)
-        warning('util_read_config:MissingSection', 'Required section "%s" not found in configuration', section);
-    end
 end
 
-fprintf('Configuration loaded successfully from: %s\n', config_file);
+function merged_config = merge_config_structures(config1, config2)
+%merge_config_structures - Merge two configuration structures
+%
+% Args:
+%   config1: First config structure
+%   config2: Second config structure to merge into first
+%
+% Returns:
+%   merged_config: Merged configuration structure
+
+merged_config = config1;
+
+% Get field names from second config
+field_names = fieldnames(config2);
+
+for i = 1:length(field_names)
+    field_name = field_names{i};
+    merged_config.(field_name) = config2.(field_name);
+end
 
 end
 

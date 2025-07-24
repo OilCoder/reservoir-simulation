@@ -1,4 +1,4 @@
-function schedule = s04_create_schedule(G, rock, fluid, config_file)
+function schedule = s04_create_schedule(G, rock, fluid, config_dir)
 % s04_create_schedule - Create MRST simulation schedule with wells and timesteps
 %
 % Creates schedule with producer and injector wells based on configuration.
@@ -8,7 +8,7 @@ function schedule = s04_create_schedule(G, rock, fluid, config_file)
 %   G: MRST grid structure
 %   rock: MRST rock structure
 %   fluid: MRST fluid structure
-%   config_file: Path to YAML configuration file
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   schedule: MRST schedule structure with wells and timesteps
@@ -19,8 +19,11 @@ function schedule = s04_create_schedule(G, rock, fluid, config_file)
 %% Step 1 – Load configuration
 %% ----
 
-% Substep 1.1 – Read configuration file ________________________
-config = util_read_config(config_file);
+% Substep 1.1 – Read configuration files ________________________
+if nargin < 4
+    config_dir = './config/';
+end
+config = util_read_config(config_dir);
 
 fprintf('[INFO] Creating simulation schedule\n');
 
@@ -31,31 +34,61 @@ fprintf('[INFO] Creating simulation schedule\n');
 % Substep 2.1 – Initialize empty well array ____________________
 W = [];
 
-% Substep 2.2 – Add producer well _______________________________
-prod_i = config.wells.producer_i;
-prod_j = config.wells.producer_j;
-prod_bhp = config.wells.producer_bhp * 6894.76;  % psi to Pa
+% Substep 2.2 – Add producer wells ______________________________
+for i = 1:length(config.wells.producers)
+    producer = config.wells.producers{i};
+    prod_i = producer.location(1);
+    prod_j = producer.location(2);
+    
+    if strcmp(producer.control_type, 'bhp')
+        prod_bhp = producer.target_bhp * 6894.76;  % psi to Pa
+        control_type = 'bhp';
+        control_val = prod_bhp;
+    else
+        prod_rate = -producer.target_rate * 1.589873e-7;  % bbl/day to m³/s (negative for production)
+        control_type = 'rate';
+        control_val = prod_rate;
+    end
+    
+    % Convert (i,j) to cell index
+    prod_cell = sub2ind([G.cartDims(1), G.cartDims(2)], prod_i, prod_j);
+    
+    W = addWell(W, G, rock, prod_cell, 'Type', control_type, 'Val', control_val, ...
+               'Radius', producer.radius * 0.3048, 'Name', producer.name, 'Comp_i', [0, 1]);
+end
 
-% Convert (i,j) to cell index
-prod_cell = sub2ind([G.cartDims(1), G.cartDims(2)], prod_i, prod_j);
-
-W = addWell(W, G, rock, prod_cell, 'Type', 'bhp', 'Val', prod_bhp, ...
-           'Radius', 0.1, 'Name', 'PRODUCER', 'Comp_i', [0, 1]);
-
-% Substep 2.3 – Add injector well _______________________________
-inj_i = config.wells.injector_i;
-inj_j = config.wells.injector_j;
-inj_rate = config.wells.injector_rate * 1.589873e-7;  % bbl/day to m³/s
-
-% Convert (i,j) to cell index
-inj_cell = sub2ind([G.cartDims(1), G.cartDims(2)], inj_i, inj_j);
-
-W = addWell(W, G, rock, inj_cell, 'Type', 'rate', 'Val', inj_rate, ...
-           'Radius', 0.1, 'Name', 'INJECTOR', 'Comp_i', [1, 0]);
+% Substep 2.3 – Add injector wells _______________________________
+for i = 1:length(config.wells.injectors)
+    injector = config.wells.injectors{i};
+    inj_i = injector.location(1);
+    inj_j = injector.location(2);
+    
+    if strcmp(injector.control_type, 'rate')
+        inj_rate = injector.target_rate * 1.589873e-7;  % bbl/day to m³/s
+        control_type = 'rate';
+        control_val = inj_rate;
+    else
+        inj_bhp = injector.target_bhp * 6894.76;  % psi to Pa
+        control_type = 'bhp';
+        control_val = inj_bhp;
+    end
+    
+    % Convert (i,j) to cell index
+    inj_cell = sub2ind([G.cartDims(1), G.cartDims(2)], inj_i, inj_j);
+    
+    W = addWell(W, G, rock, inj_cell, 'Type', control_type, 'Val', control_val, ...
+               'Radius', injector.radius * 0.3048, 'Name', injector.name, 'Comp_i', [1, 0]);
+end
 
 fprintf('[INFO] Wells created:\n');
-fprintf('  Producer: (%d,%d) BHP = %.0f psi\n', prod_i, prod_j, config.wells.producer_bhp);
-fprintf('  Injector: (%d,%d) Rate = %.0f bbl/day\n', inj_i, inj_j, config.wells.injector_rate);
+for i = 1:length(config.wells.producers)
+    producer = config.wells.producers{i};
+    fprintf('  Producer %s: (%d,%d) %s\n', producer.name, producer.location(1), producer.location(2), producer.control_type);
+end
+for i = 1:length(config.wells.injectors)
+    injector = config.wells.injectors{i};
+    fprintf('  Injector %s: (%d,%d) %s\n', injector.name, injector.location(1), injector.location(2), injector.control_type);
+end
 
 %% ----
 %% Step 3 – Create timesteps

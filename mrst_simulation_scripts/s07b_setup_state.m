@@ -1,4 +1,4 @@
-function [state0, config] = s07b_setup_state(G, rock)
+function [state0, config] = s07b_setup_state(G, rock, config_dir)
 % setup_simulation_state - Initialize simulation state and configuration
 %
 % Sets up initial pressure and saturation state for MRST simulation
@@ -7,6 +7,7 @@ function [state0, config] = s07b_setup_state(G, rock)
 % Args:
 %   G: MRST grid structure
 %   rock: MRST rock structure
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   state0: Initial simulation state
@@ -18,8 +19,10 @@ function [state0, config] = s07b_setup_state(G, rock)
 %% Step 1 – Load configuration and set initial conditions
 %% ----
 
-config_file = '../config/reservoir_config.yaml';
-config = util_read_config(config_file);
+if nargin < 3
+    config_dir = './config/';
+end
+config = util_read_config(config_dir);
 
 % Store initial porosity for compaction
 rock.poro0 = rock.poro;

@@ -1,11 +1,11 @@
-function [G, rock, fluid, schedule, timing] = s07a_setup_components(config_file)
+function [G, rock, fluid, schedule, timing] = s07a_setup_components(config_dir)
 % s07a_setup_components - Setup all simulation components
 %
 % Creates grid, rock, fluid, and schedule structures for MRST simulation
 % workflow execution.
 %
 % Args:
-%   config_file: Path to YAML configuration file
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   G: MRST grid structure
@@ -25,7 +25,7 @@ timing = struct();
 fprintf('\n--- Step 2: Grid and Rock Setup ---\n');
 tic;
 
-[G, rock, fluid_placeholder] = s01_setup_field(config_file);
+[G, rock, fluid_placeholder] = s01_setup_field(config_dir);
 
 % Verify grid and rock were created
 assert(exist('G', 'var') && isstruct(G), 'Grid G not created');
@@ -41,7 +41,7 @@ fprintf('[INFO] Grid and rock setup completed in %.1f seconds\n', timing.setup_t
 fprintf('\n--- Step 3: Fluid Properties ---\n');
 tic;
 
-fluid = s02_define_fluid(config_file);
+fluid = s02_define_fluid(config_dir);
 
 % Verify fluid was created
 assert(exist('fluid', 'var') && isstruct(fluid), 'Fluid structure not created');
@@ -72,7 +72,7 @@ fprintf('[INFO] Rock regions defined in %.1f seconds\n', timing.regions_time);
 fprintf('\n--- Step 5: Schedule Creation ---\n');
 tic;
 
-schedule = s04_create_schedule(G, rock, fluid, config_file);
+schedule = s04_create_schedule(G, rock, fluid, config_dir);
 
 % Verify schedule was created
 assert(exist('schedule', 'var') && isstruct(schedule), 'Schedule not created');

@@ -1,11 +1,11 @@
-function [G, rock, fluid] = s01_setup_field(config_file)
+function [G, rock, fluid] = s01_setup_field(config_dir)
 % s01_setup_field - Create MRST grid and rock properties from configuration
 %
 % Creates 20x20 cartesian grid with heterogeneous porosity and permeability
-% based on reservoir configuration file. Uses MRST functions exclusively.
+% based on reservoir configuration files. Uses MRST functions exclusively.
 %
 % Args:
-%   config_file: Path to YAML configuration file
+%   config_dir: Path to configuration directory (optional, defaults to './config/')
 %
 % Returns:
 %   G: MRST grid structure
@@ -18,8 +18,11 @@ function [G, rock, fluid] = s01_setup_field(config_file)
 %% Step 1 – Load configuration
 %% ----
 
-% Substep 1.1 – Read configuration file ________________________
-config = util_read_config(config_file);
+% Substep 1.1 – Read configuration files ________________________
+if nargin < 1
+    config_dir = './config/';
+end
+config = util_read_config(config_dir);
 
 % Substep 1.2 – Extract grid parameters from config _____________
 nx = config.grid.nx;
