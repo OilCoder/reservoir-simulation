@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-markdown-structure.sh",
+            "args": ["$FILE_PATH", "$CONTENT"]
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-links.sh",
+            "args": ["$FILE_PATH", "$NEW_STRING"]
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/validate-frontmatter.sh",
+            "args": ["$FILE_PATH"]
+          }
+        ]
+      }
+    ]
+  }
+}

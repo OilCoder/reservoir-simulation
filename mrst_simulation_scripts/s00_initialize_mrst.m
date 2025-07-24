@@ -18,15 +18,17 @@ function s00_initialize_mrst()
 
 fprintf('[INFO] Initializing MRST for Octave...\n');
 
-% Substep 1.1 – Use existing load_mrst function _______________
+% Substep 1.1 – Add MRST core path and initialize ___________
 current_dir = pwd;
 try
-    % Navigate to project root to use load_mrst function
-    cd('..');
-    
-    % Define mrstPath before using it
+    % Define mrstPath and add core utilities first
     mrstPath = '/opt/mrst';
     addpath(mrstPath);
+    addpath(fullfile(mrstPath, 'core'));
+    addpath(fullfile(mrstPath, 'core/utils'));
+    
+    % Now mrstModule should be available, navigate to project root
+    cd('..');
     
     % Call the existing load_mrst function
     load_mrst();

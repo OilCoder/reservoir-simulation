@@ -1,144 +1,158 @@
-# CLAUDE.md
+# Project Code Generation Rules
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This project follows strict coding standards for geomechanical ML development using Python and Octave/MRST. The project includes a complete reservoir simulation workflow with interactive dashboard for data visualization and analysis.
 
-## Project Overview
+## Core Principles
 
-**GeomechML** is a reservoir simulation and machine learning system that integrates MATLAB/Octave with MRST (MATLAB Reservoir Simulation Toolbox) to generate synthetic datasets for training ML models that predict geomechanical properties in oil & gas reservoirs.
+- **KISS (Keep It Simple, Stupid)**: Write the most direct, readable solution. No speculative abstractions.
+- **Single Responsibility**: Every function must have one well-defined purpose (<40 lines).
+- **English Only**: ALL comments, documentation, and output must be in English.
+- **Snake Case**: Use snake_case for all Python and Octave variable/function names.
 
-## Development Environment
+## File Naming Convention
 
-The project uses a VSCode dev container with:
-- CUDA 12.4.1 for GPU acceleration
-- Octave + MRST for reservoir simulation
-- Python ML stack in conda environment `simulation`
-- Streamlit dashboard for data visualization
+### Workflow Scripts
+- Pattern: `sNN[x]_<verb>_<noun>.<ext>`
+  - `s` = Fixed prefix (safe for Octave)
+  - `NN` = Two-digit step index (00-99)
+  - `x` = Optional sub-step letter (a-z)
+  - Examples: `s01_load_data.py`, `s02a_setup_field.m`
 
-## AI Code Governance System
+### Test Files
+- Pattern: `test_NN_<folder>_<module>[_<purpose>].<ext>`
+- Location: `/tests/` folder (gitignored)
+- Examples: `test_01_src_data_loader.py`
 
-This project implements a **deterministic code generation system** in `.claude/` that transforms traditional AI-assisted development:
+### Debug Files
+- Pattern: `dbg_<slug>[_<experiment>].<ext>`
+- Location: `/debug/` folder (gitignored)
+- Examples: `dbg_pressure_map.m`
 
-### Core Philosophy
-- **Prevention over Correction**: Block violations before code generation, not after
-- **Complete Determinism**: 100% compliance with project standards guaranteed
-- **Self-Validation**: System applies its own rules to its own code
-- **Complete Traceability**: Full audit trail of every code generation session
+### Documentation
+- Pattern: `NN_<slug>.md`
+- Location: `/obsidian-vault/English/` or `/obsidian-vault/Spanish/`
 
-### System Architecture
+## Code Style Requirements
+
+### Function Structure
+```python
+# ----------------------------------------
+# Step 1 – High-level action
+# ----------------------------------------
+
+# Substep 1.1 – Specific sub-action ______________________
+# ✅ Validate inputs
+# 🔄 Process data
+# 📊 Return results
 ```
-UserPrompt → Context Injection → [Orchestration] → Pre-Validation → Code Generation → Post-Processing → Metadata Tracking
-```
 
-### Key Components
-- **Rules System** (`.claude/rules/`): 9 comprehensive coding standards
-- **Validation Pipeline** (`.claude/tools/`): 10 specialized validators with 4-layer architecture
-- **MCP Integration** (`.claude/.mcp.json`): 6 servers for extended capabilities
-- **Orchestration System**: Parallel subagent coordination with sequential thinking
-- **Complete Metadata**: Git integration, environment capture, session tracking
+### Try/Except Restrictions
+- **Allowed ONLY for true I/O boundaries** (file access, network calls, external APIs)
+- **Never silence errors** - always re-raise or log with context
+- **Validate first** - use explicit checks instead of catching predictable errors
 
-### Workflow Documentation
-See `flujo_trabajo_generacion_codigo.md` for complete technical analysis including Mermaid diagrams.
+### Documentation
+- **Python**: Google Style docstrings required for all public functions
+- **Octave**: Structured comment blocks with purpose, inputs, outputs
+- Module headers must include brief purpose description
 
-## Key Commands
+## Import Project Rules
+@rules/00-project-guidelines.md
+@rules/01-code-style.md
+@rules/02-code-change.md
+@rules/03-test-script.md
+@rules/04-debug-script.md
+@rules/05-file-naming.md
+@rules/06-doc-enforcement.md
+@rules/07-docs-style.md
+@rules/08-logging-policy.md
 
-### Run Complete Simulation
+## Project Structure
+
+### Main Components
+- `mrst_simulation_scripts/` - Octave/MRST reservoir simulation workflow
+- `dashboard/` - Python Streamlit dashboard for data visualization  
+- `config/` - YAML configuration files for simulation parameters
+- `src/` - Python ML pipeline components
+- `docs/` - Bilingual documentation (English/Spanish)
+
+### Key Configuration
+- `config/reservoir_config.yaml` - Main simulation parameters
+- `load_mrst.m` - MRST environment setup (project root)
+
+## Common Commands
+
+### Linting & Validation
 ```bash
-# Navigate to simulation scripts and run complete workflow
-cd mrst_simulation_scripts
-octave --eval "s99_run_workflow()"
+# Python linting
+ruff check .
+pylint src/
+
+# Check file naming
+find . -name "*.py" -o -name "*.m" | grep -v test/ -v debug/ | \
+  grep -Ev '^\./(src|mrst_simulation_scripts)/s[0-9]{2}[a-z]?_[a-z]+_[a-z]+\.(py|m)$'
+
+# Validate docstrings
+pydocstyle --convention=google src/
 ```
 
-### Launch Interactive Dashboard
+### Testing
 ```bash
-# Start Streamlit visualization dashboard
-streamlit run dashboard/dashboard.py
+# Run Python tests
+pytest tests/ -v
+
+# Run Octave tests
+octave --eval "run_tests('tests/')"
 ```
 
-### Run Tests
+## Parallel Agent Execution
+
+### Git Worktrees for Concurrent Development
 ```bash
-# Test configuration parsing
-cd test
-octave --eval "test_01_sim_scripts_util_read_config()"
+# Create parallel worktrees for different features
+git worktree add ../project-feature-a -b feature-a
+git worktree add ../project-feature-b -b feature-b
 
-# Test field setup
-octave --eval "test_02_sim_scripts_setup_field()"
+# Run Claude Code in each worktree
+cd ../project-feature-a && claude
+cd ../project-feature-b && claude
 ```
 
-### Configuration Management
+### Task Tool for Subagents
+- Use Task tool to spawn multiple subagents for parallel work
+- Each subagent has independent context and can work on separate components
+- Parallelism capped at 10 concurrent tasks
+- Useful for: code review, testing, exploration, independent features
+
+### Custom Parallel Commands
+- `/parallel-features`: Create multiple feature branches with worktrees
+- `/parallel-review`: Deploy multiple agents for code review
+- `/parallel-test`: Run tests across multiple environments
+- `/parallel-explore`: Multi-agent codebase analysis
+- `/merge-worktrees`: Consolidate work from parallel branches
+- `/monitor-agents`: Real-time monitoring dashboard
+
+### Unified Parallel Workflow
 ```bash
-# Edit main reservoir parameters
-nano config/reservoir_config.yaml
+# Complete parallel development workflow
+.claude/scripts/parallel-workflow.sh setup-features auth logging dashboard
+.claude/scripts/parallel-workflow.sh monitor
+.claude/scripts/parallel-workflow.sh review src/ security,performance,style
+.claude/scripts/parallel-workflow.sh test all python3.9,python3.10,octave
+.claude/scripts/parallel-workflow.sh merge sequential auth logging dashboard
 ```
 
-## Architecture
+## Quick Actions
 
-### Core Components
+- Create new script: Use pattern `sNN_verb_noun.ext`
+- Add test: Place in `/tests/` with pattern `test_NN_folder_module.ext`
+- Debug code: Use `/debug/` folder with `dbg_slug.ext` pattern
+- Document: Add to `/obsidian-vault/English/` with `NN_slug.md` pattern
+- Parallel work: Use git worktrees or Task tool for concurrent development
 
-1. **MRST Simulation Engine** (`mrst_simulation_scripts/`)
-   - 20 sequential MATLAB/Octave scripts (s00-s13, s99)
-   - Modular workflow: initialization → grid setup → simulation → data export
-   - 3D geomechanical reservoir simulation (20×20×10 grid)
+## Enforcement
 
-2. **Configuration System** (`config/`)
-   - YAML-based parameter configuration (`reservoir_config.yaml`)
-   - Custom YAML parser in pure Octave (`util_read_config.m`)
-   - No hardcoded simulation parameters
-
-3. **Data Management** (`data/`)
-   - Structured export: `initial/`, `static/`, `dynamic/`, `temporal/`, `metadata/`
-   - MATLAB format optimized for Python ML compatibility
-   - Complete simulation results (~620KB per run)
-
-4. **Visualization Dashboard** (`dashboard/`)
-   - Python Streamlit application with 64 visualization modules
-   - Hierarchical plotting organization by analysis type
-   - Real-time data analysis capabilities
-
-### Simulation Workflow
-
-Sequential execution pattern:
-- **s00**: Initialize MRST environment
-- **s01**: Setup 3D reservoir grid and rock properties  
-- **s02**: Define two-phase oil-water fluid system
-- **s03**: Create rock regions with geomechanical parameters
-- **s04**: Configure wells and simulation schedule
-- **s05**: Execute MRST simulation
-- **s06**: Export structured datasets for ML training
-- **s07a-s13**: Component setup and data processing
-
-### Data Generation Policy
-
-- All data originates from MRST simulator (no synthetic/hardcoded values except physical constants)
-- Configuration-driven parameters via `reservoir_config.yaml`
-- Complete traceability through metadata
-- Field units: psi, ft, mD, bbl/day
-
-## File Structure
-
-```
-mrst_simulation_scripts/    # Core simulation workflow (20 scripts)
-config/                     # YAML configuration system  
-data/                       # Structured simulation outputs
-dashboard/                  # Python visualization dashboard
-test/                       # Automated testing framework
-debug/                      # Development utilities
-docs/                       # Comprehensive documentation
-```
-
-## Key Configuration Parameters
-
-In `config/reservoir_config.yaml`:
-- **Grid**: 20×20×10 cells, variable layer thickness
-- **Wells**: Producer/injector configuration with rates/pressures
-- **Geomechanics**: Stress-dependent porosity and permeability
-- **Time**: 3650 days (10 years) with 500 timesteps
-- **Output**: 5 dynamic fields (pressure, saturation, porosity, permeability, effective stress)
-
-## Development Notes
-
-- Python interpreter: `/opt/conda/envs/simulation/bin/python`
-- Container automatically activates `simulation` conda environment
-- MRST must be initialized before running simulations
-- All reservoir parameters should be modified via YAML config, not in code
-- Testing framework validates configuration parsing and field setup
-- Data export format designed for direct Python ML library consumption
+- Pre-commit hooks validate file naming and code style
+- CI/CD checks all rules on every push
+- Commits blocked if rules violated
+- Parallel agents must follow same rules

@@ -3,17 +3,51 @@ channels:
   - conda-forge
 dependencies:
   - python=3.10
-  - pytorch
-  - torchvision
-  - torchaudio
+  
+  # Deep Learning Framework (TensorFlow only)
   - tensorflow
+  
+  # Scientific Computing Core
   - numpy
+  - scipy
   - pandas
   - scikit-learn
-  - scipy
+  
+  # Visualization
   - matplotlib
   - seaborn
   - plotly
+  - bokeh
+  
+  # Optimization and ML Tools
   - optuna
+  - joblib
+  
+  # Octave Integration
   - oct2py
+  
+  # Web/Dashboard Tools
   - streamlit
+  - jupyter
+
+  - ipykernel
+  - ipywidgets
+  
+  # Data I/O and Processing
+  - h5py
+  - netcdf4
+  - xarray
+  
+  # Development Tools
+  - black
+  - flake8
+  - pytest
+  
+  # MCP Server Tools
+  - uv  # UV package manager for MCP servers
+  
+  # Pip packages
+  - pip
+  - pip:
+    - tensorboard
+    - optuna-dashboard

@@ -1,25 +1,25 @@
 {
-  "name": "Octave + MRST + DL con Conda separando libs",
-  "build": { "dockerfile": "Dockerfile", "context": ".." },
-  "runArgs": ["--gpus", "all", "--init"],
-  "workspaceFolder": "/workspaces/simulation",
-  "remoteUser": "root",
-
-
-  "postCreateCommand": "sh -c '\
-    conda init bash && \
-    echo \"conda activate simulation\" >> /root/.bashrc && \
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash && \
-    export NVM_DIR=\"/root/.nvm\" && \
-    . \"/root/.nvm/nvm.sh\" && \
-    nvm install 22 && \
-    nvm use 22 && \
-    npm install -g @smithery/cli @anthropic-ai/claude-code \
-  '",
-
+  "name": "Octave + MRST + DL with Claude Code",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Los_Angeles}"
+    }
+  },
+  "runArgs": [
+    "--gpus", "all",
+    "--init",
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode-remote.remote-containers",
+        "eamodio.gitlens",
         "ms-python.python",
         "ms-toolsai.jupyter",
         "leafvmaple.octave",
@@ -36,9 +36,48 @@
         "ms-azuretools.vscode-containers"
       ],
       "settings": {
+        // Original Claude Code settings
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        },
+        
+        // Python/Scientific computing settings
         "python.defaultInterpreterPath": "/opt/conda/envs/simulation/bin/python",
-        "python.terminal.activateEnvironment": true
+        "python.terminal.activateEnvironment": true,
+        "jupyter.kernels.filter": [
+          {
+            "path": "/opt/conda/envs/simulation/bin/python",
+            "type": "pythonEnvironment"
+          }
+        ]
       }
     }
-  }
+  },
+  "remoteUser": "node",
+  "mounts": [
+    "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+  ],
+  "remoteEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "CONDA_DEFAULT_ENV": "simulation",
+    "PATH": "/opt/conda/envs/simulation/bin:/opt/conda/bin:${containerEnv:PATH}"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh && bash /workspace/.devcontainer/startup.sh"
 }

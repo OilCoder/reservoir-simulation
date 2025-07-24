@@ -1,0 +1,75 @@
+repos:
+  # Local hooks for project-specific validation
+  - repo: local
+    hooks:
+      - id: validate-file-naming
+        name: Validate file naming conventions
+        entry: .claude/hooks/validate-file-naming.sh
+        language: script
+        files: \.(py|m)$
+        exclude: ^(tests|debug)/
+        
+      - id: validate-code-style
+        name: Validate code style rules
+        entry: .claude/hooks/validate-code-style.sh
+        language: script
+        files: \.(py|m)$
+        exclude: ^(tests|debug)/
+        
+      - id: validate-docstrings
+        name: Validate Python docstrings
+        entry: .claude/hooks/validate-docstrings.sh
+        language: script
+        files: \.py$
+        exclude: ^(tests|debug)/
+        
+      - id: cleanup-prints
+        name: Check for print statements
+        entry: .claude/hooks/cleanup-print-statements.sh
+        language: script
+        files: \.(py|m)$
+        exclude: ^(tests|debug)/
+
+  # Python formatting and linting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+        exclude: ^(tests|debug)/
+        
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      - id: black
+        language_version: python3.9
+        exclude: ^(tests|debug)/
+        args: [--line-length=88]
+
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-json
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+# Configuration
+default_language_version:
+  python: python3.9
+  
+exclude: '^(tests|debug|\.claude/templates)/'
+
+fail_fast: false
