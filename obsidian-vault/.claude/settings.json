@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-markdown-structure.sh",
+            "command": "/workspace/obsidian-vault/.claude/hooks/validate-markdown-structure.sh",
             "args": ["$FILE_PATH", "$CONTENT"]
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-links.sh",
+            "command": "/workspace/obsidian-vault/.claude/hooks/validate-links.sh",
             "args": ["$FILE_PATH", "$NEW_STRING"]
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-frontmatter.sh",
+            "command": "/workspace/obsidian-vault/.claude/hooks/validate-frontmatter.sh",
             "args": ["$FILE_PATH"]
           }
         ]

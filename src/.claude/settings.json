@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-ml-patterns.sh",
+            "command": "/workspace/src/.claude/hooks/validate-ml-patterns.sh",
             "args": ["$FILE_PATH", "$CONTENT"]
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-python-imports.sh",
+            "command": "/workspace/src/.claude/hooks/validate-python-imports.sh",
             "args": ["$FILE_PATH", "$NEW_STRING"]
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-docstrings.sh",
+            "command": "/workspace/src/.claude/hooks/validate-docstrings.sh",
             "args": ["$FILE_PATH"]
           }
         ]

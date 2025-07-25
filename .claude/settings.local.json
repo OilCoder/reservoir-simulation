@@ -3,8 +3,35 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git merge:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git clean:*)",
+      "mcp__obsidian__create-note",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(ls:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "mcp__filesystem__list_directory",
+      "mcp__filesystem__read_file",
+      "mcp__filesystem__read_multiple_files",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(chmod:*)",
+      "Bash(/workspace/.claude/hooks/route-files.sh:*)",
+      "Bash(echo)",
+      "Bash(/workspace/.claude/hooks/validate-todo-format.sh:*)",
+      "Bash(/workspace/.claude/hooks/validate-bash-commands.sh \"ls -la /workspace\")",
+      "Bash(/workspace/.claude/hooks/validate-multiedit-scope.sh:*)",
+      "Bash(/workspace/.claude/hooks/validate-task-security.sh \"search for functions\" \"find all function definitions in the codebase\")",
+      "Bash(/workspace/.claude/hooks/validate-code-style.sh:*)"
     ],
     "deny": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "memory",
+    "filesystem",
+    "sequential-thinking",
+    "obsidian",
+    "time"
+  ]
 }

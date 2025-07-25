@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-streamlit-patterns.sh",
+            "command": "/workspace/dashboard/.claude/hooks/validate-streamlit-patterns.sh",
             "args": ["$FILE_PATH", "$CONTENT"]
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-viz-components.sh",
+            "command": "/workspace/dashboard/.claude/hooks/validate-viz-components.sh",
             "args": ["$FILE_PATH", "$NEW_STRING"]
           }
         ]
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-dashboard-structure.sh",
+            "command": "/workspace/dashboard/.claude/hooks/validate-dashboard-structure.sh",
             "args": ["$FILE_PATH"]
           }
         ]

@@ -6,7 +6,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-write-validation.sh",
+            "command": "/workspace/.claude/hooks/route-files.sh",
+            "args": ["$FILE_PATH", "$CONTENT", "Write"]
+          },
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/pre-write-validation.sh",
             "args": ["$FILE_PATH", "$CONTENT"]
           }
         ]
@@ -16,8 +21,58 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/validate-code-style.sh",
+            "command": "/workspace/.claude/hooks/route-files.sh",
+            "args": ["$FILE_PATH", "$NEW_STRING", "Edit"]
+          },
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/validate-code-style.sh",
             "args": ["$FILE_PATH", "$NEW_STRING"]
+          }
+        ]
+      },
+      {
+        "matcher": "MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/route-files.sh",
+            "args": ["$FILE_PATH", "", "MultiEdit"]
+          },
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/validate-multiedit-scope.sh",
+            "args": ["$FILE_PATH", "$EDITS"]
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/validate-task-security.sh",
+            "args": ["$DESCRIPTION", "$PROMPT"]
+          }
+        ]
+      },
+      {
+        "matcher": "TodoWrite",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/validate-todo-format.sh",
+            "args": ["$TODOS"]
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/validate-bash-commands.sh",
+            "args": ["$COMMAND"]
           }
         ]
       }
@@ -28,7 +83,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/cleanup-print-statements.sh",
+            "command": "/workspace/.claude/hooks/cleanup-print-statements.sh",
             "args": ["$FILE_PATH"]
           }
         ]
@@ -39,7 +94,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '📋 Project rules loaded from /workspace/rules/'"
+            "command": "echo '📋 Project rules loaded from /workspace/.claude/rules/'"
           }
         ]
       }
