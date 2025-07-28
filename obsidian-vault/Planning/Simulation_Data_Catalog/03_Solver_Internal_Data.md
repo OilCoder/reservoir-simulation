@@ -4,6 +4,26 @@
 
 Solver internal data provides detailed insights into the numerical performance and convergence behavior of reservoir simulators. This data is crucial for understanding simulation quality, diagnosing numerical issues, and developing machine learning models for solver optimization and convergence prediction.
 
+## Mathematical Foundations
+
+Solver internal data is governed by numerical convergence criteria:
+
+**Newton Convergence Criterion:**
+$\|F(x^{k+1})\| < \epsilon$
+
+where:
+- $F(x^{k+1})$ = residual function at iteration $k+1$
+- $\epsilon$ = convergence tolerance
+- $\|\cdot\|$ = norm operator (typically L2 or L∞)
+
+**Residual Norm Calculation:**
+$R_n = \sqrt{\sum_i (r_i)^2}$
+
+where:
+- $R_n$ = L2 residual norm
+- $r_i$ = residual for equation $i$
+- The summation is over all equations in the system
+
 ## Data Categories
 
 ### 1. Newton Iteration Data

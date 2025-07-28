@@ -15,6 +15,20 @@
 
 The reservoir initialization follows gravity-capillary equilibrium principles to establish physically consistent initial conditions. This methodology balances gravitational forces with capillary pressure effects across the reservoir system.
 
+#### Fundamental Equilibrium Equations
+
+The gravity-capillary equilibrium is governed by:
+
+$$P_c = P_{nw} - P_w = \rho_{rel} \cdot g \cdot h$$
+
+Where:
+- $P_c$ = Capillary pressure (psi)
+- $P_{nw}$ = Non-wetting phase pressure (oil/gas) (psi)
+- $P_w$ = Wetting phase pressure (water) (psi)
+- $\rho_{rel}$ = Relative density difference between phases (lb/ft³)
+- $g$ = Gravitational acceleration (32.174 ft/s²)
+- $h$ = Height above free water level (ft)
+
 #### Key Principles:
 - **Gravity-Capillary Equilibrium**: Balances gravitational forces with capillary pressure
 - **Datum-Based Initialization**: Single reference point for pressure initialization  
@@ -89,6 +103,20 @@ The reservoir initialization follows gravity-capillary equilibrium principles to
 ## Pressure Initialization
 
 ### Hydrostatic Pressure Gradients
+
+The pressure distribution in the reservoir follows hydrostatic principles:
+
+$$P(z) = P_0 + \rho \cdot g \cdot (z - z_0)$$
+
+Where:
+- $P(z)$ = Pressure at depth z (psi)
+- $P_0$ = Reference pressure at datum depth $z_0$ (psi)
+- $\rho$ = Fluid density (lb/ft³)
+- $g$ = Gravitational acceleration (32.174 ft/s²)
+- $z$ = Depth (ft TVDSS)
+- $z_0$ = Reference datum depth (ft TVDSS)
+
+**Phase-Specific Gradients:**
 - **Oil Gradient**: 0.350 psi/ft (density: 0.81 g/cm³)
 - **Water Gradient**: 0.433 psi/ft (density: 1.0 g/cm³)
 - **Gas Gradient**: 0.076 psi/ft (specific gravity: 0.65)
@@ -200,16 +228,34 @@ The reservoir initialization follows gravity-capillary equilibrium principles to
 ### Three-Phase Relative Permeability
 
 #### Oil-Water System
-- **Endpoint Saturations**: Swi = 0.15, Sor = 0.15
-- **Oil Relative Permeability**: kro_max = 1.0 at Swi
-- **Water Relative Permeability**: krw_max = 0.4 at Sor
-- **Corey Exponents**: nw = 2.0, no = 2.5
+
+The oil-water relative permeability follows the Corey model:
+
+$$k_{rw} = k_{rw}^{max} \left(\frac{S_w - S_{wi}}{1 - S_{wi} - S_{or}}\right)^{n_w}$$
+
+$$k_{ro} = k_{ro}^{max} \left(\frac{1 - S_w - S_{or}}{1 - S_{wi} - S_{or}}\right)^{n_o}$$
+
+Where:
+- $k_{rw}$, $k_{ro}$ = Water and oil relative permeabilities
+- $S_w$ = Water saturation
+- $S_{wi}$ = Irreducible water saturation = 0.15
+- $S_{or}$ = Residual oil saturation = 0.15
+- $n_w$, $n_o$ = Corey exponents = 2.0, 2.5
+- $k_{rw}^{max}$ = 0.4, $k_{ro}^{max}$ = 1.0
 
 #### Gas-Oil System  
-- **Endpoint Saturations**: Sgr = 0.05, Sorg = 0.20
-- **Gas Relative Permeability**: krg_max = 0.8 at maximum Sg
-- **Oil Relative Permeability**: krog varies with gas saturation
-- **Corey Exponents**: ng = 1.5, nog = 2.0
+
+The gas-oil relative permeability follows:
+
+$$k_{rg} = k_{rg}^{max} \left(\frac{S_g - S_{gr}}{1 - S_{gr} - S_{org}}\right)^{n_g}$$
+
+$$k_{rog} = k_{rog}^{max} \left(\frac{1 - S_g - S_{org}}{1 - S_{gr} - S_{org}}\right)^{n_{og}}$$
+
+Where:
+- $S_{gr}$ = Residual gas saturation = 0.05
+- $S_{org}$ = Residual oil saturation to gas = 0.20
+- $n_g$, $n_{og}$ = Corey exponents = 1.5, 2.0
+- $k_{rg}^{max}$ = 0.8
 
 #### Three-Phase Interpolation
 - **Model Type**: Stone's Model II for three-phase flow

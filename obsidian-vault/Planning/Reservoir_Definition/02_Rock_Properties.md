@@ -141,6 +141,29 @@ Six distinct rock types have been identified based on petrophysical properties a
 
 ### 2.2 Porosity-Permeability Correlations
 
+#### Mathematical Relationships
+
+The fundamental porosity-permeability relationship follows the power law:
+
+$$k = a\phi^n$$
+
+where:
+- $k$ = permeability (mD)
+- $\phi$ = porosity (fraction)
+- $a$ = rock-specific constant
+- $n$ = porosity exponent
+
+#### Kozeny-Carman Theoretical Foundation
+
+The theoretical basis for permeability is described by the Kozeny-Carman equation:
+
+$$k = \frac{\phi^3}{c\tau^2 S^2}$$
+
+where:
+- $c$ = Kozeny constant (≈ 5 for granular media)
+- $\tau$ = tortuosity factor
+- $S$ = specific surface area per unit volume
+
 #### Power Law Relationships by Rock Type
 
 | Rock Type | Correlation | R² | Applicable Range |
@@ -289,6 +312,17 @@ Six distinct rock types have been identified based on petrophysical properties a
 
 ### 4.1 Pore Volume Compressibility by Rock Type
 
+#### Mathematical Definition
+
+Rock compressibility is defined as the fractional change in pore volume with pressure:
+
+$$c_r = -\frac{1}{V_p}\frac{dV_p}{dP}$$
+
+where:
+- $c_r$ = rock compressibility (psi⁻¹)
+- $V_p$ = pore volume
+- $P$ = pore pressure
+
 #### Compressibility Parameters
 
 | Rock Type | Pore Compressibility (×10⁻⁶ psi⁻¹) | Reference Pressure (psi) | Pressure Exponent |
@@ -329,6 +363,19 @@ Six distinct rock types have been identified based on petrophysical properties a
 | Shale | 0.8 - 5.5 | 0.6 - 3.2 | 0.3 - 0.6 |
 
 ### 4.3 Stress Sensitivity Parameters
+
+#### Mathematical Model for Stress-Dependent Permeability
+
+The stress-dependent permeability follows an exponential relationship:
+
+$$k(P) = k_0 e^{-\gamma(P-P_0)}$$
+
+where:
+- $k(P)$ = permeability at pressure P
+- $k_0$ = reference permeability at pressure $P_0$
+- $\gamma$ = stress sensitivity coefficient
+- $P$ = current pressure
+- $P_0$ = reference pressure
 
 #### Permeability Stress Sensitivity
 
@@ -406,6 +453,16 @@ Six distinct rock types have been identified based on petrophysical properties a
 | Compaction | 180 | 500 - 8000 | Synthetic Brine | Industry Standard |
 
 #### Electrical Properties
+
+The formation factor relates rock resistivity to formation water resistivity through Archie's equation:
+
+$$F = a\phi^{-m}$$
+
+where:
+- $F$ = formation factor (dimensionless)
+- $a$ = tortuosity factor (typically 0.62-2.15)
+- $\phi$ = porosity (fraction)
+- $m$ = cementation exponent
 
 | Rock Type | Formation Factor | Cementation Exponent (m) | Saturation Exponent (n) |
 |-----------|-----------------|-------------------------|------------------------|

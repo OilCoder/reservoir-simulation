@@ -6,7 +6,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 ## 1. Material Balance Metrics
 
 ### 1.1 Original Oil in Place (OOIP)
-- **Formula**: `OOIP = Σ(Pore_Volume × Net_to_Gross × Oil_Saturation × Formation_Volume_Factor)`
+- **Formula**: $STOIIP = 7758 \cdot A \cdot h \cdot \phi \cdot (1-S_{wi}) \cdot \frac{1}{B_{oi}}$
 - **Input Dependencies**: 
   - Grid porosity and permeability
   - Net-to-gross ratios
@@ -21,7 +21,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 10M - 500M STB (field dependent)
 
 ### 1.2 Recovery Factor (RF)
-- **Formula**: `RF = Cumulative_Production / OOIP`
+- **Formula**: $RF = \frac{N_p}{STOIIP} = \frac{N_p}{7758 \cdot A \cdot h \cdot \phi \cdot (1-S_{wi}) / B_{oi}}$
 - **Input Dependencies**:
   - Cumulative oil production
   - OOIP calculations
@@ -34,7 +34,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 0.1 - 0.6 (10% - 60%)
 
 ### 1.3 Voidage Replacement Ratio (VRR)
-- **Formula**: `VRR = (Water_Injection_Rate + Gas_Injection_Rate) / Oil_Production_Rate`
+- **Formula**: $VRR = \frac{V_{inj}}{V_{prod}} = \frac{W_i B_w}{N_p B_o + W_p B_w}$
 - **Input Dependencies**:
   - Daily injection rates (water, gas)
   - Daily oil production rates
@@ -47,10 +47,25 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Units**: Dimensionless ratio
 - **Typical Range**: 0.8 - 1.2 (optimal near 1.0)
 
+### 1.4 Material Balance Equation
+- **Formula**: $N_p B_o + W_p B_w = N[(B_o - B_{oi}) + (R_{si} - R_s)B_g] + W_e - W_i B_w$
+- **Input Dependencies**:
+  - Cumulative oil and water production
+  - Formation volume factors
+  - Solution gas-oil ratios
+  - Water encroachment and injection
+- **Update Frequency**: Monthly
+- **ML Relevance**: 
+  - Fundamental constraint for reservoir simulation
+  - Feature for aquifer strength estimation
+- **Visualization**: Material balance plots, pressure-production correlations
+- **Units**: Reservoir barrels
+- **Typical Range**: Depends on field size and production history
+
 ## 2. Sweep Efficiency Indicators
 
 ### 2.1 Areal Sweep Efficiency (EA)
-- **Formula**: `EA = Contacted_Area / Total_Reservoir_Area`
+- **Formula**: $E_A = \frac{A_{contacted}}{A_{total}}$
 - **Input Dependencies**:
   - Pressure front propagation
   - Well spacing geometry
@@ -63,8 +78,8 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Units**: Fraction (0-1)
 - **Typical Range**: 0.3 - 0.9
 
-### 2.2 Vertical Sweep Efficiency (EV)
-- **Formula**: `EV = Productive_Thickness / Total_Net_Thickness`
+### 2.2 Vertical Sweep Efficiency (EI)
+- **Formula**: $E_I = \frac{h_{productive}}{h_{net}}$
 - **Input Dependencies**:
   - Layer-by-layer production allocation
   - Completion design (perforations)
@@ -77,8 +92,8 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Units**: Fraction (0-1)
 - **Typical Range**: 0.4 - 0.8
 
-### 2.3 Volumetric Sweep Efficiency (EV)
-- **Formula**: `EV = EA × EV × Microscopic_Displacement_Efficiency`
+### 2.3 Volumetric Sweep Efficiency (Ev)
+- **Formula**: $E_v = E_A \cdot E_I$ where $E_A$ is areal and $E_I$ is vertical
 - **Input Dependencies**:
   - Areal and vertical sweep calculations
   - Residual oil saturation
@@ -94,7 +109,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 ## 3. Well Performance Metrics
 
 ### 3.1 Productivity Index (PI)
-- **Formula**: `PI = Production_Rate / (Reservoir_Pressure - Bottomhole_Pressure)`
+- **Formula**: $J = \frac{q}{\bar{P} - P_{wf}}$
 - **Input Dependencies**:
   - Well production rates
   - Reservoir pressure measurements
@@ -108,7 +123,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 0.1 - 50 STB/day/psi
 
 ### 3.2 Skin Factor (S)
-- **Formula**: `S = 1.151 × [(P1hr - PWF) / (q × log(k×t/(φ×μ×ct×rw²))) - log(k/(φ×μ×ct×rw²)) + 3.23]`
+- **Formula**: $S = 1.151 \left[\frac{P_{1hr} - P_{wf}}{q \log\left(\frac{kt}{\phi \mu c_t r_w^2}\right)} - \log\left(\frac{k}{\phi \mu c_t r_w^2}\right) + 3.23\right]$
 - **Input Dependencies**:
   - Pressure buildup test data
   - Formation properties (k, φ, μ, ct)
@@ -122,7 +137,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: -5 to +20 (negative indicates stimulation)
 
 ### 3.3 Well Interference Factor
-- **Formula**: `IF = ΔP_observed / ΔP_no_interference`
+- **Formula**: $IF = \frac{\Delta P_{observed}}{\Delta P_{isolated}}$
 - **Input Dependencies**:
   - Multi-well pressure test data
   - Individual well drawdown signatures
@@ -138,7 +153,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 ## 4. Connectivity Measures
 
 ### 4.1 Flow Allocation Factors
-- **Formula**: `FAF_ij = Flow_from_i_to_j / Total_Flow_from_i`
+- **Formula**: $FAF_{ij} = \frac{q_{i \rightarrow j}}{\sum_k q_{i \rightarrow k}}$
 - **Input Dependencies**:
   - Inter-well tracer data
   - Production/injection rate correlations
@@ -168,7 +183,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 ## 5. Heterogeneity Indices
 
 ### 5.1 Dykstra-Parsons Coefficient (VDP)
-- **Formula**: `VDP = (k50 - k84.1) / k50`
+- **Formula**: $V_{DP} = \frac{k_{50} - k_{84.1}}{k_{50}}$
 - **Input Dependencies**:
   - Permeability distribution statistics
   - Log-normal distribution parameters
@@ -182,7 +197,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 0.3 - 0.9 (higher = more heterogeneous)
 
 ### 5.2 Lorenz Coefficient
-- **Formula**: `LC = Area_between_Lorenz_curve_and_uniform_line / 0.5`
+- **Formula**: $L_C = 2 \int_0^1 |F(\phi) - \phi| d\phi$
 - **Input Dependencies**:
   - Flow capacity vs. storage capacity data
   - Cumulative permeability-thickness product
@@ -199,8 +214,8 @@ This document catalogs all calculated metrics and derived data generated from pr
 
 ### 6.1 Decline Rate (Di)
 - **Formula**: 
-  - Exponential: `q(t) = qi × exp(-Di × t)`
-  - Hyperbolic: `q(t) = qi / (1 + b × Di × t)^(1/b)`
+  - Exponential: $q(t) = q_i \times e^{-D_i \times t}$
+  - Hyperbolic: $q(t) = \frac{q_i}{(1 + b \times D_i \times t)^{1/b}}$
 - **Input Dependencies**:
   - Historical production data
   - Decline curve analysis parameters
@@ -214,7 +229,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 0.05 - 0.5 /year
 
 ### 6.2 Estimated Ultimate Recovery (EUR)
-- **Formula**: `EUR = Cumulative_Production + ∫[q(t)dt]` from present to economic limit
+- **Formula**: $EUR = N_p + \int_{t_{present}}^{t_{economic}} q(t) dt$
 - **Input Dependencies**:
   - Current cumulative production
   - Decline curve parameters
@@ -228,7 +243,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 50K - 2M STB per well
 
 ### 6.3 Time to Economic Limit
-- **Formula**: `t_econ = (qi - q_limit) / (Di × qi)` (exponential decline)
+- **Formula**: $t_{econ} = \frac{\ln(q_i/q_{limit})}{D_i}$ (exponential decline)
 - **Input Dependencies**:
   - Current production rate
   - Economic limit rate
@@ -244,7 +259,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 ## 7. Economic Indicators
 
 ### 7.1 Net Present Value (NPV) Metrics
-- **Formula**: `NPV = Σ[(Revenue - OPEX - CAPEX) / (1 + r)^t]`
+- **Formula**: $NPV = \sum_{t=0}^{T} \frac{(Revenue_t - OPEX_t - CAPEX_t)}{(1 + r)^t}$
 - **Input Dependencies**:
   - Production forecasts
   - Commodity price forecasts
@@ -259,7 +274,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: -10M to +100M USD per project
 
 ### 7.2 Payout Time
-- **Formula**: Time when cumulative cash flow = 0
+- **Formula**: $t_{payout} = \min\{t : \sum_{i=0}^{t} CF_i = 0\}$
 - **Input Dependencies**:
   - Cash flow projections
   - Initial capital investment
@@ -273,7 +288,7 @@ This document catalogs all calculated metrics and derived data generated from pr
 - **Typical Range**: 1 - 8 years
 
 ### 7.3 Rate of Return (ROR)
-- **Formula**: IRR where NPV = 0
+- **Formula**: $\sum_{t=0}^{T} \frac{CF_t}{(1 + IRR)^t} = 0$
 - **Input Dependencies**:
   - Complete cash flow profile
   - Investment timing

@@ -58,11 +58,12 @@ This document presents Special Core Analysis (SCAL) properties providing essenti
 | Water Corey Exponent | nw | 2.1 | - | Curve Fit |
 
 #### Corey Model Correlations (Oil-Water)
+
 **Oil Phase Correlation:**
-kro = kro_max × ((So - Sorw)/(1 - Swc - Sorw))^no
+$$k_{ro} = k_{ro}^* \left(\frac{S_o - S_{or}}{1 - S_{wc} - S_{or}}\right)^{n_o}$$
 
 **Water Phase Correlation:**
-krw = krw_max × ((Sw - Swc)/(1 - Swc - Sorw))^nw
+$$k_{rw} = k_{rw}^* \left(\frac{S_w - S_{wc}}{1 - S_{wc} - S_{or}}\right)^{n_w}$$
 
 ### 1.2 Gas-Oil Relative Permeability Curves
 
@@ -99,11 +100,12 @@ krw = krw_max × ((Sw - Swc)/(1 - Swc - Sorw))^nw
 | Oil Corey Exponent (Gas) | nog | 2.8 | - | Curve Fit |
 
 #### Corey Model Correlations (Gas-Oil)
+
 **Gas Phase Correlation:**
-krg = krg_max × ((Sg - Sgc)/(1 - Swc - Sorg - Sgc))^ng
+$$k_{rg} = k_{rg}^* \left(\frac{S_g - S_{gc}}{1 - S_{wc} - S_{org} - S_{gc}}\right)^{n_g}$$
 
 **Oil Phase Correlation:**
-krog = krog_max × ((So - Sorg)/(1 - Swc - Sorg - Sgc))^nog
+$$k_{rog} = k_{rog}^* \left(\frac{S_o - S_{org}}{1 - S_{wc} - S_{org} - S_{gc}}\right)^{n_{og}}$$
 
 ### 1.3 3-Phase Relative Permeability Model
 
@@ -111,14 +113,15 @@ krog = krog_max × ((So - Sorg)/(1 - Swc - Sorg - Sgc))^nog
 The reservoir utilizes Stone's Second Model for 3-phase relative permeability calculations:
 
 **Stone II Correlation:**
-kro3 = kro_max × [(krow/kro_max + krw) × (krog/kro_max + krg) - (krw + krg)]
+$$k_{ro} = k_{ro}^* \left[\left(\frac{S_o - S_{or}}{1 - S_{wc} - S_{or}}\right)^2 \frac{k_{rw}}{k_{rw}^*} \frac{k_{rg}}{k_{rg}^*}\right]$$
 
 Where:
-- kro3 = 3-phase oil relative permeability
-- krow = oil relative permeability in oil-water system
-- krog = oil relative permeability in gas-oil system
-- krw = water relative permeability
-- krg = gas relative permeability
+- $k_{ro}$ = 3-phase oil relative permeability
+- $k_{ro}^*$ = oil relative permeability at connate water saturation
+- $k_{rw}$ = water relative permeability
+- $k_{rg}$ = gas relative permeability
+- $k_{rw}^*$ = water relative permeability at residual oil saturation
+- $k_{rg}^*$ = gas relative permeability at residual oil saturation
 
 #### Saturation Endpoints Summary by Lithology
 
@@ -179,13 +182,14 @@ Where:
 | LS-03  | 2.9                    | 28.6           | 56.8        | 3.6               |
 
 #### Brooks-Corey Capillary Pressure Model
+
 **Primary Drainage Correlation:**
-Pc = Pd × (Sw_eff)^(-1/λ)
+$$P_c = P_d \left(\frac{S_w - S_{wc}}{1 - S_{wc}}\right)^{-1/\lambda}$$
 
 Where:
-- Sw_eff = (Sw - Swc)/(1 - Swc)
-- Pd = Displacement pressure
-- λ = Pore size distribution index
+- $S_{w,eff} = \frac{S_w - S_{wc}}{1 - S_{wc}}$ = effective water saturation
+- $P_d$ = displacement pressure
+- $\lambda$ = pore size distribution index
 
 #### Brooks-Corey Parameters by Lithology
 | Rock Type | Displacement Pressure Pd (psi) | Pore Size Index λ | R² |
@@ -222,8 +226,17 @@ Where:
 ### 2.3 Height Above Free Water Level
 
 #### Leverett J-Function Correlation
+
 **J-Function Definition:**
-J(Sw) = (Pc × √(k/φ)) / (σ × cos(θ))
+$$J(S_w) = \frac{P_c}{\sigma \cos\theta} \sqrt{\frac{\phi}{k}}$$
+
+Where:
+- $J(S_w)$ = dimensionless J-function
+- $P_c$ = capillary pressure
+- $\sigma$ = interfacial tension
+- $\theta$ = contact angle
+- $\phi$ = porosity
+- $k$ = permeability
 
 #### J-Function Parameters by Lithology
 
@@ -311,6 +324,14 @@ J(Sw) = (Pc × √(k/φ)) / (σ × cos(θ))
 
 ### 3.2 Wettability Index
 
+**Wettability Index Mathematical Definition:**
+$$I_w = \frac{A_1 - A_2}{A_1 + A_2}$$
+
+Where:
+- $I_w$ = wettability index  
+- $A_1$ = area under water imbibition curve
+- $A_2$ = area under oil imbibition curve
+
 #### Amott-Harvey Wettability Index by Lithology
 
 ##### Sandstone Wettability Index
@@ -394,14 +415,14 @@ J(Sw) = (Pc × √(k/φ)) / (σ × cos(θ))
 ### 4.2 Hysteresis Modeling Approach
 
 #### Land's Model for Trapped Gas
-```
-Sgt = Sgmax / (1 + C * Sgmax)
-```
+
+**Land's Trapping Model:**
+$$S_{gt} = \frac{S_{g,max}}{1 + C \cdot S_{g,max}}$$
 
 Where:
-- Sgt = Trapped gas saturation
-- Sgmax = Maximum historical gas saturation
-- C = Land's coefficient = 2.8
+- $S_{gt}$ = trapped gas saturation
+- $S_{g,max}$ = maximum historical gas saturation
+- $C$ = Land's coefficient = 2.8
 
 #### Killough's Model Implementation
 | Phase | Hysteresis Model | Parameters |
@@ -511,14 +532,15 @@ Where:
 | Gas | 1.6 | 0.18 | 1.2-1.9 | Normal |
 
 #### Corey Exponent Correlations
+
 **Porosity correlation for water Corey exponent:**
-nw = 1.45 + 0.025 × φ
+$$n_w = 1.45 + 0.025 \times \phi$$
 
 **Permeability correlation for oil Corey exponent:**
-no = 3.2 - 0.003 × log(k)
+$$n_o = 3.2 - 0.003 \times \log(k)$$
 
 **Clay content correlation for gas Corey exponent:**
-ng = 1.8 - 0.08 × Vclay
+$$n_g = 1.8 - 0.08 \times V_{clay}$$
 
 ### 6.2 Brooks-Corey Parameters
 
@@ -532,17 +554,21 @@ ng = 1.8 - 0.08 × Vclay
 | LS-02 | 0.58 | 18.8 | 0.45 | 42.1 |
 
 #### Parameter Correlations
+
 **Permeability-Porosity correlation for displacement pressure:**
-Pd = 25.6 × (k/φ)^(-0.32)
+$$P_d = 25.6 \times \left(\frac{k}{\phi}\right)^{-0.32}$$
 
 **Pore size index correlation with sorting:**
-λ = 0.65 - 0.08 × So (sorting coefficient)
+$$\lambda = 0.65 - 0.08 \times S_o$$
+
+Where $S_o$ is the sorting coefficient
 
 ### 6.3 Leverett J-Function
 
 #### J-Function Normalization
+
 **J-Function Correlation:**
-J(Sw) = (Pc × √(k/φ)) / (σ × cos(θ))
+$$J(S_w) = \frac{P_c \sqrt{k/\phi}}{\sigma \cos\theta}$$
 
 #### Universal J-Function Parameters
 | Parameter | Value | Units | Correlation |
@@ -552,17 +578,18 @@ J(Sw) = (Pc × √(k/φ)) / (σ × cos(θ))
 | J at Sw=1 | 0.05 | - | Constant |
 
 #### Rock Type J-Function Curves
+
 **Sandstone (Fine):**
-J1 = 1.95 × (Sw_eff)^(-0.72)
+$$J_1 = 1.95 \times (S_{w,eff})^{-0.72}$$
 
 **Sandstone (Medium):**
-J2 = 1.75 × (Sw_eff)^(-0.62)
+$$J_2 = 1.75 \times (S_{w,eff})^{-0.62}$$
 
 **Limestone:**
-J3 = 1.55 × (Sw_eff)^(-0.58)
+$$J_3 = 1.55 \times (S_{w,eff})^{-0.58}$$
 
 **Shale:**
-J4 = 3.25 × (Sw_eff)^(-0.85)
+$$J_4 = 3.25 \times (S_{w,eff})^{-0.85}$$
 
 ### 6.4 Upscaling Methodology
 
@@ -572,22 +599,24 @@ J4 = 3.25 × (Sw_eff)^(-0.85)
 3. **Power Law**: For intermediate cases
 
 **Power Law Upscaling:**
-kr_up = (Σ(fi × kri^n))^(1/n)
+$$k_{r,up} = \left(\sum_{i} f_i \times k_{ri}^n\right)^{1/n}$$
 
 Where:
-- fi = facies fraction
-- kri = facies relative permeability
-- n = flow regime parameter (0.33 for viscous flow)
+- $f_i$ = facies fraction
+- $k_{ri}$ = facies relative permeability
+- $n$ = flow regime parameter (0.33 for viscous flow)
 
 #### Capillary Pressure Upscaling
 
 ##### Leverett Scaling
+
 **Leverett Scaling Correlation:**
-Pc_up = Pc_ref × √(φ_ref/φ_up) × √(k_up/k_ref)
+$$P_{c,up} = P_{c,ref} \times \sqrt{\frac{\phi_{ref}}{\phi_{up}}} \times \sqrt{\frac{k_{up}}{k_{ref}}}$$
 
 ##### Height Function Method
+
 **Height Function Integration:**
-h(Sw) = ∫[1/(krw/μw + kro/μo) × dSw/dPc] dSw
+$$h(S_w) = \int \left[\frac{1}{\frac{k_{rw}}{\mu_w} + \frac{k_{ro}}{\mu_o}} \times \frac{dS_w}{dP_c}\right] dS_w$$
 
 #### Upscaling Parameters for Reservoir Simulation
 | Property | Method | Parameters | Validation |

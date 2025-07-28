@@ -3,6 +3,25 @@
 ## Overview
 This document catalogs all time-varying data generated during reservoir simulation. Dynamic data represents the evolving state of the reservoir system and is critical for machine learning model training, real-time monitoring, and decision support systems.
 
+## Mathematical Foundations
+
+The dynamic data inventory is governed by fundamental conservation principles:
+
+**Conservation Equations:**
+$\frac{\partial}{\partial t}(\phi \rho S) + \nabla \cdot (\rho \vec{v}) = Q$
+
+where:
+- $\phi$ = porosity
+- $\rho$ = fluid density  
+- $S$ = phase saturation
+- $\vec{v}$ = Darcy velocity vector
+- $Q$ = source/sink terms
+
+**Phase Balance Constraint:**
+$S_o + S_w + S_g = 1$
+
+where $S_o$, $S_w$, and $S_g$ represent oil, water, and gas saturations respectively.
+
 ## Data Categories
 
 ### 1. Reservoir State Arrays

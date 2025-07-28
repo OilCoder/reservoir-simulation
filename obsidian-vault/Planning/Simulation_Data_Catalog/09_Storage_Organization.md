@@ -20,94 +20,21 @@ Groups data by intrinsic characteristics and format, optimizing for data managem
 
 ### Complete Directory Structure
 
-```
-by_type/
-├── static/
-│   ├── geology/
-│   │   ├── grid_geometry.mat
-│   │   ├── permeability_fields.mat
-│   │   ├── porosity_distributions.mat
-│   │   └── facies_models.mat
-│   ├── petrophysics/
-│   │   ├── rock_properties.mat
-│   │   ├── relative_permeability.mat
-│   │   └── capillary_pressure.mat
-│   ├── fluids/
-│   │   ├── pvt_tables.mat
-│   │   ├── fluid_properties.mat
-│   │   └── equation_of_state.mat
-│   └── wells/
-│       ├── well_trajectories.mat
-│       ├── completion_data.mat
-│       └── well_constraints.mat
-├── dynamic/
-│   ├── pressures/
-│   │   ├── cell_pressures_timestep_*.mat
-│   │   └── well_pressures_timestep_*.mat
-│   ├── saturations/
-│   │   ├── oil_saturation_timestep_*.mat
-│   │   ├── water_saturation_timestep_*.mat
-│   │   └── gas_saturation_timestep_*.mat
-│   ├── rates/
-│   │   ├── production_rates_timestep_*.mat
-│   │   └── injection_rates_timestep_*.mat
-│   └── fluxes/
-│       ├── phase_fluxes_timestep_*.mat
-│       └── component_fluxes_timestep_*.mat
-├── derived/
-│   ├── analytics/
-│   │   ├── recovery_factors.mat
-│   │   ├── sweep_efficiency.mat
-│   │   └── drainage_patterns.mat
-│   ├── diagnostics/
-│   │   ├── flow_diagnostics.mat
-│   │   ├── connectivity_metrics.mat
-│   │   └── well_allocation_factors.mat
-│   ├── economics/
-│   │   ├── npv_calculations.mat
-│   │   ├── cost_analysis.mat
-│   │   └── sensitivity_results.mat
-│   └── ml_features/
-│       ├── feature_matrices.mat
-│       ├── training_datasets.mat
-│       └── model_predictions.mat
-├── visualizations/
-│   ├── static_plots/
-│   │   ├── property_maps/
-│   │   ├── well_schematics/
-│   │   └── geological_sections/
-│   ├── dynamic_plots/
-│   │   ├── pressure_evolution/
-│   │   ├── saturation_movies/
-│   │   └── production_curves/
-│   ├── analytics_plots/
-│   │   ├── diagnostic_charts/
-│   │   ├── sensitivity_plots/
-│   │   └── comparison_studies/
-│   └── reports/
-│       ├── pdf_reports/
-│       ├── interactive_dashboards/
-│       └── presentation_materials/
-└── metadata/
-    ├── data_schemas/
-    ├── version_control/
-    ├── quality_checks/
-    └── documentation/
-```
+**By-Type Organization Structure:**
+- `by_type/` - Root directory organized by data characteristics
+  - `static/` - Time-invariant data (geology, wells, fluid properties)
+  - `dynamic/` - Time-varying simulation results (pressures, saturations, rates)
+  - `derived/` - Calculated metrics and analysis results
+  - `visualizations/` - Generated plots, animations, and reports
+  - `metadata/` - Data documentation and quality control files
 
 ### Cross-Reference System
-```matlab
-% Cross-reference mapping for by_type organization
-type_xref = struct();
-type_xref.static_to_usage = containers.Map();
-type_xref.static_to_phase = containers.Map();
-type_xref.dynamic_to_usage = containers.Map();
-type_xref.dynamic_to_phase = containers.Map();
-
-% Example mappings
-type_xref.static_to_usage('geology/grid_geometry.mat') = {'ML_training', 'validation'};
-type_xref.dynamic_to_phase('pressures/') = {'runtime', 'post-processing'};
-```
+**Cross-Reference Mapping Specifications:**
+- `type_to_usage.yaml` - Maps data types to application contexts
+- `type_to_phase.yaml` - Maps data types to simulation phases  
+- `static_to_usage` - Mapping from static data files to usage patterns
+- `dynamic_to_phase` - Mapping from dynamic data to workflow phases
+- Container format: Key-value mappings with arrays for multiple targets
 
 ### Storage Efficiency Considerations
 - **Deduplication**: Single storage location per data type
@@ -126,104 +53,13 @@ Groups data by intended use case and access patterns, optimizing for workflow ef
 
 ### Complete Directory Structure
 
-```
-by_usage/
-├── ML_training/
-│   ├── features/
-│   │   ├── static_features/
-│   │   │   ├── grid_properties.mat
-│   │   │   ├── well_locations.mat
-│   │   │   └── geological_features.mat
-│   │   ├── dynamic_features/
-│   │   │   ├── pressure_history.mat
-│   │   │   ├── rate_history.mat
-│   │   │   └── saturation_evolution.mat
-│   │   └── derived_features/
-│   │       ├── connectivity_features.mat
-│   │       ├── flow_diagnostics.mat
-│   │       └── performance_indicators.mat
-│   ├── targets/
-│   │   ├── production_targets.mat
-│   │   ├── recovery_targets.mat
-│   │   └── economic_targets.mat
-│   ├── datasets/
-│   │   ├── training_set.mat
-│   │   ├── validation_set.mat
-│   │   └── test_set.mat
-│   └── models/
-│       ├── trained_models/
-│       ├── model_metadata/
-│       └── hyperparameters/
-├── monitoring/
-│   ├── real_time/
-│   │   ├── current_pressures.mat
-│   │   ├── current_rates.mat
-│   │   ├── alarm_thresholds.mat
-│   │   └── status_indicators.mat
-│   ├── historical/
-│   │   ├── production_history.mat
-│   │   ├── performance_trends.mat
-│   │   └── decline_curves.mat
-│   ├── alerts/
-│   │   ├── anomaly_detection.mat
-│   │   ├── threshold_violations.mat
-│   │   └── predictive_warnings.mat
-│   └── dashboards/
-│       ├── executive_summary/
-│       ├── technical_details/
-│       └── operational_status/
-├── validation/
-│   ├── benchmarks/
-│   │   ├── analytical_solutions.mat
-│   │   ├── reference_cases.mat
-│   │   └── industry_standards.mat
-│   ├── comparisons/
-│   │   ├── simulation_vs_actual.mat
-│   │   ├── model_variants.mat
-│   │   └── sensitivity_studies.mat
-│   ├── quality_metrics/
-│   │   ├── convergence_analysis.mat
-│   │   ├── mass_balance_checks.mat
-│   │   └── physical_constraints.mat
-│   └── validation_reports/
-│       ├── technical_validation/
-│       ├── business_validation/
-│       └── regulatory_compliance/
-├── reporting/
-│   ├── regulatory/
-│   │   ├── reserves_reporting.mat
-│   │   ├── environmental_impact.mat
-│   │   └── safety_compliance.mat
-│   ├── business/
-│   │   ├── economic_forecasts.mat
-│   │   ├── investment_analysis.mat
-│   │   └── portfolio_optimization.mat
-│   ├── technical/
-│   │   ├── reservoir_characterization.mat
-│   │   ├── development_optimization.mat
-│   │   └── technology_assessment.mat
-│   └── presentations/
-│       ├── executive_briefings/
-│       ├── technical_conferences/
-│       └── stakeholder_updates/
-└── optimization/
-    ├── well_placement/
-    │   ├── candidate_locations.mat
-    │   ├── optimization_results.mat
-    │   └── sensitivity_analysis.mat
-    ├── production_strategy/
-    │   ├── rate_optimization.mat
-    │   ├── pressure_management.mat
-    │   └── enhanced_recovery.mat
-    ├── facility_design/
-    │   ├── surface_facilities.mat
-    │   ├── pipeline_network.mat
-    │   └── processing_capacity.mat
-    └── economic_optimization/
-        ├── development_scenarios.mat
-        ├── cost_optimization.mat
-        └── risk_assessment.mat
-```
+**By-Usage Organization Structure:**
+- `by_usage/` - Root directory organized by application context
+  - `ML_training/` - Machine learning datasets and models (features, targets, trained models)
+  - `monitoring/` - Real-time and historical monitoring data (dashboards, alerts, trends)
+  - `validation/` - Quality assurance and benchmark data (comparisons, metrics, reports)
+  - `reporting/` - Business and technical reporting data (regulatory, presentations, analysis)
+  - `optimization/` - Field development optimization data (well placement, economics, strategy)
 
 ### Cross-Reference System
 ```matlab

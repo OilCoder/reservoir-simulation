@@ -12,7 +12,8 @@ This document catalogs all data that has been pre-processed and structured speci
 - Extract 3D cell centroids (X, Y, Z) from grid geometry
 - Convert to normalized coordinates relative to field boundaries
 - Calculate cell volumes, areas, and aspect ratios
-- Generate relative positioning features (distance to field center, boundary proximity)
+- Generate relative positioning features using distance calculation:
+  $$d_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2 + (z_i - z_j)^2}$$
 
 **Input Data Dependencies:**
 - Grid geometry (COORD, ZCORN)
@@ -28,7 +29,8 @@ This document catalogs all data that has been pre-processed and structured speci
 **Normalization/Scaling Requirements:**
 - Coordinates: Min-max normalized to [0, 1]
 - Geometric properties: Log-normal scaling for volumes/areas
-- Distances: StandardScaler normalization
+- Distances: StandardScaler normalization using:
+  $$x_{norm} = \frac{x - \mu}{\sigma}$$
 
 **ML Model Suitability:**
 - Regression: Excellent for spatial interpolation tasks
@@ -42,17 +44,15 @@ This document catalogs all data that has been pre-processed and structured speci
 - Processing: <1 minute on single CPU core
 
 **Storage Format:**
-```
-/ml_features/spatial/
-├── coordinates.h5          # Normalized 3D coordinates
-├── geometry.h5            # Cell geometric properties
-└── distances.h5           # Distance-based features
-```
+- `/ml_features/spatial/coordinates.h5` - Normalized 3D coordinates
+- `/ml_features/spatial/geometry.h5` - Cell geometric properties  
+- `/ml_features/spatial/distances.h5` - Distance-based features
 
 ### 1.2 Well Proximity Features
 
 **Feature Engineering Methodology:**
-- Calculate Euclidean distance to each well (producer/injector)
+- Calculate Euclidean distance to each well (producer/injector) using:
+  $$d_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2 + (z_i - z_j)^2}$$
 - Compute minimum distance to any well
 - Generate well density maps using Gaussian kernels
 - Create directional features (bearing to nearest wells)
@@ -82,12 +82,9 @@ This document catalogs all data that has been pre-processed and structured speci
 - Dynamic updates: When wells are added/modified
 
 **Storage Format:**
-```
-/ml_features/spatial/
-├── well_distances.h5      # Distance to each well
-├── well_proximity.h5      # Aggregated proximity features
-└── well_density.h5        # Kernel density estimates
-```
+- `/ml_features/spatial/well_distances.h5` - Distance to each well
+- `/ml_features/spatial/well_proximity.h5` - Aggregated proximity features
+- `/ml_features/spatial/well_density.h5` - Kernel density estimates
 
 ### 1.3 Fault Proximity Features
 
@@ -150,20 +147,17 @@ This document catalogs all data that has been pre-processed and structured speci
 - Processing: ~5 minutes per timestep for lag computation
 
 **Storage Format:**
-```
-/ml_features/temporal/
-├── lags/
-│   ├── pressure_lags.h5
-│   ├── saturation_lags.h5
-│   └── rate_lags.h5
-└── metadata.json         # Lag configuration
-```
+- `/ml_features/temporal/lags/pressure_lags.h5`
+- `/ml_features/temporal/lags/saturation_lags.h5`
+- `/ml_features/temporal/lags/rate_lags.h5`
+- `/ml_features/temporal/metadata.json` - Lag configuration
 
 ### 2.2 Moving Averages and Trends
 
 **Feature Engineering Methodology:**
 - Exponentially weighted moving averages (EWMA)
-- Simple moving averages (SMA) for multiple windows
+- Simple moving averages using:
+  $$MA_n(t) = \frac{1}{n}\sum_{i=0}^{n-1} x(t-i)$$
 - Linear trend coefficients over sliding windows
 - Volatility measures (rolling standard deviation)
 
@@ -207,10 +201,12 @@ This document catalogs all data that has been pre-processed and structured speci
 ### 3.1 Flow Velocity Features
 
 **Feature Engineering Methodology:**
-- Compute Darcy velocity vectors from pressure gradients
+- Compute Darcy velocity vectors from pressure gradients using:
+  $$\vec{v} = -\frac{k}{\mu} \nabla P$$
 - Calculate velocity magnitude and direction
 - Generate streamline-based features
-- Compute flow convergence/divergence
+- Compute flow convergence/divergence using gradient calculation:
+  $$\nabla f = \left(\frac{\partial f}{\partial x}, \frac{\partial f}{\partial y}, \frac{\partial f}{\partial z}\right)$$
 
 **Input Data Dependencies:**
 - Pressure fields
@@ -239,18 +235,17 @@ This document catalogs all data that has been pre-processed and structured speci
 - Processing: ~10 minutes per timestep for velocity computation
 
 **Storage Format:**
-```
-/ml_features/physics/
-├── darcy_velocity.h5
-├── flow_directions.h5
-└── flow_diagnostics.h5
-```
+- `/ml_features/physics/darcy_velocity.h5`
+- `/ml_features/physics/flow_directions.h5`
+- `/ml_features/physics/flow_diagnostics.h5`
 
 ### 3.2 Dimensionless Numbers
 
 **Feature Engineering Methodology:**
-- Calculate capillary number (Ca = μv/σ)
-- Compute Reynolds number for flow regime
+- Calculate capillary number:
+  $$N_{ca} = \frac{\mu v}{\sigma}$$
+- Compute Reynolds number for flow regime:
+  $$Re = \frac{\rho v L}{\mu}$$
 - Generate Bond number for gravity effects
 - Calculate Péclet number for transport
 
@@ -320,13 +315,10 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Monthly or quarterly
 
 **Storage Format:**
-```
-/ml_features/well_interactions/
-├── pressure_interference.h5
-├── rate_interference.h5
-├── connectivity_matrix.h5
-└── drainage_overlap.h5
-```
+- `/ml_features/well_interactions/pressure_interference.h5`
+- `/ml_features/well_interactions/rate_interference.h5`
+- `/ml_features/well_interactions/connectivity_matrix.h5`
+- `/ml_features/well_interactions/drainage_overlap.h5`
 
 ### 4.2 Well Performance Features
 
@@ -378,13 +370,10 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Static (geological model dependent)
 
 **Storage Format:**
-```
-/ml_features/geology/
-├── facies_onehot.h5
-├── facies_ordinal.h5
-├── facies_embeddings.h5
-└── facies_spatial.h5
-```
+- `/ml_features/geology/facies_onehot.h5`
+- `/ml_features/geology/facies_ordinal.h5`
+- `/ml_features/geology/facies_embeddings.h5`
+- `/ml_features/geology/facies_spatial.h5`
 
 ### 5.2 Stratigraphic Features
 
@@ -435,13 +424,10 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Each production report (monthly/daily)
 
 **Storage Format:**
-```
-/ml_features/production/
-├── cumulative_well.h5
-├── cumulative_field.h5
-├── recovery_factors.h5
-└── production_metrics.h5
-```
+- `/ml_features/production/cumulative_well.h5`
+- `/ml_features/production/cumulative_field.h5`
+- `/ml_features/production/recovery_factors.h5`
+- `/ml_features/production/production_metrics.h5`
 
 ### 6.2 Rate Evolution Features
 
@@ -477,7 +463,9 @@ This document catalogs all data that has been pre-processed and structured speci
 ### 7.1 Principal Component Analysis (PCA)
 
 **Feature Engineering Methodology:**
-- Apply PCA to high-dimensional spatial fields
+- Apply PCA to high-dimensional spatial fields using transformation:
+  $$Y = XW$$
+  where $W$ are eigenvectors of the covariance matrix
 - Retain components explaining 95% variance
 - Generate temporal PCA for dynamic variables
 - Create combined spatio-temporal PCA
@@ -513,15 +501,12 @@ This document catalogs all data that has been pre-processed and structured speci
 - Transform: <1 minute per timestep
 
 **Storage Format:**
-```
-/ml_features/dimensionality_reduction/pca/
-├── spatial_components.h5     # Spatial PCA components
-├── temporal_components.h5    # Temporal PCA components
-├── combined_components.h5    # Spatio-temporal PCA
-├── explained_variance.h5     # Variance ratios
-├── loadings.h5              # Component loadings
-└── pca_config.json          # PCA parameters
-```
+- `/ml_features/dimensionality_reduction/pca/spatial_components.h5` - Spatial PCA components
+- `/ml_features/dimensionality_reduction/pca/temporal_components.h5` - Temporal PCA components
+- `/ml_features/dimensionality_reduction/pca/combined_components.h5` - Spatio-temporal PCA
+- `/ml_features/dimensionality_reduction/pca/explained_variance.h5` - Variance ratios
+- `/ml_features/dimensionality_reduction/pca/loadings.h5` - Component loadings
+- `/ml_features/dimensionality_reduction/pca/pca_config.json` - PCA parameters
 
 ### 7.2 Proper Orthogonal Decomposition (POD)
 
@@ -553,14 +538,11 @@ This document catalogs all data that has been pre-processed and structured speci
 - Forecasting: Excellent for reduced-order forecasting
 
 **Storage Format:**
-```
-/ml_features/dimensionality_reduction/pod/
-├── spatial_modes.h5         # POD spatial modes
-├── temporal_coefficients.h5 # Modal time coefficients
-├── singular_values.h5       # Energy content
-├── reconstruction_error.h5  # Mode truncation error
-└── pod_config.json          # POD parameters
-```
+- `/ml_features/dimensionality_reduction/pod/spatial_modes.h5` - POD spatial modes
+- `/ml_features/dimensionality_reduction/pod/temporal_coefficients.h5` - Modal time coefficients
+- `/ml_features/dimensionality_reduction/pod/singular_values.h5` - Energy content
+- `/ml_features/dimensionality_reduction/pod/reconstruction_error.h5` - Mode truncation error
+- `/ml_features/dimensionality_reduction/pod/pod_config.json` - POD parameters
 
 ### 7.3 Autoencoder Latent Features
 
@@ -601,34 +583,26 @@ This document catalogs all data that has been pre-processed and structured speci
 - Memory: ~1 GB for model, ~100 MB per timestep
 
 **Storage Format:**
-```
-/ml_features/dimensionality_reduction/autoencoders/
-├── spatial_latents.h5       # Spatial autoencoder features
-├── temporal_latents.h5      # Temporal autoencoder features
-├── vae_latents.h5          # Variational autoencoder features
-├── model_checkpoints/       # Trained model weights
-└── autoencoder_config.json  # Model architectures
-```
+- `/ml_features/dimensionality_reduction/autoencoders/spatial_latents.h5` - Spatial autoencoder features
+- `/ml_features/dimensionality_reduction/autoencoders/temporal_latents.h5` - Temporal autoencoder features
+- `/ml_features/dimensionality_reduction/autoencoders/vae_latents.h5` - Variational autoencoder features
+- `/ml_features/dimensionality_reduction/autoencoders/model_checkpoints/` - Trained model weights
+- `/ml_features/dimensionality_reduction/autoencoders/autoencoder_config.json` - Model architectures
 
 ## Feature Integration and Access Patterns
 
 ### Unified Feature Store Structure
 
-```
-/ml_features/
-├── metadata/
-│   ├── feature_registry.json    # All features catalog
-│   ├── update_schedule.json     # Update frequencies
-│   └── dependencies.json        # Feature dependencies
-├── spatial/                     # Static spatial features
-├── temporal/                    # Time-varying features
-├── physics/                     # Physics-based features
-├── well_interactions/           # Well-related features
-├── geology/                     # Geological features
-├── production/                  # Production history features
-├── dimensionality_reduction/    # DR features
-└── combined/                    # Pre-joined feature sets
-```
+**Feature Store Organization:**
+- `/ml_features/metadata/` - Feature registry, update schedules, and dependencies
+- `/ml_features/spatial/` - Static spatial features
+- `/ml_features/temporal/` - Time-varying features
+- `/ml_features/physics/` - Physics-based features
+- `/ml_features/well_interactions/` - Well-related features
+- `/ml_features/geology/` - Geological features
+- `/ml_features/production/` - Production history features
+- `/ml_features/dimensionality_reduction/` - DR features
+- `/ml_features/combined/` - Pre-joined feature sets
 
 ### Access Patterns
 

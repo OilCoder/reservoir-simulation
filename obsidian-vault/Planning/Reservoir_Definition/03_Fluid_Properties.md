@@ -1,5 +1,39 @@
 # Reservoir Fluid Properties - PVT Analysis Report
 
+## Fundamental PVT Relationships
+
+### Formation Volume Factor Equations
+The oil formation volume factor relates reservoir and surface volumes:
+$$B_o = \frac{V_{oil,res}}{V_{oil,std}}$$
+
+The gas formation volume factor is derived from the equation of state:
+$$B_g = \frac{0.02827 ZT}{P}$$
+
+### Solution Gas-Oil Ratio
+The solution GOR varies with pressure above and below the bubble point:
+$$R_s = R_{sb}\left(\frac{P}{P_b}\right)^n$$
+
+where $R_{sb}$ is the solution GOR at bubble point pressure $P_b$.
+
+### Equation of State
+The real gas equation of state governs gas behavior:
+$$PV = nZRT$$
+
+where $Z$ is the gas compressibility factor.
+
+### Compressibility Definitions
+Isothermal compressibility is defined as:
+$$c = -\frac{1}{V}\frac{dV}{dP}$$
+
+This applies to oil ($c_o$), gas ($c_g$), and water ($c_w$) compressibilities.
+
+### Viscosity Correlations
+- **Oil viscosity**: Function of pressure, temperature, and dissolved gas
+- **Gas viscosity**: Correlation with pressure, temperature, and gas gravity
+- **Water viscosity**: Function of temperature, pressure, and salinity
+
+---
+
 ## Reservoir Conditions
 - **Reservoir Depth**: 8,000 ft datum
 - **Initial Reservoir Pressure**: 2,900 psi

@@ -114,54 +114,39 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 
 ---
 
-## Quick Reference - MRST Implementation
+## Quick Reference - Simulation Implementation
 
 ### Grid Specifications
 
-```matlab
-% Recommended grid dimensions for 15-well field
-Grid_Size = [25, 25, 12];           % I × J × K cells (increased resolution)
-Cell_Dimensions = [138, 138, 20];   % ft (X × Y × Z)
-Total_Active_Cells = 7500;          % Active cells (expanded grid)
-Refinement_Areas = {'Near_Wells', 'Fault_Zones', 'High_Perm_Streaks'};
-```
+**Recommended Grid Design:**
+- Grid dimensions: 25 × 25 × 12 cells (I × J × K)
+- Cell dimensions: 138 × 138 × 20 ft (X × Y × Z)
+- Total active cells: 7,500 (optimized resolution)
+- Refinement areas: Near wells, fault zones, high permeability streaks
 
 ### Key Initialization Parameters
 
-```matlab
-% Reservoir conditions
-Initial_Pressure = 2900;            % psi @ datum
-Reference_Depth = 8000;             % ft TVDSS
-Oil_Water_Contact = 8150;           % ft TVDSS
-Bubble_Point = 2100;                % psi
-Reservoir_Temperature = 176;        % deg F
+**Reservoir Conditions:**
+- Initial pressure: 2,900 psi at datum depth
+- Reference depth: 8,000 ft TVDSS
+- Oil-water contact: 8,150 ft TVDSS
+- Bubble point: 2,100 psi
+- Reservoir temperature: 176°F
 
-% Fluid system
-Phase_System = 'oil-gas-water';     % 3-phase simulation
-API_Gravity = 32;                   % deg API
-Initial_GOR = 450;                  % scf/STB
-```
+**Fluid System:**
+- Phase system: Three-phase (oil-gas-water)
+- API gravity: 32°
+- Initial GOR: 450 scf/STB
 
 ### Well Configuration
 
-```matlab
-% 15-well field development configuration
-Total_Wells = 15;                   % 10 producers + 5 injectors
-Producer_Count = 10;                % Oil production wells
-Injector_Count = 5;                 % Water injection wells
-Development_Phases = 6;             % Phased development plan
-Development_Years = 10;             % Total development timeline
-
-% Well types and constraints
-Well_Types = {'Vertical', 'Horizontal', 'Multi-lateral'};
-Peak_Field_Production = 18500;      % STB/day target
-Oil_Rate_Target = 'Variable';       % Per well specification
-Water_Injection_Rate = 'Variable';  % Per well specification
-BHP_Constraints = [1500, 3500];     % [min_prod, max_inj] psi
-
-% Phase development schedule
-Phase_Wells = [3, 3, 2, 3, 2, 2];  % Wells per development phase
-```
+**Field Development Configuration:**
+- Total wells: 15 (10 producers + 5 injectors)
+- Development phases: 6 phases over 10 years
+- Peak field production target: 18,500 STB/day
+- Well types: Vertical, horizontal, and multi-lateral
+- BHP constraints: 1,500 psi (min producer), 3,500 psi (max injector)
+- Phase development schedule: [3, 3, 2, 3, 2, 2] wells per phase
 
 ---
 
@@ -181,27 +166,25 @@ Each document in this reservoir definition follows a standardized format designe
 
 The documents are designed with clear data flow for simulation model construction:
 
-```
-Structural Geology (01) ─┐
-                        ├─→ Grid Design & Fault Modeling
-Stratigraphy (02) ──────┘
+**Grid Design & Fault Modeling:**
+- Structural Geology (01) → Grid geometry and fault systems
+- Stratigraphy (02) → Layer architecture and flow units
 
-Rock Properties (03) ────┐
-                        ├─→ Static Model Construction
-Reservoir Architecture (04) ─┘
+**Static Model Construction:**
+- Rock Properties (03) → Porosity and permeability distributions
+- Reservoir Architecture (04) → Heterogeneity and connectivity
 
-Fluid Properties (03) ───┐
-                        ├─→ 3-Phase System Setup
-Saturation Functions (05) ┘
+**3-Phase System Setup:**
+- Fluid Properties (03) → PVT data and phase behavior
+- Saturation Functions (05) → Relative permeability and capillary pressure
 
-Initial Conditions (06) ─┐
-                        ├─→ Model Initialization
-Aquifer Support (07) ────┘
+**Model Initialization:**
+- Initial Conditions (06) → Pressure and saturation initialization
+- Aquifer Support (07) → Boundary conditions and pressure support
 
-Wells & Completion (08) ─┐
-                        ├─→ Well Model Implementation
-Production History (09) ─┘
-```
+**Well Model Implementation:**
+- Wells & Completion (08) → Well placement and completion design
+- Production History (09) → Well controls and operational constraints
 
 ### Cross-Reference System
 

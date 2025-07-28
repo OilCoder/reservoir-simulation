@@ -343,20 +343,12 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 - **Indexing**: MATLAB 1-based indexing documented
 - **Loading**: `scipy.io.loadmat()` compatible
 
-### Python Integration Example
-```python
-import scipy.io as sio
-import numpy as np
-
-# Load static data
-static_data = sio.loadmat('/workspace/data/simulation_data/static/static_data.mat')
-grid_x = static_data['static_data'][0,0]['grid_x'][0,0].flatten()
-rock_id = static_data['static_data'][0,0]['rock_id'][0,0]
-
-# Access rock properties
-porosity = static_data['static_data'][0,0]['phi'][0,0]  # Shape: [nz, ny, nx]
-permeability = static_data['static_data'][0,0]['k'][0,0]  # Shape: [nz, ny, nx]
-```
+### Python Integration Specification
+- **File Format**: MATLAB v7 format (Octave compatible)
+- **Data Types**: Double arrays, cell arrays, structures
+- **Indexing**: MATLAB 1-based indexing documented
+- **Loading**: scipy.io.loadmat() compatible
+- **Access Pattern**: Hierarchical structure access through nested indices
 
 ### Size Estimates Summary
 | Data Category | File Size | Memory Usage | Description |

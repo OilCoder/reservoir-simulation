@@ -34,13 +34,21 @@ Grid volume analysis provides the foundation for reservoir simulation model init
 | Net Rock Volume | 33.2 | billion ft³ | Calculated |
 
 #### Grid Volume Distribution
-```
-Grid Analysis Framework:
+
+**Grid Analysis Framework:**
 - Total grid cells: 24,000
 - Active cells: ~18,500 (accounting for geometry)
 - Cell volume range: 400,000 - 1,200,000 ft³
-- Net rock volume = Σ(cell_volume × NTG × active_flag)
-```
+
+**Net Rock Volume Calculation:**
+$$V_{net} = \sum_{i=1}^{N} V_{cell,i} \times NTG_i \times AF_i$$
+
+Where:
+- $V_{net}$ = Net rock volume (ft³)
+- $V_{cell,i}$ = Volume of grid cell i (ft³)
+- $NTG_i$ = Net-to-gross ratio for cell i
+- $AF_i$ = Activity flag (1 for active cells, 0 for inactive)
+- $N$ = Total number of grid cells
 
 ### 1.2 Pore Volume Analysis by Rock Type
 
@@ -79,15 +87,13 @@ Grid Analysis Framework:
 | **Total** | 5.1 | 2.9 | - |
 
 #### Sensitivity Analysis - Volume Impact
-```
-Parameter Sensitivity on Total Pore Volume (±10% variation):
 
-Net-to-Gross Ratio    ████████████████████ ±15% impact
-Porosity Distribution ████████████████     ±12% impact  
-Grid Resolution       ██████████████       ±10% impact
-Reservoir Extent      ████████████         ±8% impact
-Rock Type Definition  ████                 ±3% impact
-```
+**Parameter Sensitivity on Total Pore Volume (±10% variation):**
+- Net-to-Gross Ratio: ±15% impact
+- Porosity Distribution: ±12% impact  
+- Grid Resolution: ±10% impact
+- Reservoir Extent: ±8% impact
+- Rock Type Definition: ±3% impact
 
 ---
 
@@ -98,22 +104,45 @@ Rock Type Definition  ████                 ±3% impact
 Material balance provides the fundamental validation framework for reservoir simulation models by ensuring mass conservation across all phases and components.
 
 #### General Material Balance Equation
-The comprehensive material balance equation accounts for:
-- Oil, water, and gas phase changes
-- Reservoir compressibility effects  
-- Aquifer influx contributions
-- Injection and production volumes
 
-```
-Material Balance Framework:
-N = (Np×Bo + Wp×Bw - Wi×Bw - We) / [(Bo-Boi) + (Rsi-Rs)×Bg + m×Boi×((Bo×Swi×cw + cf)/(1-Swi))×ΔP]
+The comprehensive material balance equation accounts for oil, water, and gas phase changes, reservoir compressibility effects, aquifer influx contributions, and injection/production volumes.
+
+**Stock-Tank Oil Initially In Place (STOIIP):**
+
+$$STOIIP = \frac{7758 \times A \times h \times \phi \times (1-S_{wi})}{B_{oi}}$$
 
 Where:
-- N = Initial oil in place (simulation input)
-- Production/injection terms validate against history
-- PVT properties from laboratory measurements
-- Drive mechanisms quantified through pressure response
-```
+- $STOIIP$ = Stock tank oil initially in place (STB)
+- $A$ = Reservoir area (acres)
+- $h$ = Net pay thickness (ft)
+- $\phi$ = Porosity (fraction)
+- $S_{wi}$ = Initial water saturation (fraction)
+- $B_{oi}$ = Initial oil formation volume factor (RB/STB)
+- $7758$ = Conversion factor (barrel-ft per acre-ft)
+
+**Recovery Factor:**
+
+$$RF = \frac{N_p}{STOIIP}$$
+
+Where:
+- $RF$ = Recovery factor (fraction)
+- $N_p$ = Cumulative oil production (STB)
+
+**General Material Balance:**
+
+$$N = \frac{N_p B_o + W_p B_w - W_i B_w - W_e}{(B_o - B_{oi}) + (R_{si} - R_s)B_g + m B_{oi}\left[\frac{B_o S_{wi} c_w + c_f}{1-S_{wi}}\right]\Delta P}$$
+
+Where:
+- $N$ = Initial oil in place (STB)
+- $N_p$ = Cumulative oil production (STB)
+- $W_p$ = Cumulative water production (STB)
+- $W_i$ = Cumulative water injection (STB)
+- $W_e$ = Cumulative aquifer influx (STB)
+- $B_o$, $B_w$, $B_g$ = Oil, water, gas formation volume factors
+- $R_s$ = Solution gas-oil ratio (SCF/STB)
+- $m$ = Gas cap size ratio
+- $c_w$, $c_f$ = Water and formation compressibilities (psi⁻¹)
+- $\Delta P$ = Pressure change from initial conditions (psi)
 
 ### 2.2 Drive Mechanism Identification
 
@@ -171,14 +200,27 @@ The Eagle West Field is supported by a peripheral aquifer system providing natur
 | **Net-to-Gross** | 65 | % | ±10% |
 
 #### Volume Calculations
-```
-Aquifer Geometry Analysis:
-- Field Area: 2,600 acres (reservoir)
-- Aquifer Area: π × (8,500 ft)² - 2,600 acres = 45,850 acres
-- Gross Aquifer Volume: 45,850 acres × 180 ft = 63.95 billion ft³
-- Net Aquifer Volume: 63.95 × 0.65 = 41.57 billion ft³
-- Aquifer Pore Volume: 41.57 × 0.18 = 7.48 billion ft³
-```
+
+**Aquifer Geometry Analysis:**
+
+$$V_{aquifer} = \pi r_{aq}^2 h_{aq} - A_{reservoir} h_{res}$$
+
+$$V_{pore,aq} = V_{aquifer} \times NTG_{aq} \times \phi_{aq}$$
+
+Where:
+- $V_{aquifer}$ = Gross aquifer volume (ft³)
+- $r_{aq}$ = Aquifer radius = 8,500 ft
+- $h_{aq}$ = Aquifer thickness = 180 ft
+- $A_{reservoir}$ = Reservoir area = 2,600 acres
+- $h_{res}$ = Reservoir thickness
+- $NTG_{aq}$ = Aquifer net-to-gross = 0.65
+- $\phi_{aq}$ = Aquifer porosity = 0.18
+
+**Calculated Values:**
+- Aquifer area: π × (8,500 ft)² - 2,600 acres = 45,850 acres
+- Gross aquifer volume: 63.95 billion ft³
+- Net aquifer volume: 41.57 billion ft³
+- Aquifer pore volume: 7.48 billion ft³
 
 ### 3.3 Aquifer-Reservoir Interface
 
@@ -207,26 +249,24 @@ Simulation models must reproduce historical field performance to validate reserv
 | **Gas-Oil Ratio** | 450 → 800 scf/STB | Match increase | ±10% |
 
 #### Model Calibration Metrics
-```
-History Match Quality Assessment:
+
+**History Match Quality Assessment:**
 - Production rate match: R² > 0.90 required
 - Pressure match: Average error < 3%
 - Water cut match: Trend correlation > 0.85
 - Overall field performance: Integrated validation
-```
 
 ### 4.2 Grid Block Validation
 
 #### Spatial Distribution Verification
+
 Simulation grid must accurately represent reservoir heterogeneity and fluid distribution:
 
-```
-Grid Block Validation Framework:
+**Grid Block Validation Framework:**
 - Porosity distribution: Match core and log data
 - Permeability trends: Honor geological structure
 - Saturation initialization: Validate capillary pressure
 - Rock type distribution: Maintain facies architecture
-```
 
 #### Property Correlation Checks
 | Grid Property | Data Source | Validation Method | Acceptance Criteria |
@@ -249,13 +289,12 @@ Systematic validation ensures simulation model accuracy and reliability:
 | **Phase Behavior** | PVT validation | Match laboratory data | Update fluid model |
 
 #### Uncertainty Assessment for Simulation
-```
-Reservoir Model Uncertainty Sources:
+
+**Reservoir Model Uncertainty Sources:**
 - Structural interpretation: ±5% volume impact
 - Rock property distribution: ±10% flow impact  
 - Fluid contacts: ±2% initial volume impact
 - Boundary conditions: ±15% pressure support impact
-```
 
 ---
 
@@ -315,32 +354,58 @@ The Eagle West Field aquifer provides boundary conditions for material balance v
 ### 6.2 Water Influx Modeling Framework
 
 #### Theoretical Aquifer Models
-Material balance validation requires proper aquifer influx modeling without specific production targets:
 
-```
-Van Everdingen-Hurst Radial Aquifer Model:
+Material balance validation requires proper aquifer influx modeling using the Van Everdingen-Hurst radial aquifer model.
 
-Dimensionless Parameters:
-- Radius Ratio (re/rR): Geometry-dependent
-- Dimensionless Time: tD = 0.0002367 × k × t / (φ × μ × ct × rR²)
-- Water Influx Function: WeD = f(tD, re/rR)
+**Dimensionless Parameters:**
 
-Material Balance Integration:
-- Aquifer influx term (We) in material balance equation
+$$t_D = \frac{0.0002367 \times k \times t}{\phi \times \mu \times c_t \times r_R^2}$$
+
+$$W_{eD} = f(t_D, r_e/r_R)$$
+
+$$W_e = B W_{eD} \times \Delta P$$
+
+Where:
+- $t_D$ = Dimensionless time
+- $k$ = Aquifer permeability (mD)
+- $t$ = Time (hours)
+- $\phi$ = Aquifer porosity (fraction)
+- $\mu$ = Water viscosity (cp)
+- $c_t$ = Total compressibility (psi⁻¹)
+- $r_R$ = Reservoir radius (ft)
+- $r_e$ = External aquifer radius (ft)
+- $W_{eD}$ = Dimensionless water influx function
+- $W_e$ = Cumulative water influx (bbl)
+- $B$ = Aquifer constant
+- $\Delta P$ = Pressure drop (psi)
+
+**Material Balance Integration:**
+- Aquifer influx term ($W_e$) in material balance equation
 - Pressure-dependent influx calculation
 - Time-dependent boundary conditions
-```
 
 ### 6.3 Voidage Replacement Concepts
 
 #### Material Balance Pressure Validation
-```
-General Voidage Balance Framework:
-- Reservoir voidage = Production - Injection ± Compressibility effects
-- Pressure response validation through material balance
+
+**General Voidage Balance Framework:**
+
+$$VRR = \frac{V_{injection}}{V_{production}}$$
+
+$$\Delta P = f(VRR, c_{eff}, W_e)$$
+
+Where:
+- $VRR$ = Voidage replacement ratio
+- $V_{injection}$ = Cumulative injection volume (RB)
+- $V_{production}$ = Cumulative production volume (RB)
+- $\Delta P$ = Pressure change (psi)
+- $c_{eff}$ = Effective system compressibility (psi⁻¹)
+- $W_e$ = Aquifer influx (RB)
+
+**Pressure Response Validation:**
+- Material balance consistency checks
 - Aquifer support quantification for boundary conditions
 - Simulation model calibration using pressure trends
-```
 
 #### Validation Criteria for Simulation
 | Material Balance Component | Simulation Input | Validation Check |
