@@ -23,7 +23,14 @@
       "Bash(/workspace/.claude/hooks/validate-bash-commands.sh \"ls -la /workspace\")",
       "Bash(/workspace/.claude/hooks/validate-multiedit-scope.sh:*)",
       "Bash(/workspace/.claude/hooks/validate-task-security.sh \"search for functions\" \"find all function definitions in the codebase\")",
-      "Bash(/workspace/.claude/hooks/validate-code-style.sh:*)"
+      "Bash(/workspace/.claude/hooks/validate-code-style.sh:*)",
+      "mcp__obsidian__list-available-vaults",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__create_directory",
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__write_file",
+      "mcp__filesystem__write_file"
     ],
     "deny": []
   },
