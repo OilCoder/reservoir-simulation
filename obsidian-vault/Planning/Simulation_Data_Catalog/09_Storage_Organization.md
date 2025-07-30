@@ -20,13 +20,134 @@ Groups data by intrinsic characteristics and format, optimizing for data managem
 
 ### Complete Directory Structure
 
-**By-Type Organization Structure:**
-- `by_type/` - Root directory organized by data characteristics
-  - `static/` - Time-invariant data (geology, wells, fluid properties)
-  - `dynamic/` - Time-varying simulation results (pressures, saturations, rates)
-  - `derived/` - Calculated metrics and analysis results
-  - `visualizations/` - Generated plots, animations, and reports
-  - `metadata/` - Data documentation and quality control files
+```
+by_type/
+├── static/
+│   ├── geology/
+│   │   ├── grid_geometry.mat
+│   │   ├── porosity_field.mat
+│   │   ├── permeability_field.mat
+│   │   ├── net_to_gross.mat
+│   │   ├── facies_model.mat
+│   │   ├── fault_model.mat
+│   │   └── rock_compressibility.mat
+│   ├── wells/
+│   │   ├── well_definitions.mat
+│   │   ├── well_trajectories.mat
+│   │   ├── completion_data.mat
+│   │   ├── perforation_intervals.mat
+│   │   └── well_constraints.mat
+│   ├── fluid_properties/
+│   │   ├── pvt_tables.mat
+│   │   ├── viscosity_data.mat
+│   │   ├── density_correlations.mat
+│   │   ├── compositional_data.mat
+│   │   └── surface_tension.mat
+│   ├── scal_properties/
+│   │   ├── relative_permeability.mat
+│   │   ├── capillary_pressure.mat
+│   │   ├── endpoint_saturations.mat
+│   │   └── rock_type_curves.mat
+│   └── field_boundaries/
+│       ├── reservoir_outline.mat
+│       ├── oilwater_contact.mat
+│       ├── gasoil_contact.mat
+│       └── aquifer_boundaries.mat
+├── dynamic/
+│   ├── pressures/
+│   │   ├── timestep_0001/
+│   │   │   ├── pressure_field.mat
+│   │   │   ├── bhp_values.mat
+│   │   │   └── pressure_gradients.mat
+│   │   ├── timestep_0002/
+│   │   └── ... (continue for all timesteps)
+│   ├── saturations/
+│   │   ├── timestep_0001/
+│   │   │   ├── oil_saturation.mat
+│   │   │   ├── water_saturation.mat
+│   │   │   ├── gas_saturation.mat
+│   │   │   └── phase_fronts.mat
+│   │   ├── timestep_0002/
+│   │   └── ... (continue for all timesteps)
+│   ├── rates/
+│   │   ├── timestep_0001/
+│   │   │   ├── oil_production_rates.mat
+│   │   │   ├── water_production_rates.mat
+│   │   │   ├── gas_production_rates.mat
+│   │   │   ├── injection_rates.mat
+│   │   │   └── well_allocation_factors.mat
+│   │   ├── timestep_0002/
+│   │   └── ... (continue for all timesteps)
+│   ├── velocities/
+│   │   ├── timestep_0001/
+│   │   │   ├── darcy_velocity_x.mat
+│   │   │   ├── darcy_velocity_y.mat
+│   │   │   ├── darcy_velocity_z.mat
+│   │   │   └── streamlines.mat
+│   │   ├── timestep_0002/
+│   │   └── ... (continue for all timesteps)
+│   └── compositions/
+│       ├── timestep_0001/
+│       │   ├── component_mole_fractions.mat
+│       │   ├── phase_compositions.mat
+│       │   └── k_values.mat
+│       ├── timestep_0002/
+│       └── ... (continue for all timesteps)
+├── derived/
+│   ├── recovery_factors/
+│   │   ├── field_recovery_factor.mat
+│   │   ├── pattern_recovery_factors.mat
+│   │   ├── layer_recovery_factors.mat
+│   │   └── recovery_time_series.mat
+│   ├── sweep_efficiency/
+│   │   ├── areal_sweep.mat
+│   │   ├── vertical_sweep.mat
+│   │   ├── volumetric_sweep.mat
+│   │   └── displacement_efficiency.mat
+│   ├── connectivity/
+│   │   ├── well_interference_matrix.mat
+│   │   ├── flow_allocation_factors.mat
+│   │   ├── drainage_volumes.mat
+│   │   └── pattern_connectivity.mat
+│   ├── economics/
+│   │   ├── npv_calculations.mat
+│   │   ├── cash_flow_projections.mat
+│   │   ├── operating_expenses.mat
+│   │   └── economic_indicators.mat
+│   └── analytics/
+│       ├── material_balance_plots.mat
+│       ├── decline_curve_parameters.mat
+│       ├── productivity_indices.mat
+│       └── water_cut_evolution.mat
+├── visualizations/
+│   ├── 3d_maps/
+│   │   ├── pressure_maps/
+│   │   ├── saturation_maps/
+│   │   ├── property_maps/
+│   │   └── flow_visualization/
+│   ├── 2d_plots/
+│   │   ├── time_series_plots/
+│   │   ├── cross_sections/
+│   │   ├── well_profiles/
+│   │   └── layer_maps/
+│   ├── animations/
+│   │   ├── saturation_evolution.mp4
+│   │   ├── pressure_propagation.mp4
+│   │   ├── well_drilling_sequence.mp4
+│   │   └── flow_patterns.mp4
+│   └── dashboards/
+│       ├── executive_summary/
+│       ├── operations_monitoring/
+│       ├── engineering_analysis/
+│       └── real_time_displays/
+└── metadata/
+    ├── data_dictionary.yaml
+    ├── unit_specifications.yaml
+    ├── quality_metrics.yaml
+    ├── processing_logs/
+    ├── version_control/
+    └── schema_definitions/
+```
 
 ### Cross-Reference System
 **Cross-Reference Mapping Specifications:**
@@ -53,13 +174,178 @@ Groups data by intended use case and access patterns, optimizing for workflow ef
 
 ### Complete Directory Structure
 
-**By-Usage Organization Structure:**
-- `by_usage/` - Root directory organized by application context
-  - `ML_training/` - Machine learning datasets and models (features, targets, trained models)
-  - `monitoring/` - Real-time and historical monitoring data (dashboards, alerts, trends)
-  - `validation/` - Quality assurance and benchmark data (comparisons, metrics, reports)
-  - `reporting/` - Business and technical reporting data (regulatory, presentations, analysis)
-  - `optimization/` - Field development optimization data (well placement, economics, strategy)
+```
+by_usage/
+├── ML_training/
+│   ├── features/
+│   │   ├── spatial_features/
+│   │   │   ├── cell_coordinates.h5
+│   │   │   ├── well_proximity.h5
+│   │   │   ├── fault_proximity.h5
+│   │   │   └── geological_features.h5
+│   │   ├── temporal_features/
+│   │   │   ├── production_lags.h5
+│   │   │   ├── pressure_lags.h5
+│   │   │   ├── saturation_lags.h5
+│   │   │   └── moving_averages.h5
+│   │   ├── physics_features/
+│   │   │   ├── darcy_velocity.h5
+│   │   │   ├── dimensionless_numbers.h5
+│   │   │   ├── flow_diagnostics.h5
+│   │   │   └── thermodynamic_features.h5
+│   │   └── engineered_features/
+│   │       ├── pca_components.h5
+│   │       ├── autoencoder_latents.h5
+│   │       ├── interaction_matrices.h5
+│   │       └── combined_features.h5
+│   ├── targets/
+│   │   ├── production_targets.h5
+│   │   ├── pressure_targets.h5
+│   │   ├── recovery_targets.h5
+│   │   └── economic_targets.h5
+│   ├── models/
+│   │   ├── production_forecast/
+│   │   │   ├── lstm_model.pkl
+│   │   │   ├── random_forest.pkl
+│   │   │   ├── xgboost_model.pkl
+│   │   │   └── ensemble_model.pkl
+│   │   ├── pressure_prediction/
+│   │   ├── water_breakthrough/
+│   │   └── optimization_models/
+│   └── datasets/
+│       ├── train_val_test_splits/
+│       ├── cross_validation_folds/
+│       ├── time_series_sequences/
+│       └── preprocessed_data/
+├── monitoring/
+│   ├── real_time/
+│   │   ├── pressure_monitoring/
+│   │   │   ├── current_pressures.json
+│   │   │   ├── pressure_alerts.json
+│   │   │   └── pressure_trends.json
+│   │   ├── production_monitoring/
+│   │   │   ├── current_rates.json
+│   │   │   ├── cumulative_production.json
+│   │   │   └── rate_alarms.json
+│   │   ├── injection_monitoring/
+│   │   │   ├── injection_rates.json
+│   │   │   ├── voidage_replacement.json
+│   │   │   └── injection_pressure.json
+│   │   └── system_health/
+│   │       ├── solver_status.json
+│   │       ├── convergence_metrics.json
+│   │       └── computational_load.json
+│   ├── dashboards/
+│   │   ├── executive_dashboard/
+│   │   │   ├── kpi_summary.json
+│   │   │   ├── financial_metrics.json
+│   │   │   └── field_overview.json
+│   │   ├── operations_dashboard/
+│   │   │   ├── well_status.json
+│   │   │   ├── production_summary.json
+│   │   │   └── maintenance_schedule.json
+│   │   └── engineering_dashboard/
+│   │       ├── reservoir_performance.json
+│   │       ├── sweep_efficiency.json
+│   │       └── technical_analysis.json
+│   ├── alerts/
+│   │   ├── critical_alerts.json
+│   │   ├── warning_alerts.json
+│   │   ├── info_alerts.json
+│   │   └── alert_history/
+│   └── trends/
+│       ├── daily_trends/
+│       ├── weekly_trends/
+│       ├── monthly_trends/
+│       └── annual_trends/
+├── validation/
+│   ├── quality_checks/
+│   │   ├── data_integrity/
+│   │   │   ├── mass_balance_checks.mat
+│   │   │   ├── volume_conservation.mat
+│   │   │   └── boundary_conditions.mat
+│   │   ├── numerical_validation/
+│   │   │   ├── convergence_analysis.mat
+│   │   │   ├── stability_metrics.mat
+│   │   │   └── error_analysis.mat
+│   │   └── physics_validation/
+│   │       ├── pressure_tests.mat
+│   │       ├── flow_validation.mat
+│   │       └── saturation_limits.mat
+│   ├── benchmarks/
+│   │   ├── analytical_solutions/
+│   │   ├── reference_cases/
+│   │   ├── industry_benchmarks/
+│   │   └── performance_benchmarks/
+│   ├── comparison_results/
+│   │   ├── model_vs_history.mat
+│   │   ├── simulator_comparisons.mat
+│   │   ├── uncertainty_analysis.mat
+│   │   └── sensitivity_studies.mat
+│   └── validation_reports/
+│       ├── daily_validation/
+│       ├── monthly_validation/
+│       ├── annual_validation/
+│       └── audit_reports/
+├── reporting/
+│   ├── regulatory/
+│   │   ├── production_reports/
+│   │   │   ├── monthly_production.pdf
+│   │   │   ├── annual_production.pdf
+│   │   │   └── reserves_reports.pdf
+│   │   ├── environmental/
+│   │   │   ├── emissions_reports.pdf
+│   │   │   ├── water_usage.pdf
+│   │   │   └── compliance_docs.pdf
+│   │   └── financial/
+│   │       ├── quarterly_financials.pdf
+│   │       ├── annual_reports.pdf
+│   │       └── tax_documentation.pdf
+│   ├── technical/
+│   │   ├── reservoir_reviews/
+│   │   ├── simulation_reports/
+│   │   ├── well_performance/
+│   │   └── development_plans/
+│   ├── presentations/
+│   │   ├── executive_presentations/
+│   │   ├── technical_presentations/
+│   │   ├── investor_presentations/
+│   │   └── conference_materials/
+│   └── analysis/
+│       ├── decline_analysis/
+│       ├── economics_analysis/
+│       ├── risk_assessment/
+│       └── optimization_studies/
+└── optimization/
+    ├── well_placement/
+    │   ├── candidate_locations/
+    │   │   ├── drilling_targets.mat
+    │   │   ├── infill_opportunities.mat
+    │   │   └── sidetrack_candidates.mat
+    │   ├── optimization_results/
+    │   │   ├── optimal_sequences.mat
+    │   │   ├── spacing_analysis.mat
+    │   │   └── trajectory_optimization.mat
+    │   └── constraints/
+    │       ├── surface_constraints.mat
+    │       ├── subsurface_constraints.mat
+    │       └── regulatory_constraints.mat
+    ├── production_optimization/
+    │   ├── rate_optimization/
+    │   ├── pressure_management/
+    │   ├── injection_strategy/
+    │   └── artificial_lift/
+    ├── economic_optimization/
+    │   ├── npv_optimization/
+    │   ├── capex_scheduling/
+    │   ├── opex_reduction/
+    │   └── portfolio_optimization/
+    └── development_strategy/
+        ├── phasing_plans/
+        ├── technology_selection/
+        ├── risk_mitigation/
+        └── scenario_analysis/
+```
 
 ### Cross-Reference System
 ```matlab
