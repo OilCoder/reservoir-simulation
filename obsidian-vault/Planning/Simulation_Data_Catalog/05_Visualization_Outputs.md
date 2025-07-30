@@ -14,7 +14,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/3d_maps/pressure/`
 - **Metadata**: Timestep, units (psi/bar), colorbar range, grid dimensions
 - **Dashboard Usage**: Featured on main reservoir overview page
-- **Size Estimates**: 2-5 MB per PNG, 15-30 MB per FIG file
 
 ### Saturation Maps (Oil, Water, Gas)
 - **Generated Files**: `saturation_oil_3d_YYYY-MM-DD_HHMMSS.png`, similar for water/gas
@@ -25,7 +24,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/3d_maps/saturations/`
 - **Metadata**: Phase type, saturation range (0-1), timestep, well locations
 - **Dashboard Usage**: Phase distribution monitoring, sweep efficiency analysis
-- **Size Estimates**: 3-6 MB per PNG
 
 ### Reservoir Properties (Porosity, Permeability)
 - **Generated Files**: `porosity_3d.png`, `permeability_3d_[direction].png`
@@ -36,7 +34,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/3d_maps/properties/`
 - **Metadata**: Property units, statistical summaries, grid cell count
 - **Dashboard Usage**: Static reference maps, geological characterization
-- **Size Estimates**: 4-8 MB per PNG
 
 ## 2. 2D Cross-sections
 
@@ -49,7 +46,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/2d_slices/layers/`
 - **Metadata**: Layer number, depth (ft/m), property displayed
 - **Dashboard Usage**: Layer-by-layer analysis, vertical sweep monitoring
-- **Size Estimates**: 1-3 MB per PNG
 
 ### Well Cross-sections
 - **Generated Files**: `well_xsection_[WellName]_YYYY-MM-DD_HHMMSS.png`
@@ -60,7 +56,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/2d_slices/wells/`
 - **Metadata**: Well name, MD range, perforation intervals
 - **Dashboard Usage**: Individual well performance analysis
-- **Size Estimates**: 2-4 MB per PNG
 
 ### Geological Cross-sections
 - **Generated Files**: `geocross_[orientation]_[position].png`
@@ -71,7 +66,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/2d_slices/geology/`
 - **Metadata**: Orientation (NS/EW), coordinate position, facies legend
 - **Dashboard Usage**: Geological context, heterogeneity visualization
-- **Size Estimates**: 5-10 MB per PNG
 
 ## 3. Time Series Plots
 
@@ -84,7 +78,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/timeseries/production/`
 - **Metadata**: Units (bbl/d, Mscf/d), forecast vs actual, confidence intervals
 - **Dashboard Usage**: Primary KPI monitoring, trend analysis
-- **Size Estimates**: 500 KB - 2 MB per PNG
 
 ### Injection Curves
 - **Generated Files**: `injection_timeseries_YYYY-MM-DD.png`
@@ -95,7 +88,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/timeseries/injection/`
 - **Metadata**: Injection rates, pressures, cumulative volumes
 - **Dashboard Usage**: EOR monitoring, voidage replacement tracking
-- **Size Estimates**: 500 KB - 1.5 MB per PNG
 
 ### Pressure Evolution
 - **Generated Files**: `pressure_evolution_[Location]_YYYY-MM-DD.png`
@@ -106,7 +98,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/timeseries/pressure/`
 - **Metadata**: Pressure units, measurement locations, BHP vs tubing head
 - **Dashboard Usage**: Reservoir energy monitoring, interference analysis
-- **Size Estimates**: 400 KB - 1 MB per PNG
 
 ## 4. Well Performance Plots
 
@@ -119,7 +110,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/well_performance/rta/`
 - **Metadata**: Analysis type, derivative plots, interpretation parameters
 - **Dashboard Usage**: Well diagnostic analysis, EUR estimation
-- **Size Estimates**: 1-2 MB per PNG
 
 ### Water Cut Evolution
 - **Generated Files**: `watercut_[WellName]_YYYY-MM-DD.png`
@@ -130,7 +120,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/well_performance/watercut/`
 - **Metadata**: Water cut percentage, breakthrough timing, forecast models
 - **Dashboard Usage**: Water management, completion effectiveness
-- **Size Estimates**: 500 KB - 1 MB per PNG
 
 ### PI Evolution and Skin Analysis
 - **Generated Files**: `pi_evolution_[WellName]_YYYY-MM-DD.png`
@@ -141,7 +130,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/well_performance/productivity/`
 - **Metadata**: PI units, skin values, completion details
 - **Dashboard Usage**: Well completion analysis, workover planning
-- **Size Estimates**: 800 KB - 1.5 MB per PNG
 
 ## 5. Diagnostic Plots
 
@@ -154,7 +142,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/diagnostics/material_balance/`
 - **Metadata**: Drive mechanisms, OOIP estimates, aquifer parameters
 - **Dashboard Usage**: Reservoir engineering analysis, reserves assessment
-- **Size Estimates**: 1-2 MB per PNG
 
 ### P/Z Plots (Gas Reservoirs)
 - **Generated Files**: `pz_plot_[Zone]_YYYY-MM-DD.png`
@@ -165,7 +152,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/diagnostics/pz_analysis/`
 - **Metadata**: Z-factors, abandonment pressure, OGIP estimates
 - **Dashboard Usage**: Gas reserves monitoring, depletion tracking
-- **Size Estimates**: 800 KB - 1.5 MB per PNG
 
 ### Decline Curve Analysis
 - **Generated Files**: `dca_[WellName]_YYYY-MM-DD.png`
@@ -176,7 +162,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/diagnostics/decline_curves/`
 - **Metadata**: Decline parameters, EUR estimates, economic limits
 - **Dashboard Usage**: Production forecasting, well economics
-- **Size Estimates**: 1-2 MB per PNG
 
 ## 6. Animation/Movies
 
@@ -189,7 +174,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/animations/saturations/`
 - **Metadata**: Frame rate, duration, timestep intervals, colorbar info
 - **Dashboard Usage**: Executive presentations, technical reviews
-- **Size Estimates**: 50-200 MB per MP4, 20-50 MB per GIF
 
 ### Pressure Evolution Movies
 - **Generated Files**: `pressure_evolution_YYYY-MM-DD.mp4`
@@ -200,7 +184,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/animations/pressure/`
 - **Metadata**: Pressure ranges, well events timeline, simulation period
 - **Dashboard Usage**: Reservoir behavior demonstration, training materials
-- **Size Estimates**: 100-300 MB per MP4
 
 ### Well Drilling Sequence
 - **Generated Files**: `drilling_sequence_YYYY-MM-DD.mp4`
@@ -211,7 +194,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/animations/development/`
 - **Metadata**: Well sequence, drilling dates, completion types
 - **Dashboard Usage**: Development planning presentations, investor updates
-- **Size Estimates**: 75-150 MB per MP4
 
 ## 7. Statistical Plots
 
@@ -224,7 +206,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/statistics/histograms/`
 - **Metadata**: Statistical moments, bin counts, distribution fits
 - **Dashboard Usage**: Uncertainty quantification, property characterization
-- **Size Estimates**: 500 KB - 1 MB per PNG
 
 ### Correlation Matrices
 - **Generated Files**: `correlation_matrix_YYYY-MM-DD.png`
@@ -235,7 +216,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/statistics/correlations/`
 - **Metadata**: Variable lists, correlation coefficients, significance levels
 - **Dashboard Usage**: Parameter sensitivity analysis, model validation
-- **Size Estimates**: 1-2 MB per PNG
 
 ### Scatter Plot Matrices
 - **Generated Files**: `scatterplot_matrix_YYYY-MM-DD.png`
@@ -246,7 +226,6 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
 - **Storage Location**: `/outputs/visualizations/statistics/scatter_plots/`
 - **Metadata**: Variable pairs, regression fits, outlier identification
 - **Dashboard Usage**: Data quality assessment, relationship exploration
-- **Size Estimates**: 2-4 MB per PNG
 
 ## 8. Dashboard Elements
 
@@ -334,11 +313,11 @@ This document catalogs all possible visualization outputs from the MRST Eagle We
     └── progress/
 ```
 
-### Total Storage Estimates
-- **Daily Operations**: 500 MB - 2 GB per day
-- **Monthly Archives**: 15 - 60 GB per month
-- **Full Simulation**: 200 GB - 1 TB total
-- **Compressed Archives**: 50-200 GB (using PNG optimization)
+### Storage Organization
+- **Daily Operations**: Variable based on generation frequency and quality settings
+- **Monthly Archives**: Aggregated monthly visualization sets
+- **Full Simulation**: Complete visualization catalog for project duration
+- **Compressed Archives**: Optimized storage using PNG optimization
 
 ### Metadata Standards
 - **Timestamp**: ISO 8601 format (YYYY-MM-DDTHH:mm:ss)

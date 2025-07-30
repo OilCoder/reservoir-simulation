@@ -32,8 +32,6 @@ where $S_o$, $S_w$, and $S_g$ represent oil, water, and gas saturations respecti
 - **Structure**: 3D array [nx, ny, nz] per timestep
 - **Units**: psia or bar
 - **Update Frequency**: Every timestep
-- **Dimensions**: Typically 100×80×25 = 200,000 cells
-- **Storage Size**: ~800 KB per timestep (single precision)
 - **ML Applications**: 
   - Pressure transient analysis
   - Flow pattern identification
@@ -163,7 +161,6 @@ where $S_o$, $S_w$, and $S_g$ represent oil, water, and gas saturations respecti
 **X-Direction Oil Flux (`FLOIXI+`)**
 - **Structure**: 3D array [nx-1, ny, nz] per timestep
 - **Units**: STB/day or sm³/day
-- **Storage Size**: ~750 KB per timestep
 - **Applications**: Flow path visualization, sweep efficiency
 
 **Y-Direction Oil Flux (`FLOIYJ+`)**
@@ -204,7 +201,6 @@ where $S_o$, $S_w$, and $S_g$ represent oil, water, and gas saturations respecti
 
 **Oil Phase Present (`POIL`)**
 - **Structure**: 3D boolean array [nx, ny, nz] per timestep
-- **Storage**: 1 bit per cell, ~25 KB per timestep
 - **Update**: When saturation > residual
 
 **Water Phase Present (`PWAT`)**
@@ -547,26 +543,26 @@ where $S_o$, $S_w$, and $S_g$ represent oil, water, and gas saturations respecti
 - Real-time data ingestion
 - Automated quality control
 
-## Storage Estimates
+## Storage Considerations
 
 ### Typical Field (200,000 cells, 50 wells, 10-year simulation)
 
 **Full Resolution (Every Timestep)**
-- **Reservoir Arrays**: 2.4 GB/year
-- **Well Data**: 50 MB/year
-- **Flux Data**: 2.1 GB/year
-- **Total**: ~4.5 GB/year
+- All reservoir state arrays stored per timestep
+- Complete well data history
+- Full inter-cell flux data
+- Comprehensive temporal resolution
 
 **Optimized Storage (Monthly Reporting)**
-- **Reservoir Arrays**: 200 MB/year
-- **Well Data**: 50 MB/year (unchanged)
-- **Flux Data**: 175 MB/year
-- **Total**: ~425 MB/year
+- Reservoir arrays at reduced frequency
+- Well data maintained at full resolution
+- Flux data at reporting intervals
+- Balanced resolution for analysis needs
 
 **Real-Time Dashboard**
-- **Current State**: 100 MB
-- **Historical (1 year)**: 500 MB
-- **Processed Features**: 200 MB
-- **Total**: ~800 MB active storage
+- Current state snapshot
+- Rolling historical window
+- Processed feature sets
+- Active data for monitoring
 
 This comprehensive inventory provides the foundation for building robust ML pipelines and real-time monitoring systems for reservoir simulation data.

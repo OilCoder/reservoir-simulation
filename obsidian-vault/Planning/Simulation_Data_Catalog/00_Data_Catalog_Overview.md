@@ -15,7 +15,6 @@ The catalog is designed to provide a comprehensive understanding of available da
 This catalog exists to help stakeholders understand:
 - What simulation data will be available for ML model training and validation
 - How data is structured and organized for efficient access
-- Data volume estimates for storage and processing planning
 - Relationships between different data categories
 - Technical specifications for integration with downstream systems
 
@@ -35,21 +34,21 @@ This catalog exists to help stakeholders understand:
 | [08_Optimization_Results_Data.md](08_Optimization_Results_Data.md) | Parameter optimization and sensitivity data | Optimal parameters, sensitivity coefficients |
 | [09_Validation_Quality_Data.md](09_Validation_Quality_Data.md) | Data quality metrics and validation results | Error metrics, uncertainty bounds, QC flags |
 
-## Quick Reference: Data Categories and Estimated Sizes
+## Quick Reference: Data Categories and Applications
 
-| Category | Data Volume | Update Frequency | ML Applications |
-|----------|-------------|------------------|-----------------|
-| **Grid Geometry** | ~50 MB | Static | Spatial feature engineering, geological ML |
-| **Well Configuration** | ~10 MB | Per phase | Well placement optimization, drilling ML |
-| **Solver Internal** | ~500 MB | Per timestep | Convergence prediction, numerical stability ML |
-| **Production Performance** | ~100 MB | Per timestep | Production forecasting, decline curve ML |
-| **Pressure Fields** | ~2.5 GB | Per timestep | Pressure prediction, connectivity analysis ML |
-| **Saturation Fields** | ~7.5 GB | Per timestep | Flood front tracking, sweep efficiency ML |
-| **Economic Analysis** | ~25 MB | Per timestep | Economic optimization, risk assessment ML |
-| **Optimization Results** | ~200 MB | Per scenario | Parameter tuning, automated optimization ML |
-| **Validation/Quality** | ~150 MB | Per timestep | Data quality ML, uncertainty quantification |
+| Category | Update Frequency | ML Applications |
+|----------|------------------|-----------------|
+| **Grid Geometry** | Static | Spatial feature engineering, geological ML |
+| **Well Configuration** | Per phase | Well placement optimization, drilling ML |
+| **Solver Internal** | Per timestep | Convergence prediction, numerical stability ML |
+| **Production Performance** | Per timestep | Production forecasting, decline curve ML |
+| **Pressure Fields** | Per timestep | Pressure prediction, connectivity analysis ML |
+| **Saturation Fields** | Per timestep | Flood front tracking, sweep efficiency ML |
+| **Economic Analysis** | Per timestep | Economic optimization, risk assessment ML |
+| **Optimization Results** | Per scenario | Parameter tuning, automated optimization ML |
+| **Validation/Quality** | Per timestep | Data quality ML, uncertainty quantification |
 
-**Total Estimated Volume**: ~11 GB for complete simulation
+
 
 ## Primary Use Cases
 
@@ -96,17 +95,10 @@ This catalog exists to help stakeholders understand:
 - Time-series data optimized for temporal queries
 - Spatial data optimized for geographic queries
 
-## Data Volume Estimates (15-Well, 10-Year Simulation)
-
-### Storage Requirements
-- **Raw Simulation Output**: ~8.5 GB
-- **Processed ML-Ready Data**: ~2.5 GB
-- **Metadata and Documentation**: ~50 MB
-- **Quality Control Data**: ~150 MB
-- **Total Storage Needed**: ~11.2 GB
+## Processing and Temporal Considerations
 
 ### Processing Considerations
-- **Memory Requirements**: 16+ GB RAM for full dataset processing
+- **Memory Requirements**: Adequate RAM for full dataset processing
 - **Compute Requirements**: Multi-core CPU for parallel time series processing
 - **I/O Requirements**: SSD storage recommended for large field data access
 

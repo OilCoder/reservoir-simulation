@@ -68,7 +68,7 @@ grid_metadata:
   file_info:
     file_path: "/simulation_data/static/grids/eagle_west_grid.mat"
     file_format: "MATLAB"
-    file_size_mb: 45.7
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "a1b2c3d4e5f6789012345678901234567890abcd"
     compression: "none"
     
@@ -164,7 +164,7 @@ rock_properties_metadata:
   file_info:
     file_path: "/simulation_data/static/rock_properties/eagle_west_rock.mat"
     file_format: "MATLAB"
-    file_size_mb: 127.3
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "b2c3d4e5f6789012345678901234567890abcdef"
     compression: "gzip"
     
@@ -255,7 +255,7 @@ well_data_metadata:
   file_info:
     file_path: "/simulation_data/static/wells/eagle_west_wells.mat"
     file_format: "MATLAB"
-    file_size_mb: 8.9
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "c3d4e5f6789012345678901234567890abcdef12"
     compression: "none"
     
@@ -358,16 +358,16 @@ dynamic_solution_metadata:
   file_info:
     file_path: "/simulation_data/dynamic/solutions/eagle_west_solution.mat"
     file_format: "MATLAB"
-    file_size_mb: 2847.6
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "d4e5f6789012345678901234567890abcdef1234"
     compression: "gzip"
     
   # Performance metrics
   performance:
-    computation_time_hours: 6.5
-    memory_usage_gb: 12.8
-    cpu_cores_used: 16
-    parallel_efficiency: 0.85
+    computation_time_hours: null  # Measured during execution
+    memory_usage_gb: null  # Measured during execution
+    cpu_cores_used: null  # Configured at runtime
+    parallel_efficiency: null  # Calculated post-execution
     
   # Relationships
   relationships:
@@ -461,7 +461,7 @@ well_production_metadata:
   file_info:
     file_path: "/simulation_data/dynamic/production/eagle_west_production.mat"
     file_format: "MATLAB"
-    file_size_mb: 15.7
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "e5f6789012345678901234567890abcdef12345"
     compression: "none"
     
@@ -568,7 +568,7 @@ derived_metrics_metadata:
   file_info:
     file_path: "/simulation_data/derived/metrics/eagle_west_metrics.mat"
     file_format: "MATLAB"
-    file_size_mb: 3.2
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "f6789012345678901234567890abcdef123456"
     compression: "none"
     
@@ -663,7 +663,7 @@ visualization_metadata:
   file_info:
     file_path: "/simulation_data/visualization/static/pressure_maps/"
     file_format: "multiple"
-    file_size_mb: 45.8
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "789012345678901234567890abcdef1234567"
     compression: "none"
     
@@ -726,8 +726,8 @@ animation_metadata:
     
   # Technical details
   technical:
-    file_size_mb: 187.5
-    duration_seconds: 12.0
+    file_size_mb: null  # Size determined at creation
+    duration_seconds: null  # Duration calculated from frame count and rate
     compression: "H.264"
     quality: "high"
     
@@ -761,7 +761,7 @@ animation_metadata:
   file_info:
     file_path: "/simulation_data/visualization/animations/saturation_evolution.mp4"
     file_format: "MP4"
-    file_size_mb: 187.5
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "89012345678901234567890abcdef12345678"
     compression: "H.264"
     
@@ -886,7 +886,7 @@ ml_features_metadata:
   file_info:
     file_path: "/simulation_data/ml/features/eagle_west_features.pkl"
     file_format: "pickle"
-    file_size_mb: 89.4
+    file_size_mb: null  # Size determined at creation
     checksum_md5: "9012345678901234567890abcdef123456789"
     compression: "gzip"
     
@@ -975,12 +975,12 @@ simulation_run_metadata:
   execution:
     start_time: "2024-02-01T08:00:00Z"
     end_time: "2024-02-01T14:30:00Z"
-    total_runtime_hours: 6.5
+    total_runtime_hours: null  # Measured during execution
     compute_environment:
       cluster_name: "HPC-Reservoir-Cluster"
       nodes_used: 2
       cores_per_node: 16
-      memory_per_node_gb: 64
+      memory_per_node_gb: null  # Hardware dependent
       operating_system: "Linux CentOS 7"
     
     performance_metrics:
@@ -988,7 +988,7 @@ simulation_run_metadata:
       failed_timesteps: 0
       average_iterations: 6.2
       max_iterations_used: 15
-      memory_peak_gb: 12.8
+      memory_peak_gb: null  # Measured during execution
       parallel_efficiency: 0.85
     
   # Input data versions
@@ -1048,7 +1048,7 @@ simulation_run_metadata:
   # File information
   file_info:
     output_directory: "/simulation_data/runs/run_001/"
-    total_size_gb: 3.2
+    total_size_gb: null  # Calculated from output files
     log_file: "/simulation_data/runs/run_001/simulation.log"
     config_backup: "/simulation_data/runs/run_001/configs/"
     
@@ -1239,6 +1239,7 @@ validation_rules:
     file_info.file_size_mb:
       type: "float"
       minimum: 0.0
+      description: "Size determined at file creation"
     
     quality.completeness:
       type: "float"
@@ -1474,7 +1475,7 @@ storage_access:
     write_latency_ms: 500
     search_latency_ms: 1000
     concurrent_users: 50
-    data_volume_gb: 1000
+    data_volume_scalability: "supports_variable_sizes"
 ```
 
 ## 10. Usage Examples and Best Practices

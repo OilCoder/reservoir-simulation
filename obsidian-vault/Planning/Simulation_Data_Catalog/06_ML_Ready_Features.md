@@ -40,7 +40,7 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Static (model initialization only)
 
 **Computational Requirements:**
-- Memory: ~50 MB for 100k cells
+- Memory: Scales with grid size
 - Processing: <1 minute on single CPU core
 
 **Storage Format:**
@@ -143,7 +143,7 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Each simulation timestep
 
 **Computational Requirements:**
-- Memory: ~200 MB per timestep for 100k cells
+- Memory: Scales with grid size and timestep count
 - Processing: ~5 minutes per timestep for lag computation
 
 **Storage Format:**
@@ -231,7 +231,7 @@ This document catalogs all data that has been pre-processed and structured speci
 **Update Frequency:** Each simulation timestep
 
 **Computational Requirements:**
-- Memory: ~150 MB per timestep for 100k cells
+- Memory: Scales with grid size and timestep count
 - Processing: ~10 minutes per timestep for velocity computation
 
 **Storage Format:**
@@ -496,7 +496,7 @@ This document catalogs all data that has been pre-processed and structured speci
 - Transform: Each timestep for dynamic features
 
 **Computational Requirements:**
-- Memory: ~500 MB for decomposition of 100k cells
+- Memory: Scales with grid complexity and decomposition method
 - Processing: ~30 minutes for initial decomposition
 - Transform: <1 minute per timestep
 
@@ -580,7 +580,7 @@ This document catalogs all data that has been pre-processed and structured speci
 **Computational Requirements:**
 - Training: GPU recommended, hours to days
 - Inference: CPU adequate, minutes per timestep
-- Memory: ~1 GB for model, ~100 MB per timestep
+- Memory: Model and timestep dependent
 
 **Storage Format:**
 - `/ml_features/dimensionality_reduction/autoencoders/spatial_latents.h5` - Spatial autoencoder features
@@ -645,20 +645,18 @@ This document catalogs all data that has been pre-processed and structured speci
 
 | Feature Category | Memory (100k cells) | Processing Time | Update Frequency |
 |-----------------|-------------------|-----------------|------------------|
-| Spatial | 200 MB | 5 minutes | Static |
-| Temporal | 500 MB/timestep | 10 minutes | Each timestep |
-| Physics | 300 MB/timestep | 15 minutes | Each timestep |
-| Well Interactions | 50 MB | 20 minutes | Monthly |
-| Geological | 100 MB | 2 minutes | Static |
-| Production | 20 MB | 1 minute | Daily/Monthly |
-| PCA | 500 MB | 30 minutes | Once per case |
-| POD | 800 MB | 45 minutes | Once per case |
-| Autoencoders | 1 GB | Hours (training) | Quarterly |
-
-**Total Storage Estimate:** ~5-10 GB per simulation case with all features
+| Spatial | Grid dependent | 5 minutes | Static |
+| Temporal | Per timestep | 10 minutes | Each timestep |
+| Physics | Per timestep | 15 minutes | Each timestep |
+| Well Interactions | Well dependent | 20 minutes | Monthly |
+| Geological | Grid dependent | 2 minutes | Static |
+| Production | Well dependent | 1 minute | Daily/Monthly |
+| PCA | Dataset dependent | 30 minutes | Once per case |
+| POD | Dataset dependent | 45 minutes | Once per case |
+| Autoencoders | Model dependent | Hours (training) | Quarterly |
 
 **Recommended Hardware:**
-- RAM: 32 GB minimum, 64 GB preferred
+- RAM: Minimum 32 GB, with higher capacity preferred for larger cases
 - Storage: SSD recommended for feature access
 - CPU: Multi-core for parallel feature computation
 - GPU: Optional for autoencoder training

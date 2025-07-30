@@ -18,7 +18,7 @@ This document catalogs all calculated metrics and derived data generated from pr
   - Normalization factor for recovery calculations
 - **Visualization**: Static reservoir maps, volumetric pie charts
 - **Units**: STB (stock tank barrels)
-- **Typical Range**: 10M - 500M STB (field dependent)
+- **Typical Range**: Field dependent
 
 ### 1.2 Recovery Factor (RF)
 - **Formula**: $RF = \frac{N_p}{STOIIP} = \frac{N_p}{7758 \cdot A \cdot h \cdot \phi \cdot (1-S_{wi}) / B_{oi}}$
@@ -240,7 +240,7 @@ This document catalogs all calculated metrics and derived data generated from pr
   - Key metric for asset valuation models
 - **Visualization**: EUR distribution maps, tornado charts
 - **Units**: STB (stock tank barrels)
-- **Typical Range**: 50K - 2M STB per well
+- **Typical Range**: Field and well dependent
 
 ### 6.3 Time to Economic Limit
 - **Formula**: $t_{econ} = \frac{\ln(q_i/q_{limit})}{D_i}$ (exponential decline)
@@ -271,7 +271,7 @@ This document catalogs all calculated metrics and derived data generated from pr
   - Feature for project ranking and portfolio management
 - **Visualization**: NPV sensitivity charts, project economics dashboards
 - **Units**: USD (millions)
-- **Typical Range**: -10M to +100M USD per project
+- **Typical Range**: Project dependent
 
 ### 7.2 Payout Time
 - **Formula**: $t_{payout} = \min\{t : \sum_{i=0}^{t} CF_i = 0\}$

@@ -28,7 +28,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `static_data.mat`
-- **Size Estimate**: ~50 KB
 - **Format**: MATLAB v7 (oct2py compatible)
 - **Metadata**: `metadata/metadata.yaml`
 
@@ -83,7 +82,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `static_data.mat`
-- **Size Estimate**: ~400 KB (20×20×10 grid)
 - **Compression**: Sparse storage for uniform regions
 - **Metadata**: `rock_properties_config.yaml`
 
@@ -125,7 +123,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `static_data.mat` (nested struct)
-- **Size Estimate**: ~50 KB (15 wells)
 - **Format**: Structured arrays for efficient access
 - **Metadata**: `wells_schedule_config.yaml`
 
@@ -171,7 +168,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `fluid_properties.mat`
-- **Size Estimate**: ~100 KB
 - **Tables**: 50 pressure points, 100 saturation points
 - **Metadata**: `fluid_properties_config.yaml`
 
@@ -214,7 +210,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `simulation_parameters.mat`
-- **Size Estimate**: ~10 KB
 - **Format**: Structured parameters
 - **Metadata**: `simulation_config.yaml`
 
@@ -254,7 +249,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `fault_properties.mat`
-- **Size Estimate**: ~50 KB (assuming 10 faults)
 - **Format**: Sparse connectivity matrix
 - **Metadata**: `fault_config.yaml`
 
@@ -295,7 +289,6 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 
 ### Storage Details
 - **File**: `initial_conditions.mat`
-- **Size Estimate**: ~2 MB (20×20×10 grid, multiple fields)
 - **Format**: 3D arrays with consistent indexing
 - **Metadata**: `initial_conditions_config.yaml`
 
@@ -350,17 +343,7 @@ All static data is stored in `/workspace/data/simulation_data/static/` directory
 - **Loading**: scipy.io.loadmat() compatible
 - **Access Pattern**: Hierarchical structure access through nested indices
 
-### Size Estimates Summary
-| Data Category | File Size | Memory Usage | Description |
-|---------------|------------|--------------|-------------|
-| Grid Geometry | 50 KB | 200 KB | Coordinates, cell centers |
-| Rock Properties | 400 KB | 1.6 MB | Porosity, permeability, regions |
-| Well Configuration | 50 KB | 200 KB | Locations, completions |
-| Fluid Properties | 100 KB | 400 KB | PVT tables, rel perm curves |
-| Simulation Parameters | 10 KB | 40 KB | Solver settings |
-| Fault Properties | 50 KB | 200 KB | Geometry, transmissibility |
-| Initial Conditions | 2 MB | 8 MB | Pressure, saturation, stress |
-| **Total Static Data** | **2.7 MB** | **10.6 MB** | **Complete static dataset** |
+
 
 ---
 
