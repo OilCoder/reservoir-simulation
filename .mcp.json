@@ -15,6 +15,10 @@
     "obsidian": {
       "command": "npx",
       "args": ["-y", "obsidian-mcp", "/workspace/obsidian-vault"]
+    },
+    "todo": {
+      "command": "/workspace/todo_list/todo-wrapper.sh",
+      "args": []
     }
   }
 }

@@ -1,16 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git rebase:*)"
     ],
     "deny": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "memory",
     "filesystem",
     "sequential-thinking",
     "obsidian",
-    "time"
+    "time",
+    "TodoList"
   ],
   "auto_monitor": {
     "enabled": true,

@@ -62,16 +62,6 @@
         ]
       },
       {
-        "matcher": "TodoWrite",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/workspace/.claude/hooks/validate-todo-format.sh",
-            "args": ["$TODOS"]
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
