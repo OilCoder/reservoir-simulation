@@ -30,7 +30,8 @@
       "mcp__filesystem__write_file",
       "mcp__filesystem__write_file",
       "mcp__filesystem__write_file",
-      "mcp__filesystem__write_file"
+      "mcp__filesystem__write_file",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   },
