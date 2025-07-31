@@ -80,7 +80,8 @@ Claude Code implements a paradigm shift from reactive correction to proactive pr
 1. **Rule Layer**: 8 comprehensive rules defining standards
 2. **Validation Layer**: Parallel validators ensuring compliance
 3. **Intelligence Layer**: Context injection and orchestration
-4. **Traceability Layer**: Complete audit trail
+4. **Monitoring Layer**: Auto-dashboard for complex operations
+5. **Traceability Layer**: Complete audit trail
 
 ### Validation Pipeline
 
@@ -110,6 +111,7 @@ Generation → Post-Processing (Sequential) → Output
 - Automatic intent detection
 - Context-aware rule application
 - Complex task decomposition
+- Auto-monitor dashboard activation
 - Adaptive learning system
 
 ### Complete Traceability
@@ -125,6 +127,7 @@ Generation → Post-Processing (Sequential) → Output
 - Automatic standard compliance
 - Reduced manual review
 - Clear error feedback
+- Real-time progress visibility
 
 ### For Teams
 - Unified coding standards

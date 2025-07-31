@@ -193,6 +193,36 @@ s##_*.py → /workspace/src/
 - ID uniqueness
 - Content clarity
 
+### Auto-Monitor Agents Hook
+
+**File**: `auto-monitor-agents.sh`
+**Purpose**: Automatically launches agent dashboard for complex tasks
+**Triggers**: Task tool usage
+
+**Detection Logic**:
+- Complex keywords: "parallel", "orchestrat", "implement.*complete", "comprehensive"
+- Multiple action verbs (≥3): "implement", "create", "analyze", "test", "validate"
+- Long prompts (>200 characters)
+- Subagent orchestration indicators
+
+**Features**:
+- Smart complexity detection
+- Background dashboard launch
+- Non-intrusive execution
+- Configurable thresholds
+- User notifications with PID
+
+**Configuration**: `/workspace/.claude/settings.local.json`
+```json
+"auto_monitor": {
+  "enabled": true,
+  "detection_threshold": {
+    "min_actions": 3,
+    "min_prompt_length": 200
+  }
+}
+```
+
 ### Print Statement Cleanup Hook
 
 **File**: `cleanup-print-statements.sh`

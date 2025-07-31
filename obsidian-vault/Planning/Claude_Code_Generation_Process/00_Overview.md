@@ -60,6 +60,7 @@ The Claude Code generation system consists of four primary architectural layers:
 - 8-category intent analysis
 - Task-specific context injection
 - Automatic decomposition of complex tasks
+- Auto-monitor dashboard for complex operations
 
 ### Traceability
 - Complete audit trail for every operation
@@ -96,6 +97,7 @@ Traceability Logging → Final Output
 - **Debug Isolation**: Automatic routing to `debug/`
 - **Consistent Structure**: Step/substep organization
 - **Template Usage**: Standardized patterns
+- **Auto-Monitoring**: Automatic dashboard for complex operations
 
 ## Configuration Hierarchy
 

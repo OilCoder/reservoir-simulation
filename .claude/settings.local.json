@@ -1,37 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)",
-      "Bash(git merge:*)",
-      "Bash(git branch:*)",
-      "Bash(git clean:*)",
-      "mcp__obsidian__create-note",
-      "Bash(mkdir:*)",
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(ls:*)",
-      "Bash(ls:*)",
-      "Bash(find:*)",
-      "mcp__filesystem__list_directory",
-      "mcp__filesystem__read_file",
-      "mcp__filesystem__read_multiple_files",
-      "mcp__sequential-thinking__sequentialthinking",
-      "Bash(chmod:*)",
-      "Bash(/workspace/.claude/hooks/route-files.sh:*)",
-      "Bash(echo)",
-      "Bash(/workspace/.claude/hooks/validate-todo-format.sh:*)",
-      "Bash(/workspace/.claude/hooks/validate-bash-commands.sh \"ls -la /workspace\")",
-      "Bash(/workspace/.claude/hooks/validate-multiedit-scope.sh:*)",
-      "Bash(/workspace/.claude/hooks/validate-task-security.sh \"search for functions\" \"find all function definitions in the codebase\")",
-      "Bash(/workspace/.claude/hooks/validate-code-style.sh:*)",
-      "mcp__obsidian__list-available-vaults",
-      "mcp__filesystem__directory_tree",
-      "mcp__filesystem__create_directory",
-      "mcp__filesystem__write_file",
-      "mcp__filesystem__write_file",
-      "mcp__filesystem__write_file",
-      "mcp__filesystem__write_file",
-      "WebFetch(domain:docs.anthropic.com)"
+      "Bash(kill:*)",
+      "Bash(true)"
     ],
     "deny": []
   },
@@ -41,5 +12,29 @@
     "sequential-thinking",
     "obsidian",
     "time"
-  ]
+  ],
+  "auto_monitor": {
+    "enabled": true,
+    "detection_threshold": {
+      "min_actions": 3,
+      "min_prompt_length": 200,
+      "complex_keywords": [
+        "parallel",
+        "multiple.*agents",
+        "subagent",
+        "orchestrat",
+        "complex.*task",
+        "implement.*complete",
+        "create.*system",
+        "full.*implementation",
+        "end-to-end",
+        "comprehensive"
+      ]
+    },
+    "dashboard_options": {
+      "auto_launch": true,
+      "background_mode": true,
+      "notification": true
+    }
+  }
 }

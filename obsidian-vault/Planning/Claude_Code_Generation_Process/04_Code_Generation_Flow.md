@@ -183,7 +183,23 @@ ELSE:
 
 ### Phase 5: Pre-Validation Pipeline
 
-#### Step 5.1: Parallel Validation Execution
+#### Step 5.1: Auto-Monitor Activation
+**For Task Operations** (Complex Tasks Only):
+```bash
+# Auto-monitor hook triggers first
+auto-monitor-agents.sh "$DESCRIPTION" "$PROMPT"
+# → Detects complexity
+# → Launches dashboard in background  
+# → Provides user notification
+```
+
+**Detection Criteria**:
+- Complex keywords detected
+- Multiple action verbs (≥3)
+- Long prompts (>200 chars)
+- Subagent orchestration patterns
+
+#### Step 5.2: Parallel Validation Execution
 **For Write/Edit Operations**:
 ```bash
 parallel_validators=(
@@ -200,7 +216,7 @@ done
 wait
 ```
 
-#### Step 5.2: Validation Checks
+#### Step 5.3: Validation Checks
 
 **File Routing Validation**:
 - Pattern matching (filename)
@@ -226,7 +242,7 @@ wait
 - Structural integrity
 - Cross-file coordination
 
-#### Step 5.3: Error Aggregation
+#### Step 5.4: Error Aggregation
 ```bash
 total_errors=0
 critical_errors=0

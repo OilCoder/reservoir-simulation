@@ -53,6 +53,11 @@
             "type": "command",
             "command": "/workspace/.claude/hooks/validate-task-security.sh",
             "args": ["$DESCRIPTION", "$PROMPT"]
+          },
+          {
+            "type": "command",
+            "command": "/workspace/.claude/hooks/auto-monitor-agents.sh",
+            "args": ["$DESCRIPTION", "$PROMPT"]
           }
         ]
       },
