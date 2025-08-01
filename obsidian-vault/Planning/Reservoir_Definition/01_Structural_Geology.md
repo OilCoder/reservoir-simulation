@@ -29,7 +29,7 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 ### 2.1 Overall Structure Type
 - **Primary Trap**: Faulted anticline with 4-way dip closure
 - **Trap Category**: Structural-stratigraphic combination trap
-- **Closure Area**: Approximately 2,850 acres at spill point
+- **Closure Area**: Approximately 2,600 acres at spill point [CORRECTED for consistency]
 - **Structural Relief**: 340 ft from crest to spill point
 
 ### 2.2 Major Fault Systems

@@ -1,0 +1,100 @@
+# Grid Configuration for MRST Reservoir Simulation
+# Eagle West Field - 15-Well Development Program
+#
+# Based on: MRST_Implementation.md (FINAL: 20x20x10 grid per user decision)
+# Created: 2025-07-31
+# Purpose: Grid geometry and structural parameters for MRST simulation
+
+# GRID DIMENSIONS AND RESOLUTION
+grid_dimensions:
+  nx: 20                    # Number of cells in X direction (per MRST_Implementation.md)
+  ny: 20                    # Number of cells in Y direction  
+  nz: 10                    # Number of cells in Z direction (per MRST_Implementation.md)
+  total_active_cells: 4000  # Optimized resolution (20x20x10)
+
+# CELL SIZE SPECIFICATIONS
+cell_dimensions:
+  dx: 164.0                 # Cell size in X direction (ft) - 3280/20
+  dy: 148.0                 # Cell size in Y direction (ft) - 2950/20
+  dz: 7.25                  # Cell size in Z direction (ft) - 72.5/10 average
+
+# RESERVOIR GEOMETRY
+reservoir_geometry:
+  model_area: 2600          # acres
+  length_x: 3280            # ft (20 * 164) - Field extent per MRST_Implementation
+  length_y: 2950            # ft (20 * 148) - Field extent per MRST_Implementation  
+  gross_thickness: 72.5     # ft - Total interval (per MRST_Implementation)
+  net_pay: 125              # ft - Flow contributing layers
+  net_to_gross: 0.525       # Average across model
+
+# STRUCTURAL FRAMEWORK
+structural_parameters:
+  datum_depth: 8000         # ft TVDSS - Pressure reference depth
+  structural_type: "faulted_anticline"
+  structural_relief: 340    # ft - Top to base structure
+  fault_compartments: 2     # Northern & Southern blocks
+  major_faults: 5           # For transmissibility multipliers
+
+# DEPTH AND ELEVATION CONTROL
+depth_control:
+  top_depth: 7881           # ft TVDSS - Top of reservoir
+  base_depth: 8119          # ft TVDSS - Base of reservoir
+  oil_water_contact: 8150   # ft TVDSS - Sharp contact
+  transition_zone: 50       # ft - Capillary pressure controlled
+
+# GRID REFINEMENT AREAS
+refinement_zones:
+  well_areas: true          # Refine around wells
+  fault_zones: true         # Refine fault transmissibility
+  high_perm_streaks: true   # Refine high flow areas
+  transition_zones: true    # Refine fluid contacts
+
+# COORDINATE SYSTEM
+coordinate_system:
+  origin_x: 0.0            # ft - Grid origin X
+  origin_y: 0.0            # ft - Grid origin Y
+  origin_z: 7881.0         # ft TVDSS - Grid origin Z (top)
+  rotation_angle: 0.0      # degrees - Grid rotation
+
+# FAULT MODELING PARAMETERS
+fault_modeling:
+  fault_multiplier_default: 0.1    # Default transmissibility multiplier
+  fault_seal_threshold: 0.01       # Below this = sealing fault
+  fault_open_threshold: 0.9        # Above this = fully open fault
+  
+# GRID QUALITY CONTROL
+quality_control:
+  max_aspect_ratio: 10.0    # Maximum cell aspect ratio
+  min_pore_volume: 1.0e-6   # Minimum cell pore volume (RB)
+  orthogonality_threshold: 0.1  # Grid orthogonality check
+
+# MRST SPECIFIC PARAMETERS
+mrst_parameters:
+  grid_type: "cartesian"    # Grid type for MRST
+  geometry_computation: true # Compute cell geometry
+  face_areas: true          # Compute face areas
+  cell_centroids: true      # Compute cell centroids
+  transmissibility: true    # Compute transmissibilities
+
+# BOUNDARY CONDITIONS
+boundary_conditions:
+  east_boundary: "no_flow"     # Eastern boundary
+  west_boundary: "no_flow"     # Western boundary  
+  north_boundary: "no_flow"    # Northern boundary
+  south_boundary: "no_flow"    # Southern boundary
+  top_boundary: "no_flow"      # Top boundary
+  bottom_boundary: "aquifer"   # Bottom aquifer support
+
+# AQUIFER PARAMETERS
+aquifer_parameters:
+  aquifer_type: "analytical"   # Analytical aquifer model
+  aquifer_strength: 1.0e6     # Aquifer constant (RB/psi)
+  aquifer_radius: 10000       # ft - Aquifer radius
+
+# COMMENTS AND NOTES
+comments:
+  - "Grid designed for 15-well field development (10 producers + 5 injectors)"
+  - "Structural framework: Faulted anticline with 2 main compartments"
+  - "Optimized for 3-phase flow simulation (oil-gas-water)"
+  - "Peak production target: 18,500 STB/day"
+  - "Development timeline: 6 phases over 10 years"

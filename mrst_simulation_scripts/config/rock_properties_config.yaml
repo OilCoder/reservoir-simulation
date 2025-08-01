@@ -1,156 +1,221 @@
-# Rock Properties Configuration
-# This file contains grid, geological layers, porosity, permeability, and geomechanical properties
-# Used by: s01_setup_field.m
+# Rock Properties Configuration for MRST Reservoir Simulation
+# Eagle West Field - 15-Well Development Program
+#
+# Based on: /workspace/obsidian-vault/Planning/Reservoir_Definition/02_Rock_Properties.md
+# Created: 2025-07-31
+# Purpose: Rock properties, porosity, permeability for MRST simulation
 
-# Grid Configuration
-grid:
-  nx: 20                      # Number of cells in X direction
-  ny: 20                      # Number of cells in Y direction
-  nz: 10                      # Number of cells in Z direction (3D simulation)
-  dx: 164.0                   # Cell size in X direction [ft]
-  dy: 164.0                   # Cell size in Y direction [ft]
-  dz: [50.0, 40.0, 35.0, 30.0, 25.0, 20.0, 15.0, 10.0, 8.0, 5.0]  # Variable layer thickness [ft]
-
-# General Settings
-general:
-  random_seed: 42             # Random seed for reproducible results
-
-# Porosity Configuration
-porosity:
-  base_value: 0.20            # Base porosity [-]
-  variation_amplitude: 0.10   # Amplitude of spatial variation [-]
-  bounds:
-    min: 0.05                 # Minimum allowed porosity [-]
-    max: 0.35                 # Maximum allowed porosity [-]
-  correlation_length: 656.0    # Spatial correlation length [ft]
-  random_amplitude_factor: 0.5 # Factor for random variation [-]
-
-# Permeability Configuration
-permeability:
-  base_value: 100.0           # Base permeability [mD]
-  variation_amplitude: 80.0   # Amplitude of spatial variation [mD]
-  bounds:
-    min: 10.0                 # Minimum allowed permeability [mD]
-    max: 500.0                # Maximum allowed permeability [mD]
-  correlation_length: 984.0   # Spatial correlation length [ft]
-  porosity_correlation: 0.8   # Correlation with porosity [-]
-  tensor:
-    Kx_factor: 1.0            # Permeability tensor factor in X direction [-]
-    Ky_factor: 1.0            # Permeability tensor factor in Y direction [-]
-    Kz_factor: 1.0            # Permeability tensor factor in Z direction [-]
-
-# Rock Properties
-rock:
-  reference_pressure: 2900.0
+# PRIMARY LITHOLOGY - SANDSTONE RESERVOIR
+sandstone_properties:
+  lithology_type: "sandstone"
   
-  # Geological layers (from top to bottom)
-  layers:
-    - id: 1
-      name: "Shale Cap"
-      depth_range: [7900, 7950]      # Depth range [top, bottom] [ft]
-      thickness: 50.0                # Layer thickness [ft]
-      lithology: "shale"
-      porosity: 0.08                 # Average porosity [-]
-      permeability: 0.1              # Average permeability [mD]
-      compressibility: 1.0e-6        # Rock compressibility [1/psi]
-      
-    - id: 2  
-      name: "Reservoir Sand 1"
-      depth_range: [7950, 7990]      # Depth range [ft]
-      thickness: 40.0                # Layer thickness [ft]
-      lithology: "sandstone"
-      porosity: 0.25                 # Average porosity [-]
-      permeability: 200.0            # Average permeability [mD]
-      compressibility: 3.1e-6        # Rock compressibility [1/psi]
-      
-    - id: 3
-      name: "Shale Barrier"
-      depth_range: [7990, 8025]      # Depth range [ft]
-      thickness: 35.0                # Layer thickness [ft]
-      lithology: "shale"
-      porosity: 0.10                 # Average porosity [-]
-      permeability: 0.5              # Average permeability [mD]
-      compressibility: 1.2e-6        # Rock compressibility [1/psi]
-      
-    - id: 4
-      name: "Reservoir Sand 2"
-      depth_range: [8025, 8055]      # Depth range [ft]
-      thickness: 30.0                # Layer thickness [ft]
-      lithology: "sandstone"
-      porosity: 0.22                 # Average porosity [-]
-      permeability: 150.0            # Average permeability [mD]
-      compressibility: 3.5e-6        # Rock compressibility [1/psi]
-      
-    - id: 5
-      name: "Limestone"
-      depth_range: [8055, 8080]      # Depth range [ft]
-      thickness: 25.0                # Layer thickness [ft]
-      lithology: "limestone"
-      porosity: 0.18                 # Average porosity [-]
-      permeability: 80.0             # Average permeability [mD]
-      compressibility: 2.1e-6        # Rock compressibility [1/psi]
-      
-    - id: 6
-      name: "Tight Sand"
-      depth_range: [8080, 8100]      # Depth range [ft]
-      thickness: 20.0                # Layer thickness [ft]
-      lithology: "sandstone"
-      porosity: 0.15                 # Average porosity [-]
-      permeability: 25.0             # Average permeability [mD]
-      compressibility: 2.8e-6        # Rock compressibility [1/psi]
-      
-    - id: 7
-      name: "Reservoir Sand 3"
-      depth_range: [8100, 8115]      # Depth range [ft]
-      thickness: 15.0                # Layer thickness [ft]
-      lithology: "sandstone"
-      porosity: 0.20                 # Average porosity [-]
-      permeability: 120.0            # Average permeability [mD]
-      compressibility: 3.2e-6        # Rock compressibility [1/psi]
-      
-    - id: 8
-      name: "Shale Seal"
-      depth_range: [8115, 8125]      # Depth range [ft]
-      thickness: 10.0                # Layer thickness [ft]
-      lithology: "shale"
-      porosity: 0.06                 # Average porosity [-]
-      permeability: 0.05             # Average permeability [mD]
-      compressibility: 1.0e-6        # Rock compressibility [1/psi]
-      
-    - id: 9
-      name: "Aquifer Sand"
-      depth_range: [8125, 8133]      # Depth range [ft]
-      thickness: 8.0                 # Layer thickness [ft]
-      lithology: "sandstone"
-      porosity: 0.28                 # Average porosity [-]
-      permeability: 300.0            # Average permeability [mD]
-      compressibility: 4.0e-6        # Rock compressibility [1/psi]
-      
-    - id: 10
-      name: "Basement"
-      depth_range: [8133, 8138]      # Depth range [ft]
-      thickness: 5.0                 # Layer thickness [ft]
-      lithology: "granite"
-      porosity: 0.02                 # Average porosity [-]
-      permeability: 0.001            # Average permeability [mD]
-      compressibility: 0.5e-6        # Rock compressibility [1/psi]
-
-# Geomechanical Properties
-geomechanics:
-  enabled: true                 # Enable geomechanical coupling
-  plasticity: false             # Enable plasticity (false: no)
+  # POROSITY DISTRIBUTION
+  porosity:
+    average: 0.225            # 22.5% - Average porosity
+    minimum: 0.20             # 20% - Minimum porosity
+    maximum: 0.25             # 25% - Maximum porosity
+    distribution: "lognormal" # Statistical distribution
+    standard_deviation: 0.02  # Porosity variability
   
-  # Stress parameters
-  stress:
-    surface_stress: 2000.0       # Surface total stress [psi]
-    overburden_gradient: 1.0     # Overburden gradient [psi/ft]
-    pore_pressure_gradient: 0.433  # Pore pressure gradient [psi/ft]
-    min_horizontal_stress_ratio: 0.7  # K0 ratio [-]
-    max_horizontal_stress_ratio: 1.2  # K1 ratio [-]
-    min_effective_stress: 100.0      # Minimum effective stress [psi]
+  # PERMEABILITY DISTRIBUTION
+  horizontal_permeability:
+    average: 160              # mD - Average horizontal permeability
+    minimum: 120              # mD - Minimum horizontal permeability
+    maximum: 200              # mD - Maximum horizontal permeability
+    distribution: "lognormal" # Statistical distribution
+    correlation_length_x: 500 # ft - Correlation in X direction
+    correlation_length_y: 500 # ft - Correlation in Y direction
+  
+  vertical_permeability:
+    kv_kh_ratio_avg: 0.20     # Average Kv/Kh ratio
+    kv_kh_ratio_min: 0.15     # Minimum Kv/Kh ratio
+    kv_kh_ratio_max: 0.25     # Maximum Kv/Kh ratio
+  
+  # COMPRESSIBILITY
+  rock_compressibility: 3.0e-6  # 1/psi - Rock compressibility
+  
+  # THERMAL PROPERTIES
+  thermal_conductivity: 1.5     # BTU/hr-ft-°F
+  heat_capacity: 0.2           # BTU/lbm-°F
+
+# SECONDARY LITHOLOGIES
+shale_properties:
+  lithology_type: "shale"
+  
+  # SEAL/BARRIER PROPERTIES
+  porosity:
+    average: 0.08             # 8% - Low porosity
+    minimum: 0.05             # 5% - Minimum porosity
+    maximum: 0.12             # 12% - Maximum porosity
+  
+  horizontal_permeability:
+    average: 0.01             # mD - Very low permeability
+    minimum: 0.001            # mD - Minimum permeability
+    maximum: 0.1              # mD - Maximum permeability
+  
+  vertical_permeability:
+    kv_kh_ratio_avg: 0.1      # Lower vertical flow
+  
+  rock_compressibility: 5.0e-6  # 1/psi - Higher compressibility
+
+limestone_properties:
+  lithology_type: "limestone"
+  
+  # TIGHT CARBONATE PROPERTIES
+  porosity:
+    average: 0.15             # 15% - Moderate porosity
+    minimum: 0.10             # 10% - Minimum porosity
+    maximum: 0.20             # 20% - Maximum porosity
+  
+  horizontal_permeability:
+    average: 50               # mD - Moderate permeability
+    minimum: 10               # mD - Minimum permeability
+    maximum: 100              # mD - Maximum permeability
+  
+  vertical_permeability:
+    kv_kh_ratio_avg: 0.15     # Reduced vertical flow
+  
+  rock_compressibility: 2.0e-6  # 1/psi - Lower compressibility
+
+# LAYER ARCHITECTURE AND FACIES
+layer_definition:
+  total_layers: 10            # Number of K layers (CORRECTED from 12)
+  
+  # LAYER PROPERTIES BY K-INDEX
+  layer_properties:
+    - k_index: 1
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.8
+      quality: "excellent"
     
-  # Mechanical properties
-  mechanical:
-    young_modulus: 1450000.0      # Young's modulus [psi]
-    poisson_ratio: 0.25           # Poisson's ratio [-]
-    biot_coefficient: 0.8         # Biot coefficient [-]
+    - k_index: 2
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.7
+      quality: "good"
+    
+    - k_index: 3
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "shale"
+      net_to_gross: 0.1
+      quality: "barrier"
+    
+    - k_index: 4
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.75
+      quality: "excellent"
+    
+    - k_index: 5
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.6
+      quality: "good"
+    
+    - k_index: 6
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "limestone"
+      net_to_gross: 0.4
+      quality: "fair"
+    
+    - k_index: 7
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.8
+      quality: "excellent"
+    
+    - k_index: 8
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.65
+      quality: "good"
+    
+    - k_index: 9
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "shale"
+      net_to_gross: 0.05
+      quality: "seal"
+    
+    - k_index: 10
+      thickness: 7.25         # ft (CORRECTED for 10-layer grid)
+      lithology: "sandstone"
+      net_to_gross: 0.7
+      quality: "good"
+
+# HETEROGENEITY MODELING
+heterogeneity_parameters:
+  # POROSITY-PERMEABILITY CORRELATION
+  phi_k_correlation:
+    correlation_type: "kozeny_carman"
+    exponent: 3.0             # Kozeny-Carman exponent
+    tortuosity: 2.0           # Tortuosity factor
+  
+  # SPATIAL CORRELATION
+  variogram_parameters:
+    range_major: 1500         # ft - Major correlation range
+    range_minor: 800          # ft - Minor correlation range
+    azimuth: 45               # degrees - Principal direction
+    nugget: 0.1               # Nugget effect
+    sill: 1.0                 # Variogram sill
+
+# RELATIVE PERMEABILITY ENDPOINTS
+relative_permeability_endpoints:
+  # WATER-OIL SYSTEM
+  water_oil:
+    swc: 0.20                 # Connate water saturation
+    sor_w: 0.25               # Residual oil to water
+    krw_max: 0.4              # Maximum water rel perm
+    kro_max_w: 0.8            # Maximum oil rel perm to water
+    nw: 2.0                   # Water Corey exponent
+    no_w: 2.5                 # Oil Corey exponent (to water)
+  
+  # GAS-OIL SYSTEM  
+  gas_oil:
+    sgc: 0.05                 # Critical gas saturation
+    sor_g: 0.20               # Residual oil to gas
+    krg_max: 0.8              # Maximum gas rel perm
+    kro_max_g: 0.9            # Maximum oil rel perm to gas
+    ng: 1.8                   # Gas Corey exponent
+    no_g: 2.0                 # Oil Corey exponent (to gas)
+
+# CAPILLARY PRESSURE PARAMETERS
+capillary_pressure:
+  # WATER-OIL CAPILLARY PRESSURE
+  water_oil_pc:
+    entry_pressure: 2.0       # psi - Entry pressure
+    lambda: 2.5               # Pore size distribution index
+    pc_max: 15.0              # psi - Maximum capillary pressure
+  
+  # GAS-OIL CAPILLARY PRESSURE
+  gas_oil_pc:
+    entry_pressure: 0.5       # psi - Entry pressure
+    lambda: 2.0               # Pore size distribution index
+    pc_max: 8.0               # psi - Maximum capillary pressure
+
+# QUALITY CONTROL AND VALIDATION
+quality_control:
+  porosity_cutoff: 0.10       # Minimum porosity for flow
+  permeability_cutoff: 0.1    # mD - Minimum permeability for flow
+  net_to_gross_cutoff: 0.1    # Minimum N/G for reservoir quality
+  
+  # VALIDATION CHECKS
+  mass_balance_check: true
+  property_correlation_check: true
+  layer_continuity_check: true
+
+# MRST IMPLEMENTATION NOTES
+mrst_implementation:
+  property_assignment: "layer_based"   # Layer-based property assignment
+  upscaling_method: "harmonic_mean"    # For permeability upscaling  
+  porosity_averaging: "arithmetic"     # For porosity averaging
+  heterogeneity_realization: 1        # Realization number
+
+# COMMENTS AND METADATA
+comments:
+  - "Rock properties for Eagle West Field 15-well development"
+  - "Primary lithology: Sandstone with shale/limestone interbeds"
+  - "Porosity range: 20-25% (sandstone), 5-12% (shale), 10-20% (limestone)"
+  - "Permeability range: 120-200 mD (sandstone), 0.001-0.1 mD (shale)"
+  - "Kv/Kh ratio: 0.15-0.25 for vertical flow modeling"
+  - "10 layers with variable net-to-gross ratios (CORRECTED)"

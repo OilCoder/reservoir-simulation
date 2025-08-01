@@ -67,13 +67,13 @@ DEBUG_FILES
 
 DOCUMENTATION
   - Location: 
-    docs/Spanish/ para documentación en español, leer 07-docs-style.md
-    docs/Englsih/ for english documentation, read 07-docs-style.md
+    obsidian-vault/Spanish/ para documentación en español, leer 07-docs-style.md
+    obsidian-vault/English/ for English documentation, read 07-docs-style.md
   - Pattern: <NN>_<slug>.md
     - NN = two‑digit index (01–99) for natural ordering
     - slug = concise English/Español descriptor.
     Examples:
-      `docs/English/00_setup_guide.md`
-      `docs/English/01_introduction.md`
-      `docs/Spanish/02_configuracion_inicial.md`
-      `docs/Spanish/03_configuracion_parametros.md`
+      `obsidian-vault/English/00_setup_guide.md`
+      `obsidian-vault/English/01_introduction.md`
+      `obsidian-vault/Spanish/02_configuracion_inicial.md`
+      `obsidian-vault/Spanish/03_configuracion_parametros.md`

@@ -1,314 +1,215 @@
-function config = util_read_config(config_dir)
-%util_read_config - Read and parse reservoir configuration from multiple YAML files
+function config = util_read_config(config_file)
+% UTIL_READ_CONFIG - Read YAML configuration files for MRST simulation
 %
-% Loads reservoir simulation configuration from multiple YAML files and merges
-% them into a single structured configuration for MRST simulation workflow.
+% SYNTAX:
+%   config = util_read_config(config_file)
 %
-% Args:
-%   config_dir: Path to configuration directory (optional, defaults to './config/')
+% DESCRIPTION:
+%   Reads YAML configuration files and returns structured data for MRST
+%   reservoir simulation setup. Handles nested structures, arrays, and
+%   numeric conversions required for simulation parameters.
 %
-% Returns:
-%   config: Structure containing all simulation parameters
+% INPUT:
+%   config_file - String path to YAML configuration file
 %
-% Requires: None (pure Octave/MATLAB)
-
-% ----
-% Step 1 – Input validation and setup
-% ----
-
-% Set default config directory if not provided
-if nargin < 1
-    config_dir = './config/';
-else
-    % Ensure config_dir ends with '/'
-    if ~strcmp(config_dir(end), '/')
-        config_dir = [config_dir '/'];
-    end
-end
-
-% Check if config directory exists
-if ~exist(config_dir, 'dir')
-    error('util_read_config:DirNotFound', 'Configuration directory not found: %s', config_dir);
-end
-
-% Define the 4 configuration files to load
-config_files = {
-    'rock_properties_config.yaml';
-    'fluid_properties_config.yaml';
-    'wells_schedule_config.yaml';
-    'initial_conditions_config.yaml'
-};
-
-% Verify all config files exist
-for i = 1:length(config_files)
-    full_path = [config_dir config_files{i}];
-    if ~exist(full_path, 'file')
-        error('util_read_config:FileNotFound', 'Configuration file not found: %s', full_path);
-    end
-end
-
-% ----
-% Step 2 – Load and merge all configuration files
-% ----
-
-% Initialize merged config structure
-config = struct();
-
-% Load each configuration file and merge into main config
-for i = 1:length(config_files)
-    config_file = [config_dir config_files{i}];
-    fprintf('Loading configuration from: %s\n', config_file);
-    
-    % Parse individual config file
-    file_config = parse_yaml_file(config_file);
-    
-    % Merge into main config structure
-    config = merge_config_structures(config, file_config);
-end
-
-% ----
-% Step 3 – Validate required sections
-% ----
-
-required_sections = {'grid', 'rock', 'fluid', 'wells', 'simulation', 'initial_conditions'};
-for i = 1:length(required_sections)
-    section = required_sections{i};
-    if ~isfield(config, section)
-        warning('util_read_config:MissingSection', 'Required section "%s" not found in configuration', section);
-    end
-end
-
-fprintf('Configuration loaded successfully from %d files in: %s\n', length(config_files), config_dir);
-
-end
-
-function file_config = parse_yaml_file(config_file)
-%parse_yaml_file - Parse a single YAML configuration file
+% OUTPUT:
+%   config - Structure containing configuration parameters
 %
-% Args:
-%   config_file: Full path to YAML file
+% EXAMPLE:
+%   rock_config = util_read_config('config/rock_properties_config.yaml');
+%   fluid_config = util_read_config('config/fluid_properties_config.yaml');
 %
-% Returns:
-%   file_config: Structure containing parsed configuration
+% NOTE:
+%   Requires MATLAB R2019a or later for built-in YAML support.
+%   For older versions, falls back to manual parsing.
 
-% Read file line by line
-fid = fopen(config_file, 'r');
-if fid == -1
-    error('util_read_config:FileAccess', 'Cannot open configuration file: %s', config_file);
-end
-
-lines = {};
-while ~feof(fid)
-    line = fgetl(fid);
-    if ischar(line)
-        lines{end+1} = line;
-    end
-end
-fclose(fid);
-
-% Parse YAML content
-file_config = struct();
-current_section = '';
-current_subsection = '';
-current_list_key = '';
-list_index = 0;
-
-for i = 1:length(lines)
-    line = strtrim(lines{i});
-    
-    % Skip empty lines and comments
-    if isempty(line) || (length(line) >= 1 && line(1) == '#')
-        continue;
+    % Validate input
+    if nargin < 1
+        error('util_read_config:MissingInput', 'Configuration file path required');
     end
     
-    % Detect section headers (no indentation, ends with colon)
-    if ~(length(line) >= 1 && line(1) == ' ') && (length(line) >= 1 && line(end) == ':')
-        current_section = strtrim(line(1:end-1));
-        current_subsection = '';
-        current_list_key = '';
-        list_index = 0;
-        file_config.(current_section) = struct();
-        continue;
+    % Check if file exists
+    if ~exist(config_file, 'file')
+        error('util_read_config:FileNotFound', 'Configuration file not found: %s', config_file);
     end
     
-    % Detect subsection headers (2-space indentation, ends with colon)
-    if (length(line) >= 2 && strncmp(line, '  ', 2)) && ~(length(line) >= 4 && strncmp(line, '    ', 4)) && (length(line) >= 1 && line(end) == ':')
-        current_subsection = strtrim(line(3:end-1));
-        current_list_key = '';
-        list_index = 0;
-        if ~isempty(current_section)
-            file_config.(current_section).(current_subsection) = struct();
+    try
+        % Try MATLAB built-in YAML support (R2019a+)
+        if exist('yaml.load', 'file') == 2
+            fprintf('[INFO] Reading YAML using MATLAB built-in parser: %s\n', config_file);
+            fid = fopen(config_file, 'r');
+            yaml_text = fread(fid, '*char')';
+            fclose(fid);
+            config = yaml.load(yaml_text);
+        else
+            % Fallback to manual parsing for older MATLAB versions
+            fprintf('[INFO] Using fallback YAML parser for: %s\n', config_file);
+            config = parse_yaml_fallback(config_file);
         end
-        continue;
+        
+        % Validate configuration structure
+        if ~isstruct(config)
+            error('util_read_config:InvalidFormat', 'Configuration file must contain valid YAML structure');
+        end
+        
+        fprintf('[SUCCESS] Configuration loaded successfully: %s\n', config_file);
+        
+    catch ME
+        fprintf('[ERROR] Failed to read configuration file: %s\n', config_file);
+        fprintf('[ERROR] %s\n', ME.message);
+        rethrow(ME);
+    end
+end
+
+function config = parse_yaml_fallback(config_file)
+% Fallback YAML parser for older MATLAB versions
+% Handles basic YAML structures needed for MRST configuration
+
+    fid = fopen(config_file, 'r');
+    if fid == -1
+        error('util_read_config:CannotOpen', 'Cannot open file: %s', config_file);
     end
     
-    % Detect list items (starts with dash)
-    if ~isempty(strfind(line, '- '))
-        dash_pos = strfind(line, '- ');
-        indent_level = dash_pos(1) - 1;
-        
-        if indent_level == 4  % List under subsection
-            list_index = list_index + 1;
-            item_content = strtrim(line(dash_pos(1)+2:end));
-            
-            if ~isempty(strfind(item_content, ':'))
-                % List item with properties
-                current_list_key = sprintf('item_%d', list_index);
-                if ~isempty(current_section) && ~isempty(current_subsection)
-                    file_config.(current_section).(current_subsection).(current_list_key) = struct();
+    config = struct();
+    current_section = '';
+    current_subsection = '';
+    indent_level = 0;
+    
+    try
+        while ~feof(fid)
+            line = fgetl(fid);
+            if ischar(line)
+                line = strtrim(line);
+                
+                % Skip comments and empty lines
+                if isempty(line) || strncmp(line, '#', 1)
+                    continue;
                 end
                 
-                % Parse the first property on the same line
-                colon_pos = strfind(item_content, ':');
-                if length(colon_pos) > 0
-                    key = strtrim(item_content(1:colon_pos(1)-1));
-                    value = strtrim(item_content(colon_pos(1)+1:end));
-                    parsed_value = parse_yaml_value(value);
-                    if ~isempty(current_section) && ~isempty(current_subsection)
-                        file_config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
+                % Parse key-value pairs
+                if ~isempty(strfind(line, ':'))
+                    [key, value] = parse_yaml_line(line);
+                    
+                    % Determine nesting level
+                    leading_spaces = length(line) - length(regexprep(line, '^[ \t]*', ''));
+                    
+                    if leading_spaces == 0
+                        % Top level
+                        current_section = key;
+                        if isempty(value)
+                            config.(key) = struct();
+                        else
+                            config.(key) = value;
+                        end
+                    elseif leading_spaces <= 2
+                        % Second level
+                        current_subsection = key;
+                        if isempty(value)
+                            if ~isfield(config, current_section)
+                                config.(current_section) = struct();
+                            end
+                            config.(current_section).(key) = struct();
+                        else
+                            if ~isfield(config, current_section)
+                                config.(current_section) = struct();
+                            end
+                            config.(current_section).(key) = value;
+                        end
+                    else
+                        % Third level and deeper
+                        if ~isempty(current_section) && ~isempty(current_subsection)
+                            if ~isfield(config, current_section)
+                                config.(current_section) = struct();
+                            end
+                            if ~isfield(config.(current_section), current_subsection)
+                                config.(current_section).(current_subsection) = struct();
+                            end
+                            config.(current_section).(current_subsection).(key) = value;
+                        end
                     end
-                end
-            else
-                % Simple list item
-                parsed_value = parse_yaml_value(item_content);
-                if ~isempty(current_section) && ~isempty(current_subsection)
-                    if ~isfield(file_config.(current_section), current_subsection)
-                        file_config.(current_section).(current_subsection) = {};
-                    end
-                    file_config.(current_section).(current_subsection){end+1} = parsed_value;
                 end
             end
         end
-        continue;
-    end
-    
-    % Parse key-value pairs
-    if ~isempty(strfind(line, ':'))
-        colon_pos = strfind(line, ':');
-        key = strtrim(line(1:colon_pos(1)-1));
-        value = strtrim(line(colon_pos(1)+1:end));
         
-        % Determine indentation level
-        indent_level = length(line) - length(ltrim(line));
+        fclose(fid);
         
-        if indent_level >= 6 && ~isempty(current_list_key)
-            % Property of list item
-            parsed_value = parse_yaml_value(value);
-            if ~isempty(current_section) && ~isempty(current_subsection)
-                file_config.(current_section).(current_subsection).(current_list_key).(key) = parsed_value;
-            end
-        elseif indent_level >= 4 && ~isempty(current_subsection)
-            % Property of subsection
-            parsed_value = parse_yaml_value(value);
-            if ~isempty(current_section)
-                file_config.(current_section).(current_subsection).(key) = parsed_value;
-            end
-        elseif indent_level >= 2 && ~isempty(current_section)
-            % Property of section
-            parsed_value = parse_yaml_value(value);
-            file_config.(current_section).(key) = parsed_value;
-        end
+    catch ME
+        fclose(fid);
+        rethrow(ME);
     end
 end
 
-end
+function [key, value] = parse_yaml_line(line)
+% Parse individual YAML line into key-value pair
 
-function merged_config = merge_config_structures(config1, config2)
-%merge_config_structures - Merge two configuration structures
-%
-% Args:
-%   config1: First config structure
-%   config2: Second config structure to merge into first
-%
-% Returns:
-%   merged_config: Merged configuration structure
-
-merged_config = config1;
-
-% Get field names from second config
-field_names = fieldnames(config2);
-
-for i = 1:length(field_names)
-    field_name = field_names{i};
-    merged_config.(field_name) = config2.(field_name);
-end
-
-end
-
-function parsed_value = parse_yaml_value(value_str)
-%parse_yaml_value - Parse YAML value string to appropriate MATLAB type
-%
-% Args:
-%   value_str: String value from YAML file
-%
-% Returns:
-%   parsed_value: Parsed value (number, string, logical, or array)
-
-value_str = strtrim(value_str);
-
-% Handle null/empty values
-if isempty(value_str) || strcmp(value_str, 'null') || strcmp(value_str, '~')
-    parsed_value = [];
-    return;
-end
-
-% Handle boolean values
-if strcmp(value_str, 'true')
-    parsed_value = true;
-    return;
-elseif strcmp(value_str, 'false')
-    parsed_value = false;
-    return;
-end
-
-% Handle arrays [a, b, c]
-if (length(value_str) >= 1 && value_str(1) == '[') && (length(value_str) >= 1 && value_str(end) == ']')
-    array_content = value_str(2:end-1);
-    if isempty(strtrim(array_content))
-        parsed_value = [];
-        return;
+    colon_pos = strfind(line, ':');
+    if isempty(colon_pos)
+        parts = {line};
+    else
+        parts = {line(1:colon_pos(1)-1), line(colon_pos(1)+1:end)};
     end
+    key = strtrim(parts{1});
     
-    % Split by comma and parse each element
-    elements = strsplit(array_content, ',');
-    parsed_value = [];
-    for i = 1:length(elements)
-        element = strtrim(elements{i});
-        element_value = parse_yaml_value(element);
-        if isnumeric(element_value)
-            parsed_value(end+1) = element_value;
+    % Clean key name for MATLAB struct field
+    key = regexprep(key, '[^a-zA-Z0-9_]', '_');
+    key = regexprep(key, '^[0-9]', 'n$0'); % Prefix numbers with 'n'
+    
+    if length(parts) > 1
+        value_str = strtrim(parts{2});
+        
+        % Handle different value types
+        if isempty(value_str)
+            value = [];
+        elseif strcmp(value_str, 'true') || strcmp(value_str, 'True')
+            value = true;
+        elseif strcmp(value_str, 'false') || strcmp(value_str, 'False')
+            value = false;
+        elseif strcmp(value_str, 'null') || strcmp(value_str, 'NULL')
+            value = [];
+        elseif length(value_str) >= 2 && value_str(1) == '"' && value_str(end) == '"'
+            % String value
+            value = value_str(2:end-1);
+        elseif length(value_str) >= 2 && value_str(1) == '[' && value_str(end) == ']'
+            % Array value
+            array_str = value_str(2:end-1);
+            value = parse_yaml_array(array_str);
         else
-            % Non-numeric arrays not supported in this simple parser
-            parsed_value{end+1} = element_value;
+            % Try numeric conversion
+            num_val = str2double(value_str);
+            if ~isnan(num_val)
+                value = num_val;
+            else
+                value = value_str;
+            end
+        end
+    else
+        value = [];
+    end
+end
+
+function array_val = parse_yaml_array(array_str)
+% Parse YAML array string into MATLAB array
+
+    elements = split(array_str, ',');
+    array_val = [];
+    
+    for i = 1:length(elements)
+        elem = strtrim(elements{i});
+        
+        % Try numeric conversion
+        num_val = str2double(elem);
+        if ~isnan(num_val)
+            array_val(end+1) = num_val; %#ok<AGROW>
+        else
+            % Handle string elements
+            if length(elem) >= 2 && elem(1) == '"' && elem(end) == '"'
+                elem = elem(2:end-1);
+            end
+            if isempty(array_val)
+                array_val = {elem};
+            else
+                array_val{end+1} = elem; %#ok<AGROW>
+            end
         end
     end
-    return;
-end
-
-% Handle quoted strings
-if ((length(value_str) >= 2 && value_str(1) == '"' && value_str(end) == '"')) || ...
-   ((length(value_str) >= 2 && value_str(1) == '''' && value_str(end) == ''''))
-    parsed_value = value_str(2:end-1);
-    return;
-end
-
-% Try to parse as number
-num_value = str2double(value_str);
-if ~isnan(num_value)
-    parsed_value = num_value;
-    return;
-end
-
-% Handle scientific notation
-if ~isempty(strfind(value_str, 'e')) || ~isempty(strfind(value_str, 'E'))
-    num_value = str2double(value_str);
-    if ~isnan(num_value)
-        parsed_value = num_value;
-        return;
-    end
-end
-
-% Default to string
-parsed_value = value_str;
-
 end

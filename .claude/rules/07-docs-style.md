@@ -3,10 +3,10 @@ description: Define standards for documentation files
 ---
 
 DOCS_ROOT_FOLDER:
-  - All documentation files must live in the top-level directory docs/.
+  - All documentation files must live in the obsidian-vault/ directory.
   - Inside it, use subfolders by language to keep documents well organized:
-      docs/English/ for documentation in English
-      docs/Spanish/ for documentation in Spanish
+      obsidian-vault/English/ for documentation in English
+      obsidian-vault/Spanish/ for documentation in Spanish
   - Auto-generated content must not be placed here.
 
 FILENAME_CONVENTION:

@@ -8,7 +8,7 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - **Grid Architecture**: 20×20×10 Cartesian tensor grid (4,000 active cells)
 - **Reservoir Model**: 3-layer heterogeneous sandstone with fault compartmentalization  
 - **Fluid System**: 3-phase black oil model with PVT correlations
-- **Well Network**: 4 producers + 3 injectors with multi-layer completions
+- **Well Network**: 10 producers + 5 injectors with multi-layer completions [CORRECTED]
 - **Flow Physics**: Multi-phase Darcy flow with capillary and gravitational effects
 - **Numerical Methods**: Fully-implicit finite volume with automatic differentiation
 
@@ -132,26 +132,28 @@ This document defines technical specifications and requirements for MRST (MATLAB
 ## 4. Well Model Configuration
 
 ### Well System Specification
-- **Total Wells**: 7 wells (4 producers + 3 injectors)
-- **Well Type**: Vertical wells with multi-layer completions
+- **Total Wells**: 15 wells (10 producers + 5 injectors) [CORRECTED from 7 wells]
+- **Well Type**: Mixed completion types (vertical, horizontal, multi-lateral)
 - **Wellbore Radius**: 0.1m (6-inch diameter)
-- **Completion**: All layers (K=1:10) for maximum contact
+- **Completion**: Multi-layer completions across reservoir zones
+- **Development**: 6-phase program over 10 years (3,650 days)
 
 ### Producer Well Specifications
-- **Count**: 4 producer wells
+- **Count**: 10 producer wells (EW-001 to EW-010) [CORRECTED from 4 wells]
 - **Control Type**: Rate-controlled with BHP limits
-- **Target Oil Rate**: 2000-2500 BOPD per well
-- **BHP Constraint**: 1200-1500 psi minimum
+- **Target Oil Rate**: Phase-dependent (1,500-2,800 STB/day per well)
+- **BHP Constraint**: 1,350-1,650 psi minimum (well-specific)
 - **Skin Factor**: 3.0-5.0 (damaged completion)
 - **Phase Composition**: Oil production (Comp_i = [1,0,0])
+- **Peak Field Rate**: 18,500 STB/day (Phase 6)
 
 ### Injector Well Specifications  
-- **Count**: 3 injector wells
+- **Count**: 5 injector wells (IW-001 to IW-005) [CORRECTED from 3 wells]
 - **Injection Fluid**: Water (Comp_i = [0,1,0])
-- **Target Rate**: 10000-15000 BWPD per well
-- **BHP Constraint**: 3500-4000 psi maximum
-- **Skin Factor**: 1.0-2.0 (stimulated completion)
-- **Voidage Replacement**: 110% target VRR
+- **Target Rate**: Phase-dependent (5,100-21,500 BWPD total field)
+- **BHP Constraint**: 3,100-3,600 psi maximum (well-specific)
+- **Skin Factor**: -2.5 to +1.0 (stimulated to damaged)
+- **Voidage Replacement**: 1.1-1.18 VRR (phase-dependent)
 
 ### Well Constraints and Limits
 - **Rate Limits**: Maximum oil, water, and liquid rates

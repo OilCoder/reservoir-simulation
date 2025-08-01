@@ -6,7 +6,7 @@ TEST_ROOT_FOLDER:
   - All automated tests live inside the top-level directory tests/.
   - Test discovery supports both Python (Pytest) and Octave files.
   - Temporary or debugging scripts belong in debug/ or must be named dbg_*.m so they are ignored.
-  - The entire test/ folder is listed in .gitignore. No test scripts are committed.
+  - Test scripts are committed to maintain project quality and enable CI/CD workflows.
 
 FILENAME_CONVENTION:
   - See 05-file-naming.md for naming files guidance.

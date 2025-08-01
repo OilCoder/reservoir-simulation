@@ -119,9 +119,9 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 ### Grid Specifications
 
 **Recommended Grid Design:**
-- Grid dimensions: 25 × 25 × 12 cells (I × J × K)
-- Cell dimensions: 138 × 138 × 20 ft (X × Y × Z)
-- Total active cells: 7,500 (optimized resolution)
+- Grid dimensions: 20 × 20 × 10 cells (I × J × K) [CORRECTED for MRST compatibility]
+- Cell dimensions: 164 × 148 × 7.25 ft (X × Y × Z) [UPDATED for field extent]
+- Total active cells: 4,000 (optimized resolution) [CORRECTED from 7,500]
 - Refinement areas: Near wells, fault zones, high permeability streaks
 
 ### Key Initialization Parameters

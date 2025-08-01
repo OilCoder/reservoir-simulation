@@ -39,7 +39,7 @@ Where:
 - **Datum Depth**: 8,000 ft TVDSS (True Vertical Depth Sub-Sea)
 - **Initial Pressure**: 2,900 psi at datum
 - **Reference Phase**: Oil phase (undersaturated conditions)
-- **Temperature**: 180°F at datum depth
+- **Temperature**: 176°F at datum depth [CORRECTED for consistency]
 
 ## Fluid Contacts
 
@@ -54,7 +54,7 @@ Where:
 #### Gas-Oil Contact (GOC)
 - **Primary Contact**: Not present at initial conditions
 - **Solution Gas**: Gas dissolved in oil phase
-- **Bubble Point Pressure**: 2,650 psi (below initial pressure)
+- **Bubble Point Pressure**: 2,100 psi (below initial pressure) [CORRECTED from 2,650 psi]
 - **Gas Cap Development**: Potential during depletion
 
 #### Water-Gas Contact
@@ -183,9 +183,9 @@ Where:
 
 #### Oil Properties at Initial Conditions
 - **Initial Oil Saturation**: 0.75 - 0.85 in oil zone
-- **Oil Density**: 0.81 g/cm³ (45° API gravity)
+- **Oil Density**: 0.865 g/cm³ (32° API gravity) [CORRECTED from 45° API]
 - **Oil Viscosity**: 1.25 cp at reservoir conditions
-- **Solution GOR**: 350 SCF/STB (below saturation)
+- **Solution GOR**: 450 SCF/STB (below saturation) [CORRECTED from 350]
 - **Oil Formation Volume Factor**: 1.201 RB/STB
 - **Oil Compressibility**: 18 × 10⁻⁶ psi⁻¹
 
@@ -221,7 +221,7 @@ Where:
 
 #### Gas Distribution Specifications
 - **Free Gas**: None at initial conditions
-- **Solution Gas**: 350 SCF/STB in oil phase
+- **Solution Gas**: 450 SCF/STB in oil phase [CORRECTED from 350]
 - **Dissolved Gas in Water**: Minimal (< 1 SCF/STB)
 - **Critical Gas Saturation**: 0.05 (flow initiation)
 
@@ -352,7 +352,7 @@ The initialization specifications ensure:
 - **Contact Placement**: Proper fluid contact positioning and transition zones
 
 ### Key Technical Parameters:
-- **Datum**: 8,000 ft TVDSS @ 2,900 psi, 180°F
+- **Datum**: 8,000 ft TVDSS @ 2,900 psi, 176°F [CORRECTED]
 - **OWC**: 8,150 ft TVDSS with 50 ft transition zone
 - **Three-Phase System**: Oil-water-gas with solution gas at initial conditions
 - **Multi-Lithology**: Sandstone, shale, and carbonate initialization parameters

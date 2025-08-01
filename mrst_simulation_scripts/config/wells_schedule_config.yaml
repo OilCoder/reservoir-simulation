@@ -1,54 +1,324 @@
-# Wells and Simulation Schedule Configuration
-# This file contains well definitions, simulation parameters, and output settings
-# Used by: s04_create_schedule.m
+# Wells and Schedule Configuration for MRST Reservoir Simulation
+# Eagle West Field - 15-Well Development Program
+#
+# Based on: Wells_Completions.md + Production_History.md (VERIFIED)
+# Created: 2025-07-31 (CORRECTED)
+# Purpose: Well placement, completion, and operational schedule for 15-well system
 
-# Wells Configuration (structure expected by simulation scripts)
-wells:
+# FIELD DEVELOPMENT OVERVIEW
+field_development:
+  total_wells: 15             # Total wells in field (CONFIRMED: Wells_Completions.md + Production_History.md)
+  producer_wells: 10          # Oil production wells (EW-001 to EW-010)
+  injector_wells: 5           # Water injection wells (IW-001 to IW-005)  
+  development_phases: 6       # Implementation phases (per Production_History.md)
+  development_timeline: 3650  # days - Total development time (10 years)
+  peak_production_target: 18500 # STB/day - Field target (Phase 6)
+
+# DEVELOPMENT SCHEDULE (per Production_History.md)
+development_schedule:
+  # PHASE 1: Initial Production (Days 1-365)
+  phase_1:
+    duration: 365             # days
+    wells_active: ["EW-001"]  # 1 producer
+    target_oil_rate: 2500     # STB/day
+    strategy: "natural_depletion"
+    
+  # PHASE 2: First Injection (Days 366-1,095) 
+  phase_2:
+    duration: 730             # days (366-1095)
+    wells_active: ["EW-001", "EW-002", "IW-001"]  # 2 producers + 1 injector
+    target_oil_rate: 4800     # STB/day
+    strategy: "pressure_support_initiation"
+    
+  # PHASE 3: Infill Development (Days 1,096-2,190)
+  phase_3:
+    duration: 1095            # days (1096-2190)
+    wells_active: ["EW-001", "EW-002", "EW-003", "EW-004", "IW-001"]  # 4 producers + 1 injector
+    target_oil_rate: 8500     # STB/day
+    strategy: "multi_well_drainage"
+    
+  # PHASE 4: Pattern Waterflood (Days 2,191-2,920)
+  phase_4:
+    duration: 730             # days (2191-2920)
+    wells_active: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "IW-001", "IW-002"]  # 6 producers + 2 injectors
+    target_oil_rate: 12500    # STB/day
+    strategy: "five_spot_injection"
+    
+  # PHASE 5: Field Expansion (Days 2,921-3,285)
+  phase_5:
+    duration: 365             # days (2921-3285)
+    wells_active: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "IW-001", "IW-002", "IW-003"]  # 9 producers + 3 injectors
+    target_oil_rate: 16000    # STB/day
+    strategy: "extended_drainage"
+    
+  # PHASE 6: Optimization (Days 3,286-3,650)
+  phase_6:
+    duration: 365             # days (3286-3650)
+    wells_active: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "EW-010", "IW-001", "IW-002", "IW-003", "IW-004", "IW-005"]  # 10 producers + 5 injectors
+    target_oil_rate: 18500    # STB/day
+    strategy: "maximum_recovery_optimization"
+
+# WELL LOCATIONS AND COORDINATES (Adjusted for 20x20 grid)
+well_locations:
+  # PRODUCER WELLS (EW-001 to EW-010)
   producers:
-    - name: "PROD1"
-      location: [15, 10]        # Grid coordinates [i, j]
-      control_type: "bhp"       # "bhp" or "rate"
-      target_bhp: 2175.0        # Target BHP [psi]
-      target_rate: 314.0        # Target rate [bbl/day] (if rate control)
-      radius: 0.33              # Wellbore radius [ft]
+    - well_name: "EW-001"
+      surface_x: 2750          # ft from origin (per Wells_Completions.md)
+      surface_y: 1750          # ft from origin
+      grid_i: 15               # Grid I-index (20x20 grid)
+      grid_j: 10               # Grid J-index
+      well_type: "vertical"
+      development_phase: 1
+      start_day: 1
+      total_depth: 8200        # ft TVD/MD
+      target: "structural_crest"
       
+    - well_name: "EW-002"
+      surface_x: 2150          # ft from origin
+      surface_y: 950           # ft from origin
+      grid_i: 12               # Grid I-index
+      grid_j: 6                # Grid J-index
+      well_type: "vertical"
+      development_phase: 2
+      start_day: 366           # Phase 2 start
+      total_depth: 8350        # ft TVD/MD
+      target: "upper_sand_high"
+      
+    - well_name: "EW-003"
+      surface_x: 3350          # ft from origin
+      surface_y: 2550          # ft from origin
+      grid_i: 18               # Grid I-index
+      grid_j: 14               # Grid J-index
+      well_type: "horizontal"
+      development_phase: 3
+      start_day: 1096          # Phase 3 start
+      total_depth: 9450        # ft MD (1270 ft lateral)
+      target: "east_flank_lateral"
+      
+    - well_name: "EW-004"
+      surface_x: 1350          # ft from origin
+      surface_y: 1350          # ft from origin
+      grid_i: 8                # Grid I-index
+      grid_j: 8                # Grid J-index
+      well_type: "vertical"
+      development_phase: 3
+      start_day: 1200          # Phase 3
+      total_depth: 8420        # ft TVD/MD
+      target: "west_flank"
+      
+    - well_name: "EW-005"
+      surface_x: 2950          # ft from origin
+      surface_y: 2150          # ft from origin
+      grid_i: 16               # Grid I-index
+      grid_j: 12               # Grid J-index
+      well_type: "horizontal"
+      development_phase: 4
+      start_day: 2191          # Phase 4 start
+      total_depth: 9680        # ft MD (1480 ft lateral)
+      target: "central_lateral"
+      
+    - well_name: "EW-006"
+      surface_x: 1950          # ft from origin
+      surface_y: 2750          # ft from origin
+      grid_i: 11               # Grid I-index
+      grid_j: 15               # Grid J-index
+      well_type: "multilateral"
+      development_phase: 4
+      start_day: 2291          # Phase 4
+      total_depth: 10200       # ft MD
+      target: "north_complex"
+      
+    - well_name: "EW-007"
+      surface_x: 3280          # ft from origin (CORRECTED for 20x20 grid)
+      surface_y: 1350          # ft from origin
+      grid_i: 20               # Grid I-index (edge)
+      well_type: "horizontal"
+      development_phase: 5
+      start_day: 2921          # Phase 5 start
+      total_depth: 9890        # ft MD (1510 ft lateral)
+      target: "southeast_lateral"
+      
+    - well_name: "EW-008"
+      surface_x: 950           # ft from origin
+      surface_y: 2150          # ft from origin
+      grid_i: 6                # Grid I-index
+      grid_j: 12               # Grid J-index
+      well_type: "vertical"
+      development_phase: 5
+      start_day: 2921          # Phase 5
+      total_depth: 8480        # ft TVD
+      target: "southwest_flank"
+      
+    - well_name: "EW-009"
+      surface_x: 3280          # ft from origin (CORRECTED for 20x20 grid)
+      surface_y: 2960          # ft from origin (CORRECTED for 20x20 grid)
+      grid_i: 20               # Grid I-index (edge)
+      grid_j: 20               # Grid J-index (edge)
+      well_type: "horizontal"
+      development_phase: 5
+      start_day: 2921          # Phase 5
+      total_depth: 9520        # ft MD (1320 ft lateral)
+      target: "northeast_lateral"
+      
+    - well_name: "EW-010"
+      surface_x: 2550          # ft from origin
+      surface_y: 2950          # ft from origin
+      grid_i: 14               # Grid I-index
+      grid_j: 16               # Grid J-index
+      well_type: "multilateral"
+      development_phase: 6
+      start_day: 3286          # Phase 6 start
+      total_depth: 10850       # ft MD
+      target: "north_central_complex"
+
+  # INJECTOR WELLS (IW-001 to IW-005)
   injectors:
-    - name: "INJ1"
-      location: [5, 10]         # Grid coordinates [i, j]
-      control_type: "rate"      # "bhp" or "rate"
-      target_bhp: 3625.0        # Target BHP [psi]
-      target_rate: 251.0        # Target injection rate [bbl/day]
-      radius: 0.33              # Wellbore radius [ft]
-      fluid_type: "water"       # Injected fluid type
+    - well_name: "IW-001"
+      surface_x: 750           # ft from origin
+      surface_y: 1750          # ft from origin
+      grid_i: 5                # Grid I-index
+      grid_j: 10               # Grid J-index
+      well_type: "vertical"
+      development_phase: 2
+      start_day: 396           # Phase 2 (Day 396 per Production_History)
+      total_depth: 8300        # ft TVD/MD
+      target: "down_dip_support"
+      
+    - well_name: "IW-002"
+      surface_x: 1750          # ft from origin
+      surface_y: 2960          # ft from origin (CORRECTED for 20x20 grid)
+      grid_i: 10               # Grid I-index
+      grid_j: 20               # Grid J-index (edge)
+      well_type: "vertical"
+      development_phase: 4
+      start_day: 2391          # Phase 4 (Day 2391 per Production_History)
+      total_depth: 8250        # ft TVD/MD
+      target: "north_flank_support"
+      
+    - well_name: "IW-003"
+      surface_x: 3280          # ft from origin (CORRECTED for 20x20 grid)
+      surface_y: 750           # ft from origin
+      grid_i: 20               # Grid I-index (edge)
+      grid_j: 5                # Grid J-index
+      well_type: "horizontal"
+      development_phase: 5
+      start_day: 2921          # Phase 5 start
+      total_depth: 9200        # ft MD (750 ft lateral)
+      target: "southeast_support"
+      
+    - well_name: "IW-004"
+      surface_x: 3280          # ft from origin (CORRECTED for 20x20 grid)
+      surface_y: 2150          # ft from origin
+      grid_i: 20               # Grid I-index (edge) - CORRECTED
+      grid_j: 12               # Grid J-index
+      well_type: "vertical"
+      development_phase: 6
+      start_day: 3286          # Phase 6 start
+      total_depth: 8520        # ft TVD/MD
+      target: "east_flank_support"
+      
+    - well_name: "IW-005"
+      surface_x: 1150          # ft from origin
+      surface_y: 2960          # ft from origin (CORRECTED for 20x20 grid)
+      grid_i: 7                # Grid I-index
+      grid_j: 20               # Grid J-index (edge)
+      well_type: "multilateral"
+      development_phase: 6
+      start_day: 3286          # Phase 6 start
+      total_depth: 9850        # ft MD
+      target: "northwest_complex"
 
-# Simulation Parameters
-simulation:
-  total_time: 3650.0             # Total simulation time [days]
-  num_timesteps: 500             # Number of timesteps
-  timestep_type: "linear"       # "linear", "logarithmic", "custom"
-  timestep_multiplier: 1.1      # Multiplier for increasing timesteps
-  custom_timesteps: null        # List of custom timesteps [0.1, 1, 5, 10 …] if "custom"
-  
-  # Solver settings
-  solver:
-    tolerance: 1.0e-6            # Convergence tolerance
-    max_iterations: 25           # Maximum iterations per timestep
-    linear_solver: "iterative"      # "direct", "iterative"
-    pressure_drop_factor: 0.9    # Well pressure drop factor [-]
+# PRODUCTION AND INJECTION TARGETS BY PHASE (per Production_History.md)
+production_targets:
+  phase_1:
+    oil_rate: 2350            # STB/day (average expected)
+    water_rate: 650           # STB/day
+    gas_rate: 1760            # Mscf/day
+    water_cut: 0.22           # 22%
+    
+  phase_2:
+    oil_rate: 4650            # STB/day (average expected)
+    water_rate: 1550          # STB/day
+    gas_rate: 3720            # Mscf/day
+    water_cut: 0.25           # 25%
+    
+  phase_3:
+    oil_rate: 8200            # STB/day (average expected)
+    water_rate: 3510          # STB/day
+    gas_rate: 6970            # Mscf/day
+    water_cut: 0.30           # 30%
+    
+  phase_4:
+    oil_rate: 12100           # STB/day (average expected)
+    water_rate: 7400          # STB/day
+    gas_rate: 10890           # Mscf/day
+    water_cut: 0.38           # 38%
+    
+  phase_5:
+    oil_rate: 15600           # STB/day (average expected)
+    water_rate: 12800         # STB/day
+    gas_rate: 14820           # Mscf/day
+    water_cut: 0.45           # 45%
+    
+  phase_6:
+    oil_rate: 18200           # STB/day (average expected)
+    water_rate: 17100         # STB/day
+    gas_rate: 18200           # Mscf/day
+    water_cut: 0.52           # 52%
 
-# Output Configuration
-output:
-  base_directory: "data/raw"      # Base output directory
-  filename_prefix: "snap"         # Snapshot filename prefix
-  save_format: "matlab"           # "matlab", "hdf5", "csv"
-  
-  # Variables to extract
-  variables:
-    - "effective_stress"          # σ_eff
-    - "porosity"                   # φ
-    - "permeability"               # k
-    - "rock_id"                    # Rock region ID
-    - "pressure"                   # Pressure
-    - "water_saturation"           # Sw
-    - "flow_rate_inj"              # Injection flow rate [bbl/day]
-    - "flow_rate_prod"             # Production flow rate [bbl/day]
+# INJECTION SCHEDULE (per Production_History.md)
+injection_targets:
+  phase_1:
+    injection_rate: 0         # BWPD - Natural depletion
+    voidage_replacement: 0    # N/A
+    
+  phase_2:
+    injection_rate: 5100      # BWPD (IW-001)
+    voidage_replacement: 1.1  # 1.1:1 VRR
+    
+  phase_3:
+    injection_rate: 9000      # BWPD (IW-001)
+    voidage_replacement: 1.1  # 1.1:1 VRR
+    
+  phase_4:
+    injection_rate: 14000     # BWPD (IW-001 + IW-002)
+    voidage_replacement: 1.15 # 1.15:1 VRR
+    
+  phase_5:
+    injection_rate: 18500     # BWPD (3 injectors)
+    voidage_replacement: 1.15 # 1.15:1 VRR
+    
+  phase_6:
+    injection_rate: 21500     # BWPD (5 injectors)
+    voidage_replacement: 1.18 # 1.18:1 VRR
+
+# WELL CONSTRAINTS (per Wells_Completions.md)
+well_constraints:
+  producers:
+    min_bhp: 1500             # psi - Minimum bottom-hole pressure
+    max_water_cut: 0.95       # 95% maximum
+    max_gor: 2000             # scf/STB - Maximum gas-oil ratio
+    min_oil_rate: 50          # STB/day - Economic limit
+    
+  injectors:
+    max_bhp: 3600             # psi - Maximum bottom-hole pressure
+    max_injection_rate: 35000 # STB/day - Maximum rate
+    min_injection_rate: 500   # STB/day - Minimum rate
+
+# MRST IMPLEMENTATION PARAMETERS
+mrst_implementation:
+  well_model: "standard"      # MRST well model type
+  grid_compatibility: "20x20x10"  # Compatible with corrected grid
+  total_simulation_days: 3650 # 10 years
+  timestep_strategy: "adaptive"
+  phase_based_controls: true  # Enable phase-based well controls
+
+# COMMENTS AND METADATA  
+comments:
+  - "CORRECTED: 15-well field development per Wells_Completions.md + Production_History.md"
+  - "Grid adjusted to 20x20x10 per MRST_Implementation.md specifications"
+  - "6-phase development over 3,650 days targeting 18,500 STB/day peak"
+  - "Well coordinates adjusted for 20x20 grid (some wells at grid edges)"
+  - "Production targets and injection schedules per Production_History.md"
+  - "VRR progression: Phase 2-3 (1.1), Phase 4-5 (1.15), Phase 6 (1.18)"
+  - "WARNING: Some wells near/at grid boundaries - may need repositioning"

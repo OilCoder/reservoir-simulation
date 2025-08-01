@@ -27,8 +27,8 @@ Grid volume analysis provides the foundation for reservoir simulation model init
 | Average Gross Thickness | 238 | ft | ±25 ft |
 | Net-to-Gross Ratio | 52.5 | % | ±8% |
 | **Grid Resolution** | | | |
-| Grid Cells (I×J×K) | 50×40×12 | - | Fixed |
-| Cell Size (avg) | 200×200×20 | ft | Variable |
+| Grid Cells (I×J×K) | 20×20×10 | - | Fixed [CORRECTED] |
+| Cell Size (avg) | 164×148×7.25 | ft | Variable [UPDATED] |
 | **Rock Volume Calculation** | | | |
 | Gross Rock Volume | 63.2 | billion ft³ | Calculated |
 | Net Rock Volume | 33.2 | billion ft³ | Calculated |
@@ -36,8 +36,8 @@ Grid volume analysis provides the foundation for reservoir simulation model init
 #### Grid Volume Distribution
 
 **Grid Analysis Framework:**
-- Total grid cells: 24,000
-- Active cells: ~18,500 (accounting for geometry)
+- Total grid cells: 4,000 [CORRECTED from 24,000]
+- Active cells: ~3,500 (accounting for geometry) [CORRECTED]
 - Cell volume range: 400,000 - 1,200,000 ft³
 
 **Net Rock Volume Calculation:**
