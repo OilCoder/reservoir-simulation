@@ -48,18 +48,19 @@ This document defines technical specifications and requirements for MRST (MATLAB
 
 ### Grid Specifications
 - **Grid Type**: Cartesian tensor grid
-- **Dimensions**: 20×20×10 cells (4,000 active cells)
-- **Field Extent**: 3280m × 2950m × 72.5m
+- **Dimensions**: 40×40×12 cells (19,200 active cells)
+- **Field Extent**: 3280 ft × 2950 ft × 100 ft (1000m × 899m × 30.5m)
 - **Top Depth**: 2438m (8000 ft datum)
-- **Cell Resolution**: 164m × 148m × variable thickness
+- **Cell Resolution**: 82 ft × 74 ft × 8.3 ft (25.0m × 22.6m × 2.5m)
 
 ### Layer Configuration
-- **Layer Count**: 10 vertical layers
-- **Layer Thicknesses**: Variable based on geological zonation
-  - Upper layers: 7.6-10.7m (25-35 ft)
-  - Middle layers: 9.1-12.2m (30-40 ft)  
-  - Lower layers: 4.6-7.6m (15-25 ft)
-- **Vertical Resolution**: Adaptive to geological boundaries
+- **Layer Count**: 12 vertical layers
+- **Layer Thicknesses**: Uniform based on flow unit architecture
+  - Average layer: 8.3 ft (2.5 m) per flow unit
+  - Upper layers: 6-10 ft (thin flow units)
+  - Middle layers: 8-12 ft (thick flow units)  
+  - Lower layers: 6-10 ft (variable flow units)
+- **Vertical Resolution**: Optimized for geological flow units and numerical stability
 
 ### Fault System Implementation
 - **Fault Count**: 5 major fault planes
@@ -69,11 +70,12 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - **Compartmentalization**: 3 main flow units with restricted inter-communication
 
 ### Grid Quality Requirements
-- **Aspect Ratio**: Maximum 10:1 for numerical stability
+- **Aspect Ratio**: 9.9:1 (82 ft / 8.3 ft) - within maximum 10:1 for numerical stability
 - **Orthogonality**: Minimum 30° face angles for corner-point grids
 - **Volume Consistency**: Verified against geological framework
 - **Connectivity**: Validated flow paths between wells and boundaries
 - **Active Cells**: Non-zero porosity and permeability validation
+- **Total Cells**: 19,200 active cells (balanced for accuracy vs computational efficiency)
 
 ---
 

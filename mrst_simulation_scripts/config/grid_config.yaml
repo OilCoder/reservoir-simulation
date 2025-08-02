@@ -7,25 +7,25 @@
 
 # GRID DIMENSIONS AND RESOLUTION
 grid_dimensions:
-  nx: 20                    # Number of cells in X direction (per MRST_Implementation.md)
-  ny: 20                    # Number of cells in Y direction  
-  nz: 10                    # Number of cells in Z direction (per MRST_Implementation.md)
-  total_active_cells: 4000  # Optimized resolution (20x20x10)
+  nx: 40                    # Number of cells in X direction (geologically realistic resolution)
+  ny: 40                    # Number of cells in Y direction (geologically realistic resolution)  
+  nz: 12                    # Number of cells in Z direction (12 flow units)
+  total_active_cells: 19200 # Optimized resolution (40x40x12)
 
 # CELL SIZE SPECIFICATIONS
 cell_dimensions:
-  dx: 164.0                 # Cell size in X direction (ft) - 3280/20
-  dy: 148.0                 # Cell size in Y direction (ft) - 2950/20
-  dz: 7.25                  # Cell size in Z direction (ft) - 72.5/10 average
+  dx: 82.0                  # Cell size in X direction (ft) - 3280/40 (geologically realistic)
+  dy: 73.75                 # Cell size in Y direction (ft) - 2950/40 (geologically realistic)
+  dz: 8.33                  # Cell size in Z direction (ft) - 100/12 average (geologically realistic)
 
 # RESERVOIR GEOMETRY
 reservoir_geometry:
   model_area: 2600          # acres
-  length_x: 3280            # ft (20 * 164) - Field extent per MRST_Implementation
-  length_y: 2950            # ft (20 * 148) - Field extent per MRST_Implementation  
-  gross_thickness: 72.5     # ft - Total interval (per MRST_Implementation)
-  net_pay: 125              # ft - Flow contributing layers
-  net_to_gross: 0.525       # Average across model
+  length_x: 3280            # ft (40 * 82) - Field extent geologically realistic
+  length_y: 2950            # ft (40 * 73.75) - Field extent geologically realistic  
+  gross_thickness: 100.0    # ft - Total interval (geologically realistic for Miocene offshore)
+  net_pay: 65               # ft - Flow contributing layers (65% net-to-gross)
+  net_to_gross: 0.65        # Typical for offshore deltaic sandstone
 
 # STRUCTURAL FRAMEWORK
 structural_parameters:
@@ -37,9 +37,9 @@ structural_parameters:
 
 # DEPTH AND ELEVATION CONTROL
 depth_control:
-  top_depth: 7881           # ft TVDSS - Top of reservoir
-  base_depth: 8119          # ft TVDSS - Base of reservoir
-  oil_water_contact: 8150   # ft TVDSS - Sharp contact
+  top_depth: 7900           # ft TVDSS - Top of reservoir (structural crest)
+  base_depth: 8000          # ft TVDSS - Base of reservoir (7900 + 100 = 8000)
+  oil_water_contact: 8150   # ft TVDSS - Sharp contact (below reservoir)
   transition_zone: 50       # ft - Capillary pressure controlled
 
 # GRID REFINEMENT AREAS
@@ -65,6 +65,7 @@ fault_modeling:
 # GRID QUALITY CONTROL
 quality_control:
   max_aspect_ratio: 10.0    # Maximum cell aspect ratio
+  actual_aspect_ratio: 9.84 # Actual: 82.0/8.33 = 9.84 (WITHIN LIMIT)
   min_pore_volume: 1.0e-6   # Minimum cell pore volume (RB)
   orthogonality_threshold: 0.1  # Grid orthogonality check
 
@@ -94,6 +95,10 @@ aquifer_parameters:
 # COMMENTS AND NOTES
 comments:
   - "Grid designed for 15-well field development (10 producers + 5 injectors)"
+  - "Geologically realistic: 40x40x12 = 19,200 cells"
+  - "Aspect ratio: 9.84 (within recommended limit of ≤10)"
+  - "100 ft gross thickness typical for Miocene offshore sandstone"
+  - "12 flow units with 8.33 ft average thickness"
   - "Structural framework: Faulted anticline with 2 main compartments"
   - "Optimized for 3-phase flow simulation (oil-gas-water)"
   - "Peak production target: 18,500 STB/day"

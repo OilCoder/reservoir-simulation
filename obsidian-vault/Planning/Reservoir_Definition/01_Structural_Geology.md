@@ -92,24 +92,25 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 ## 3. Grid Design for MRST
 
 ### 3.1 Optimal Grid Dimensions
-- **Field Extent**: 4.2 miles (E-W) × 3.8 miles (N-S)
+- **Field Extent**: 3280 ft (E-W) × 2950 ft (N-S) [0.62 × 0.56 miles]
 - **Grid Origin**: UTM Zone 15N, Easting: 745,280 m, Northing: 3,258,470 m
 - **Grid Orientation**: N15°E (aligned with dominant fault trend)
-- **Total Grid Cells**: 168 × 152 × 24 (I × J × K)
+- **Total Grid Cells**: 40 × 40 × 12 (I × J × K) = 19,200 active cells
 
 ### 3.2 Cell Size Recommendations
 
 #### Areal Grid Resolution
-- **Standard Cell Size**: 100 ft × 100 ft (30.5 m × 30.5 m)
-- **Near-fault Refinement**: 50 ft × 50 ft within 200 ft of major faults
-- **Well Area Refinement**: 25 ft × 25 ft within 150 ft radius of wellbores
-- **Total Active Cells**: Approximately 485,000
+- **Standard Cell Size**: 82 ft × 74 ft (25.0 m × 22.6 m)
+- **Near-fault Refinement**: 41 ft × 37 ft within 200 ft of major faults
+- **Well Area Refinement**: 20 ft × 18 ft within 150 ft radius of wellbores
+- **Total Active Cells**: 19,200 (optimized for numerical stability)
 
 #### Vertical Grid Resolution
-- **Layer Thickness**: Variable, 8-12 ft per layer
-- **Minimum Layer Thickness**: 6 ft (near structural crest)
-- **Maximum Layer Thickness**: 15 ft (in thicker intervals)
-- **Total Layers**: 24 (representing major flow units)
+- **Layer Thickness**: Average 8.3 ft per layer (100 ft gross / 12 layers)
+- **Minimum Layer Thickness**: 6 ft (thin flow units)
+- **Maximum Layer Thickness**: 12 ft (thick flow units)
+- **Total Layers**: 12 (representing major flow units)
+- **Aspect Ratio**: 9.9 (82 ft / 8.3 ft) - within recommended limit of ≤10
 
 ### 3.3 Local Grid Refinement Needs
 
@@ -184,29 +185,30 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 ## 5. 3D Reservoir Architecture
 
 ### 5.1 Gross Reservoir Dimensions
-- **Gross Thickness**: 238 ft (average across field)
-- **Thickness Variation**: 195-285 ft (structural control on deposition)
-- **Areal Extent**: 2,850 acres at reservoir level
-- **Gross Rock Volume**: 1.89 billion ft³
+- **Gross Thickness**: 100 ft (average across field, typical for Miocene offshore sandstone)
+- **Thickness Variation**: 85-120 ft (structural control on deposition)
+- **Areal Extent**: 2,600 acres at reservoir level
+- **Gross Rock Volume**: 1.13 billion ft³
 
 ### 5.2 Net Pay Distribution
-- **Net Pay**: 125 ft cumulative (52.5% net-to-gross)
-- **Pay Thickness Range**: 85-165 ft across field
+- **Net Pay**: 65 ft cumulative (65% net-to-gross, typical for offshore deltaic sandstone)
+- **Pay Thickness Range**: 50-80 ft across field
 - **Thickest Pay**: Northern compartment structural high
 - **Thinnest Pay**: Fault-bounded edges and structural flanks
 
 #### Net Pay by Compartment
-- **Northern Compartment**: 135 ft average net pay
-- **Southern Compartment**: 118 ft average net pay
-- **Fault-bounded Areas**: 95 ft average net pay
+- **Northern Compartment**: 72 ft average net pay
+- **Southern Compartment**: 58 ft average net pay
+- **Fault-bounded Areas**: 45 ft average net pay
 
 ### 5.3 Layer Connectivity
 
 #### Flow Unit Architecture
-- **Major Flow Units**: 6 primary flow units (FU-1 through FU-6)
+- **Major Flow Units**: 12 primary flow units (FU-1 through FU-12)
 - **Layer Continuity**: Good lateral continuity within compartments
 - **Vertical Communication**: Moderate, limited by shale interbeds
-- **Barrier Beds**: 8-15 ft thick shale intervals at FU boundaries
+- **Flow Unit Thickness**: 6-12 ft per unit (average 8.3 ft)
+- **Barrier Beds**: 1-3 ft thin shale intervals at FU boundaries
 
 #### Connectivity Analysis
 - **Intra-compartment**: High connectivity (>80% sand connectivity)

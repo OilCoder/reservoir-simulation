@@ -36,14 +36,12 @@ function config = util_read_config(config_file)
     try
         % Try MATLAB built-in YAML support (R2019a+)
         if exist('yaml.load', 'file') == 2
-            fprintf('[INFO] Reading YAML using MATLAB built-in parser: %s\n', config_file);
             fid = fopen(config_file, 'r');
             yaml_text = fread(fid, '*char')';
             fclose(fid);
             config = yaml.load(yaml_text);
         else
             % Fallback to manual parsing for older MATLAB versions
-            fprintf('[INFO] Using fallback YAML parser for: %s\n', config_file);
             config = parse_yaml_fallback(config_file);
         end
         
@@ -52,7 +50,6 @@ function config = util_read_config(config_file)
             error('util_read_config:InvalidFormat', 'Configuration file must contain valid YAML structure');
         end
         
-        fprintf('[SUCCESS] Configuration loaded successfully: %s\n', config_file);
         
     catch ME
         fprintf('[ERROR] Failed to read configuration file: %s\n', config_file);
@@ -190,7 +187,7 @@ end
 function array_val = parse_yaml_array(array_str)
 % Parse YAML array string into MATLAB array
 
-    elements = split(array_str, ',');
+    elements = strsplit(array_str, ',');
     array_val = [];
     
     for i = 1:length(elements)
