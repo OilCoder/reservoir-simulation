@@ -15,8 +15,6 @@ warning('off', 'all');
 %
 % INPUT:
 %   G_faulted - MRST grid structure with faults from s05_add_faults
-%   config    - Configuration structure from s00_load_config (optional)
-%               If not provided, will load configuration automatically
 %
 % OUTPUT:
 %   G_refined - MRST grid with local refinement blocks
@@ -24,7 +22,8 @@ warning('off', 'all');
 %
 % DEPENDENCIES:
 %   - MRST environment (assumed already initialized by workflow)
-%   - s00_load_config.m (centralized configuration loader)
+%   - config/grid_config.yaml for grid parameters
+%   - util_read_config.m (YAML reader)
 %
 % SUCCESS CRITERIA:
 %   - Grid refinement created without errors
@@ -35,10 +34,8 @@ warning('off', 'all');
     % Parse input arguments
     p = inputParser;
     addRequired(p, 'G_faulted', @isstruct);
-    addOptional(p, 'config', [], @isstruct);
     addParameter(p, 'verbose', false, @islogical);
     parse(p, G_faulted, varargin{:});
-    config = p.Results.config;
     verbose = p.Results.verbose;
     
     if verbose
@@ -72,17 +69,19 @@ warning('off', 'all');
         end
         
         try
-            % Load config if not provided as input
-            if isempty(config)
-                config = s00_load_config('verbose', false);
-                if ~config.loaded
-                    error('Failed to load configuration');
-                end
-                config_source = 'auto-loaded';
-            else
-                config_source = 'provided';
-            end
-            grid_config = config.grid;
+            % Load grid configuration directly from YAML
+            config_dir = 'config';
+            grid_file = fullfile(config_dir, 'grid_config.yaml');
+            grid_raw = util_read_config(grid_file);
+            
+            % Extract basic grid parameters
+            grid_config = struct();
+            grid_config.nx = parse_numeric(grid_raw.nx);
+            grid_config.ny = parse_numeric(grid_raw.ny);
+            grid_config.nz = parse_numeric(grid_raw.nz);
+            grid_config.Lx = parse_numeric(grid_raw.length_x);     % m
+            grid_config.Ly = parse_numeric(grid_raw.length_y);     % m
+            grid_config.Lz = parse_numeric(grid_raw.gross_thickness); % m
             step1_success = true;
         catch
             step1_success = false;
@@ -317,4 +316,17 @@ warning('off', 'all');
     end
     
     fprintf('\n');
+end
+
+function val = parse_numeric(str_val)
+%PARSE_NUMERIC Extract numeric value from string (removing comments)
+    if isnumeric(str_val)
+        val = str_val;
+    else
+        clean_str = strtok(str_val, '#');
+        val = str2double(clean_str);
+        if isnan(val)
+            error('Failed to parse numeric value from: %s', str_val);
+        end
+    end
 end

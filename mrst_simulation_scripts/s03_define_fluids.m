@@ -1,21 +1,16 @@
 function [fluid, status] = s03_define_fluids(varargin)
-%S03_DEFINE_FLUIDS Create black oil fluid model from configuration
+%S03_DEFINE_FLUIDS Create black oil fluid model from YAML configuration
 
 % Suppress warnings for cleaner output
 warning('off', 'Octave:language-extension');
 warning('off', 'Octave:str-to-num');
 %
 % This script creates a 3-phase black oil fluid model based on the 
-% centralized configuration for the Eagle West Field.
+% fluid properties YAML configuration for the Eagle West Field.
 %
 % USAGE:
-%   [fluid, status] = s03_define_fluids(config)                    % Normal mode (clean output)
-%   [fluid, status] = s03_define_fluids(config, 'verbose', true)   % Verbose mode (detailed output)
-%   [fluid, status] = s03_define_fluids('verbose', true)           % Load config automatically, verbose
-%
-% INPUT:
-%   config - Configuration structure from s00_load_config (optional)
-%            If not provided, will load configuration automatically
+%   [fluid, status] = s03_define_fluids()                    % Normal mode (clean output)
+%   [fluid, status] = s03_define_fluids('verbose', true)     % Verbose mode (detailed output)
 %
 % OUTPUT:
 %   fluid  - MRST fluid structure with PVT properties
@@ -23,7 +18,8 @@ warning('off', 'Octave:str-to-num');
 %
 % DEPENDENCIES:
 %   - MRST environment (assumed already initialized by workflow)
-%   - s00_load_config.m (centralized configuration loader)
+%   - config/fluid_properties_config.yaml configuration file
+%   - util_read_config.m (YAML reader)
 %
 % SUCCESS CRITERIA:
 %   - Fluid object created without errors
@@ -32,10 +28,8 @@ warning('off', 'Octave:str-to-num');
 
     % Parse input arguments
     p = inputParser;
-    addOptional(p, 'config', [], @isstruct);
     addParameter(p, 'verbose', false, @islogical);
     parse(p, varargin{:});
-    config = p.Results.config;
     verbose = p.Results.verbose;
     
     if verbose
@@ -62,26 +56,53 @@ warning('off', 'Octave:str-to-num');
     task_names = {'Load Configuration', 'Extract Parameters', 'Create PVT Tables', 'Build Fluid Model', 'Validate Properties'};
     
     try
-        %% Step 1: Load configuration if not provided
+        %% Step 1: Load fluid configuration from YAML
         if verbose
-            fprintf('Step 1: Loading configuration...\n');
+            fprintf('Step 1: Loading fluid configuration from YAML...\n');
         end
         
         try
-            % Load config if not provided as input
-            if isempty(config)
-                config = s00_load_config('verbose', false);
-                if ~config.loaded
-                    error('Failed to load configuration');
-                end
-                config_source = 'auto-loaded';
-            else
-                config_source = 'provided';
-            end
-            fluid_config = config.fluid;
+            % Load fluid configuration directly from YAML
+            config_dir = 'config';
+            fluid_file = fullfile(config_dir, 'fluid_properties_config.yaml');
+            fluid_raw = util_read_config(fluid_file);
+            
+            % Build fluid configuration structure
+            fluid_config = struct();
+            
+            % Reservoir conditions
+            fluid_config.initial_pressure = parse_numeric(fluid_raw.initial_pressure) * 6894.76; % psi to Pa
+            fluid_config.reservoir_temperature = parse_numeric(fluid_raw.reservoir_temperature); % degF
+            fluid_config.reservoir_temperature_K = (fluid_config.reservoir_temperature - 32) * 5/9 + 273.15; % K
+            fluid_config.datum_depth = parse_numeric(fluid_raw.datum_depth) * 0.3048; % ft to m
+            
+            % Oil properties
+            fluid_config.oil_api = parse_numeric(fluid_raw.api_gravity);
+            fluid_config.oil_sg = parse_numeric(fluid_raw.specific_gravity);
+            fluid_config.oil_density = fluid_config.oil_sg * 1000; % kg/m³
+            fluid_config.bubble_point = parse_numeric(fluid_raw.bubble_point_pressure) * 6894.76; % psi to Pa
+            fluid_config.initial_gor = parse_numeric(fluid_raw.initial_gor); % scf/STB
+            fluid_config.oil_viscosity_pb = parse_numeric(fluid_raw.at_bubble_point) * 1e-3; % cp to Pa.s
+            fluid_config.oil_viscosity_init = parse_numeric(fluid_raw.at_initial_pressure) * 1e-3; % cp to Pa.s
+            fluid_config.oil_compressibility = parse_numeric(fluid_raw.oil_compressibility) / 6894.76; % 1/psi to 1/Pa
+            
+            % Water properties
+            fluid_config.water_sg = parse_numeric(fluid_raw.water_gravity);
+            fluid_config.water_density = fluid_config.water_sg * 1000; % kg/m³
+            fluid_config.water_compressibility = parse_numeric(fluid_raw.water_compressibility) / 6894.76; % 1/psi to 1/Pa
+            fluid_config.water_viscosity = parse_numeric(fluid_raw.at_reservoir_temp) * 1e-3; % cp to Pa.s
+            fluid_config.water_salinity = parse_numeric(fluid_raw.water_salinity); % ppm
+            
+            % Gas properties
+            fluid_config.gas_sg = parse_numeric(fluid_raw.gas_gravity);
+            fluid_config.gas_density = fluid_config.gas_sg * 1.225; % kg/m³ at standard conditions
+            
             step1_success = true;
-        catch
+        catch ME
             step1_success = false;
+            if verbose
+                fprintf('Error loading fluid configuration: %s\n', ME.message);
+            end
         end
         
         if ~verbose
@@ -93,7 +114,8 @@ warning('off', 'Octave:str-to-num');
             fprintf('| %-35s |   %s    |\n', task_names{1}, status_symbol);
         else
             if step1_success
-                fprintf('  - Configuration %s successfully\n', config_source);
+                fprintf('  - Fluid configuration loaded from YAML\n');
+                fprintf('  - Oil: %.0fdeg API, Pb: %.0f psi\n', fluid_config.oil_api, fluid_config.bubble_point/6894.76);
             end
         end
         
@@ -130,8 +152,8 @@ warning('off', 'Octave:str-to-num');
         else
             if step2_success
                 fprintf('  - Oil: %.0fdeg API, Pb = %.0f psi, GOR = %.0f scf/STB\n', api_gravity, bubble_point/6894.76, initial_gor);
-                fprintf('  - Water: SG = %.3f, Comp = %.2e 1/psi\n', water_sg, fluid_config.water_compressibility*6894.76);
-                fprintf('  - Gas: SG = %.3f (air = 1.0)\n', gas_sg);
+                fprintf('  - Water: SG = %.3f, Comp = %.2e 1/psi\n', fluid_config.water_sg, fluid_config.water_compressibility*6894.76);
+                fprintf('  - Gas: SG = %.3f (air = 1.0)\n', fluid_config.gas_sg);
             end
         end
         
@@ -147,8 +169,6 @@ warning('off', 'Octave:str-to-num');
         initial_gor = fluid_config.initial_gor;      % scf/STB
         water_sg = fluid_config.water_sg;
         gas_sg = fluid_config.gas_sg;
-        
-        % Will be printed in verbose mode if needed
         
         %% Step 3: Create pressure range for PVT tables (grouped with Steps 3-4)
         if verbose
@@ -336,4 +356,24 @@ warning('off', 'Octave:str-to-num');
     end
     
     fprintf('\n');
+end
+
+function val = parse_numeric(str_val)
+%PARSE_NUMERIC Extract numeric value from string (removing comments)
+%
+% Handles strings like "20                    # Number of cells"
+% and returns just the numeric value 20
+
+    if isnumeric(str_val)
+        val = str_val;
+    else
+        % Remove comments after # symbol
+        clean_str = strtok(str_val, '#');
+        % Convert to number
+        val = str2double(clean_str);
+        
+        if isnan(val)
+            error('Failed to parse numeric value from: %s', str_val);
+        end
+    end
 end

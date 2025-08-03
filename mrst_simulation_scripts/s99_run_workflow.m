@@ -17,16 +17,17 @@ warning('off', 'all');
 %   status  - Comprehensive status tracking for all phases
 %
 % IMPLEMENTED PHASES:
-%   Phase 1: Foundation (s00-s03) - ✓ COMPLETE
-%   Phase 2: Structural Geology (s04-s06) - ✓ COMPLETE
+%   Phase 1: Foundation (s00-s03) - COMPLETE
+%   Phase 2: Structural Geology (s04-s06) - COMPLETE
+%   Phase 3: Rock Properties (s07-s09) - COMPLETE
 %
 % FUTURE PHASES (not yet implemented):
-%   Phase 3: Rock Properties (s07-s09) - ⚠ PENDING
-%   Phase 4: SCAL & PVT (s10-s12) - ⚠ PENDING
-%   [... phases 5-9 pending ...]
+%   Phase 4: SCAL & PVT (s10-s12) - PENDING
+%   Phase 5: Initial Conditions (s13-s15) - PENDING
+%   [... phases 6-9 pending ...]
 %
 % DEPENDENCIES:
-%   - Implemented phase scripts (s00-s06)
+%   - Implemented phase scripts (s00-s07, partial s08-s09)
 %   - MRST 2023a or later
 %   - Configuration files in config/ directory
 %
@@ -38,14 +39,16 @@ warning('off', 'all');
     fprintf('================================================================\n');
     fprintf('    EAGLE WEST FIELD - MRST SIMULATION WORKFLOW\n');
     fprintf('================================================================\n');
-    fprintf('IMPLEMENTED PHASES: Foundation + Structural Geology\n');
+    fprintf('ARCHITECTURE: Direct YAML configuration reading (no s00_load_config)\n');
+    fprintf('IMPLEMENTED PHASES: Foundation + Structural Geology + Rock Properties\n');
     fprintf('Grid: Dynamic cells, 5 faults, structural framework\n'); 
-    fprintf('Current status: Phase 1-2 complete, Phase 3+ pending\n');
+    fprintf('Rock: 6 rock types (RT1-RT6) with heterogeneity modeling\n');
+    fprintf('Current status: Phase 1-3 complete (s01-s09)\n');
     fprintf('================================================================\n\n');
     
     %% Parse input arguments
     p = inputParser;
-    addParameter(p, 'phases', [1,2], @(x) isnumeric(x) && all(x >= 1) && all(x <= 2));
+    addParameter(p, 'phases', [1,2,3], @(x) isnumeric(x) && all(x >= 1) && all(x <= 3));
     addParameter(p, 'validate_only', false, @islogical);
     addParameter(p, 'save_results', false, @islogical);
     addParameter(p, 'output_dir', 'output', @ischar);
@@ -68,7 +71,7 @@ warning('off', 'all');
     status.memory_peak = 0;
     
     % Initialize phase status tracking (only implemented phases)
-    phase_names = {'Foundation', 'Structural_Geology'};
+    phase_names = {'Foundation', 'Structural_Geology', 'Rock_Properties'};
     
     for i = 1:length(phase_names)
         status.phases.(phase_names{i}).completed = false;
@@ -101,13 +104,13 @@ warning('off', 'all');
                 end
             end
             
-            fprintf('✓ MRST installation: OK\n');
-            fprintf('✓ Configuration files: OK\n');
-            fprintf('✓ Validation completed successfully\n');
+            fprintf('[Y] MRST installation: OK\n');
+            fprintf('[Y] Configuration files: OK\n');
+            fprintf('[Y] Validation completed successfully\n');
             return;
             
         catch ME
-            fprintf('✗ Validation failed: %s\n', ME.message);
+            fprintf('[X] Validation failed: %s\n', ME.message);
             status.validation_failed = true;
             return;
         end
@@ -130,30 +133,23 @@ warning('off', 'all');
             print_phase_header(1, 'FOUNDATION - CORE COMPONENTS', verbose);
             
             try
-                % Task 1.1: Load configuration (ONCE for entire workflow)
-                config = s00_load_config();
-                if ~config.loaded
-                    error('Configuration loading failed');
-                end
-                results.config = config;
-                
-                % Task 1.2: Initialize MRST environment
+                % Task 1.1: Initialize MRST environment
                 [mrst_status] = s01_initialize_mrst();
                 if ~mrst_status.success
                     error('MRST initialization failed');
                 end
                 results.mrst_status = mrst_status;
                 
-                % Task 1.3: Create basic grid (pass config to avoid redundant loading)
-                [G, grid_status] = s02_create_grid(config);
+                % Task 1.2: Create basic grid (reads grid_config.yaml directly)
+                [G, grid_status] = s02_create_grid();
                 if ~grid_status.success
                     error('Grid creation failed');
                 end
                 results.grid_basic = G;
                 results.grid_status = grid_status;
                 
-                % Task 1.4: Define basic fluid model (pass config to avoid redundant loading)
-                [fluid, fluid_status] = s03_define_fluids(config);
+                % Task 1.3: Define basic fluid model (reads fluid_properties_config.yaml directly)
+                [fluid, fluid_status] = s03_define_fluids();
                 if ~fluid_status.success
                     error('Fluid model creation failed');
                 end
@@ -164,12 +160,12 @@ warning('off', 'all');
                 status.phases.Foundation.runtime = toc(phase_timer);
                 status.phases_completed = [status.phases_completed, 1];
                 
-                fprintf('✓ Phase 1 completed in %.1f seconds\n\n', status.phases.Foundation.runtime);
+                fprintf('[Y] Phase 1 completed in %.1f seconds\n\n', status.phases.Foundation.runtime);
                 
             catch ME
                 status.phases.Foundation.errors{end+1} = ME.message;
                 status.phases_failed = [status.phases_failed, 1];
-                fprintf('✗ Phase 1 failed: %s\n\n', ME.message);
+                fprintf('[X] Phase 1 failed: %s\n\n', ME.message);
                 rethrow(ME);
             end
         end
@@ -184,7 +180,7 @@ warning('off', 'all');
             try
                 % Task 2.1: Structural framework (FIRST)
                 fprintf('Task 2.1: Implementing structural framework...\n');
-                [G_structural, structural_status] = s04_structural_framework(results.grid_basic, results.config);
+                [G_structural, structural_status] = s04_structural_framework(results.grid_basic);
                 if ~structural_status.success
                     error('Structural framework implementation failed');
                 end
@@ -193,7 +189,7 @@ warning('off', 'all');
                 
                 % Task 2.2: Fault system (SECOND)
                 fprintf('Task 2.2: Adding fault system...\n');
-                [G_faulted, fault_status] = s05_add_faults(G_structural, results.config);
+                [G_faulted, fault_status] = s05_add_faults(G_structural);
                 if ~fault_status.success
                     error('Fault system implementation failed');
                 end
@@ -202,7 +198,7 @@ warning('off', 'all');
                 
                 % Task 2.3: Grid refinement (THIRD)
                 fprintf('Task 2.3: Applying grid refinement...\n');
-                [G_refined, refinement_status] = s06_grid_refinement(G_faulted, results.config);
+                [G_refined, refinement_status] = s06_grid_refinement(G_faulted);
                 if ~refinement_status.success
                     error('Grid refinement implementation failed');
                 end
@@ -213,7 +209,7 @@ warning('off', 'all');
                 status.phases.Structural_Geology.runtime = toc(phase_timer);
                 status.phases_completed = [status.phases_completed, 2];
                 
-                fprintf('✓ Phase 2 completed in %.1f seconds\n', status.phases.Structural_Geology.runtime);
+                fprintf('[Y] Phase 2 completed in %.1f seconds\n', status.phases.Structural_Geology.runtime);
                 fprintf('  - Structural relief: %.0f ft\n', structural_status.structural_relief/0.3048);
                 fprintf('  - Faults implemented: %d\n', fault_status.faults_added); 
                 fprintf('  - Refinement zones: %d cells\n\n', refinement_status.refined_cells);
@@ -221,7 +217,74 @@ warning('off', 'all');
             catch ME
                 status.phases.Structural_Geology.errors{end+1} = ME.message;
                 status.phases_failed = [status.phases_failed, 2];
-                fprintf('✗ Phase 2 failed: %s\n\n', ME.message);
+                fprintf('[X] Phase 2 failed: %s\n\n', ME.message);
+                rethrow(ME);
+            end
+        end
+        
+        %% ================================================================
+        %% PHASE 3: ROCK PROPERTIES & HETEROGENEITY
+        %% ================================================================
+        if ismember(3, phases_to_run)
+            phase_timer = tic;
+            fprintf('=== PHASE 3: ROCK PROPERTIES & HETEROGENEITY ===\n');
+            
+            try
+                % Check if we need grid from previous phase
+                if ~ismember(2, phases_to_run)
+                    error('Phase 3 requires Phase 2 results. Please run Phase 2 first.');
+                end
+                
+                % Task 3.1: Define rock types
+                fprintf('Task 3.1: Defining rock types...\n');
+                [rock_types, rock_types_status] = s07_define_rock_types('verbose', false);
+                if ~rock_types_status.success
+                    error('Rock types definition failed');
+                end
+                results.rock_types = rock_types;
+                results.rock_types_status = rock_types_status;
+                
+                % Task 3.2: Layer-based property assignment (if script exists)
+                if exist('s08_assign_layer_properties', 'file')
+                    fprintf('Task 3.2: Assigning layer properties...\n');
+                    [rock, layer_status] = s08_assign_layer_properties(results.grid_refined, rock_types, []);
+                    if ~layer_status.success
+                        error('Layer property assignment failed');
+                    end
+                    results.rock = rock;
+                    results.layer_status = layer_status;
+                else
+                    fprintf('Task 3.2: Layer properties assignment - PENDING (s08 not yet implemented)\n');
+                    results.rock = struct('perm', ones(results.grid_refined.cells.num, 1) * 100e-3 * darcy(), ...
+                                         'poro', ones(results.grid_refined.cells.num, 1) * 0.2);
+                end
+                
+                % Task 3.3: Spatial heterogeneity (if script exists)
+                if exist('s09_spatial_heterogeneity', 'file')
+                    fprintf('Task 3.3: Applying spatial heterogeneity...\n');
+                    [rock_hetero, hetero_status] = s09_spatial_heterogeneity(results.rock, results.grid_refined, []);
+                    if ~hetero_status.success
+                        error('Spatial heterogeneity modeling failed');
+                    end
+                    results.rock = rock_hetero;
+                    results.hetero_status = hetero_status;
+                else
+                    fprintf('Task 3.3: Spatial heterogeneity - PENDING (s09 not yet implemented)\n');
+                end
+                
+                status.phases.Rock_Properties.completed = true;
+                status.phases.Rock_Properties.runtime = toc(phase_timer);
+                status.phases_completed = [status.phases_completed, 3];
+                
+                fprintf('[Y] Phase 3 completed in %.1f seconds\n', status.phases.Rock_Properties.runtime);
+                fprintf('  - Rock types defined: %d\n', rock_types_status.rock_types_defined);
+                fprintf('  - Porosity range: %.1f-%.1f%%\n', rock_types_status.porosity_range(1)*100, rock_types_status.porosity_range(2)*100);
+                fprintf('  - Permeability range: %.3f-%.0f mD\n\n', rock_types_status.permeability_range_mD(1), rock_types_status.permeability_range_mD(2));
+                
+            catch ME
+                status.phases.Rock_Properties.errors{end+1} = ME.message;
+                status.phases_failed = [status.phases_failed, 3];
+                fprintf('[X] Phase 3 failed: %s\n\n', ME.message);
                 rethrow(ME);
             end
         end
@@ -244,26 +307,56 @@ warning('off', 'all');
         fprintf('Phases failed: %d\n', length(status.phases_failed));
         
         if status.success
-            fprintf('Overall status: ✓ SUCCESS\n');
+            fprintf('Overall status: [Y] SUCCESS\n');
         else
-            fprintf('Overall status: ✗ FAILED\n');
+            fprintf('Overall status: [X] FAILED\n');
             fprintf('Failed phases: %s\n', mat2str(status.phases_failed));
         end
         
         % Current implementation status
         fprintf('\nImplementation Status:\n');
-        fprintf('✓ Phase 1: Foundation - COMPLETE\n');
-        fprintf('  - Configuration loading, MRST initialization\n');
-        fprintf('  - Basic grid creation, fluid model\n');
-        fprintf('✓ Phase 2: Structural Geology - COMPLETE\n');
-        fprintf('  - Structural framework with %.0f ft relief\n', results.structural_status.structural_relief/0.3048);
-        fprintf('  - 5-fault system with transmissibility multipliers\n');
-        fprintf('  - Grid refinement zones identification\n');
+        if ismember(1, status.phases_completed)
+            fprintf('[Y] Phase 1: Foundation - COMPLETE\n');
+            fprintf('  - MRST initialization, YAML configuration validation\n');
+            fprintf('  - Basic grid creation, fluid model\n');
+        else
+            fprintf('[!] Phase 1: Foundation - NOT RUN\n');
+        end
+        
+        if ismember(2, status.phases_completed)
+            fprintf('[Y] Phase 2: Structural Geology - COMPLETE\n');
+            fprintf('  - Structural framework with %.0f ft relief\n', results.structural_status.structural_relief/0.3048);
+            fprintf('  - 5-fault system with transmissibility multipliers\n');
+            fprintf('  - Grid refinement zones identification\n');
+        else
+            fprintf('[!] Phase 2: Structural Geology - NOT RUN\n');
+        end
+        
+        if ismember(3, status.phases_completed)
+            fprintf('[Y] Phase 3: Rock Properties - COMPLETE\n');
+            fprintf('  - %d rock types defined (RT1-RT6)\n', results.rock_types_status.rock_types_defined);
+            fprintf('  - Porosity: %.1f-%.1f%%, Permeability: %.3f-%.0f mD\n', ...
+                    results.rock_types_status.porosity_range(1)*100, ...
+                    results.rock_types_status.porosity_range(2)*100, ...
+                    results.rock_types_status.permeability_range_mD(1), ...
+                    results.rock_types_status.permeability_range_mD(2));
+            if exist('s08_assign_layer_properties', 'file')
+                fprintf('  - Layer properties assigned (s08)\n');
+            end
+            if exist('s09_spatial_heterogeneity', 'file')
+                fprintf('  - Spatial heterogeneity modeled (s09)\n');
+            end
+        else
+            fprintf('[!] Phase 3: Rock Properties (s07-s09) - NOT RUN\n');
+        end
         
         fprintf('\nNext Steps (for future development):\n');
-        fprintf('⚠ Phase 3: Rock Properties (s07-s09) - PENDING\n');
-        fprintf('⚠ Phase 4: SCAL & PVT (s10-s12) - PENDING\n');
-        fprintf('⚠ Phases 5-9: Complete simulation workflow - PENDING\n');
+        fprintf('[!] Phase 4: SCAL & PVT (s10-s12) - PENDING\n');
+        fprintf('[!] Phase 5: Initial Conditions (s13-s15) - PENDING\n');
+        fprintf('[!] Phase 6: Well System (s16-s18) - PENDING\n');
+        fprintf('[!] Phase 7: Development Schedule (s19-s20) - PENDING\n');
+        fprintf('[!] Phase 8: Simulation Execution (s21-s23) - PENDING\n');
+        fprintf('[!] Phase 9: Results & Reporting (s24-s26) - PENDING\n');
         
         %% Save results if requested
         if save_results

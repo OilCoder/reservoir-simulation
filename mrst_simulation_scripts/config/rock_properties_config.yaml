@@ -5,77 +5,342 @@
 # Created: 2025-07-31
 # Purpose: Rock properties, porosity, permeability for MRST simulation
 
-# PRIMARY LITHOLOGY - SANDSTONE RESERVOIR
+# ROCK TYPE DEFINITIONS (RT1-RT6)
+# Based on Section 2.1 of Rock Properties documentation
+rock_types:
+  RT1:
+    name: "High Perm Sandstone"
+    lithology: "Sandstone"
+    description: "Clean, well-sorted sandstone with excellent reservoir quality"
+    
+    # POROSITY PROPERTIES
+    porosity:
+      minimum: 0.25           # 25%
+      maximum: 0.32           # 32%
+      mean: 0.285             # 28.5%
+      std_deviation: 0.02     # Standard deviation
+    
+    # PERMEABILITY PROPERTIES
+    horizontal_permeability:
+      minimum: 300            # mD
+      maximum: 850            # mD
+      mean: 575               # mD
+    
+    # ADDITIONAL PROPERTIES
+    net_to_gross: 0.85        # 85% net pay
+    kv_kh_ratio: 0.5          # From documentation Table 1.3
+    compressibility: 3.5e-6   # psi^-1 (Section 4.1)
+    kozeny_carman_constant: 5.0
+    
+    # RELATIVE PERMEABILITY (Section 3.1)
+    rel_perm_ow:
+      Swir: 0.15              # Irreducible water saturation
+      Sor: 0.25               # Residual oil saturation
+      krw_Sor: 0.40           # Water rel perm at Sor
+      kro_Swir: 0.85          # Oil rel perm at Swir
+      nw: 2.5                 # Water Corey exponent
+      no: 2.0                 # Oil Corey exponent
+    
+    rel_perm_go:
+      Sgr: 0.05               # Residual gas saturation
+      Sorg: 0.15              # Residual oil to gas
+      krg_Sorg: 0.75          # Gas rel perm at Sorg
+      krog_Sgr: 0.90          # Oil rel perm to gas at Sgr
+      ng: 1.8                 # Gas Corey exponent
+      nog: 2.2                # Oil to gas Corey exponent
+    
+    # CAPILLARY PRESSURE (Section 3.2)
+    capillary_pressure:
+      pc_entry: 0.5           # psi - Entry pressure
+      pc_max: 15.0            # psi - Maximum Pc
+      lambda: 0.45            # Pore size distribution index
+    
+    # POROSITY-PERMEABILITY CORRELATION (Section 2.2)
+    poro_perm_correlation:
+      a: 0.0314               # Power law constant
+      n: 2.1                  # Power law exponent
+
+  RT2:
+    name: "Medium Perm Sandstone"
+    lithology: "Sandstone"
+    description: "Moderately sorted sandstone with good reservoir quality"
+    
+    porosity:
+      minimum: 0.20           # 20%
+      maximum: 0.25           # 25%
+      mean: 0.225             # 22.5%
+      std_deviation: 0.015
+    
+    horizontal_permeability:
+      minimum: 100            # mD
+      maximum: 300            # mD
+      mean: 200               # mD
+    
+    net_to_gross: 0.75        # 75% net pay
+    kv_kh_ratio: 0.5
+    compressibility: 4.2e-6   # psi^-1
+    kozeny_carman_constant: 5.0
+    
+    rel_perm_ow:
+      Swir: 0.18
+      Sor: 0.28
+      krw_Sor: 0.35
+      kro_Swir: 0.80
+      nw: 2.8
+      no: 2.2
+    
+    rel_perm_go:
+      Sgr: 0.08
+      Sorg: 0.18
+      krg_Sorg: 0.68
+      krog_Sgr: 0.85
+      ng: 2.0
+      nog: 2.4
+    
+    capillary_pressure:
+      pc_entry: 1.2           # psi
+      pc_max: 20.0            # psi
+      lambda: 0.38
+    
+    poro_perm_correlation:
+      a: 0.0156
+      n: 2.5
+
+  RT3:
+    name: "Low Perm Sandstone"
+    lithology: "Sandstone"
+    description: "Fine-grained sandstone with fair reservoir quality"
+    
+    porosity:
+      minimum: 0.15           # 15%
+      maximum: 0.20           # 20%
+      mean: 0.175             # 17.5%
+      std_deviation: 0.012
+    
+    horizontal_permeability:
+      minimum: 25             # mD
+      maximum: 100            # mD
+      mean: 62.5              # mD
+    
+    net_to_gross: 0.65        # 65% net pay
+    kv_kh_ratio: 0.5
+    compressibility: 5.8e-6   # psi^-1
+    kozeny_carman_constant: 5.0
+    
+    rel_perm_ow:
+      Swir: 0.22
+      Sor: 0.32
+      krw_Sor: 0.28
+      kro_Swir: 0.72
+      nw: 3.2
+      no: 2.5
+    
+    rel_perm_go:
+      Sgr: 0.12
+      Sorg: 0.22
+      krg_Sorg: 0.60
+      krog_Sgr: 0.78
+      ng: 2.2
+      nog: 2.8
+    
+    capillary_pressure:
+      pc_entry: 2.8           # psi
+      pc_max: 25.0            # psi
+      lambda: 0.32
+    
+    poro_perm_correlation:
+      a: 0.0089
+      n: 3.2
+
+  RT4:
+    name: "Tight Sandstone"
+    lithology: "Tight Sandstone"
+    description: "Cemented sandstone with poor reservoir quality"
+    
+    porosity:
+      minimum: 0.10           # 10%
+      maximum: 0.15           # 15%
+      mean: 0.125             # 12.5%
+      std_deviation: 0.01
+    
+    horizontal_permeability:
+      minimum: 5              # mD
+      maximum: 25             # mD
+      mean: 15                # mD
+    
+    net_to_gross: 0.45        # 45% net pay
+    kv_kh_ratio: 0.5
+    compressibility: 7.2e-6   # psi^-1
+    kozeny_carman_constant: 8.0  # Higher for tight rocks
+    
+    rel_perm_ow:
+      Swir: 0.28
+      Sor: 0.38
+      krw_Sor: 0.20
+      kro_Swir: 0.65
+      nw: 3.8
+      no: 3.0
+    
+    rel_perm_go:
+      Sgr: 0.18
+      Sorg: 0.28
+      krg_Sorg: 0.45
+      krog_Sgr: 0.68
+      ng: 2.8
+      nog: 3.2
+    
+    capillary_pressure:
+      pc_entry: 6.5           # psi
+      pc_max: 35.0            # psi
+      lambda: 0.25
+    
+    poro_perm_correlation:
+      a: 0.0045
+      n: 4.1
+
+  RT5:
+    name: "Limestone"
+    lithology: "Limestone"
+    description: "Vuggy limestone with variable reservoir quality"
+    
+    porosity:
+      minimum: 0.15           # 15%
+      maximum: 0.28           # 28%
+      mean: 0.215             # 21.5%
+      std_deviation: 0.035
+    
+    horizontal_permeability:
+      minimum: 50             # mD
+      maximum: 300            # mD
+      mean: 175               # mD
+    
+    net_to_gross: 0.60        # 60% net pay
+    kv_kh_ratio: 0.5
+    compressibility: 2.8e-6   # psi^-1
+    kozeny_carman_constant: 6.0  # Intermediate for limestone
+    
+    rel_perm_ow:
+      Swir: 0.12
+      Sor: 0.22
+      krw_Sor: 0.45
+      kro_Swir: 0.88
+      nw: 2.2
+      no: 1.8
+    
+    rel_perm_go:
+      Sgr: 0.03
+      Sorg: 0.12
+      krg_Sorg: 0.80
+      krog_Sgr: 0.92
+      ng: 1.6
+      nog: 2.0
+    
+    capillary_pressure:
+      pc_entry: 0.8           # psi
+      pc_max: 18.0            # psi
+      lambda: 0.50
+    
+    poro_perm_correlation:
+      a: 0.0128
+      n: 2.8
+
+  RT6:
+    name: "Shale"
+    lithology: "Shale"
+    description: "Impermeable shale acting as flow barrier"
+    
+    porosity:
+      minimum: 0.02           # 2%
+      maximum: 0.08           # 8%
+      mean: 0.05              # 5%
+      std_deviation: 0.015
+    
+    horizontal_permeability:
+      minimum: 0.001          # mD
+      maximum: 0.1            # mD
+      mean: 0.0505            # mD
+    
+    net_to_gross: 0.05        # 5% net pay
+    kv_kh_ratio: 0.1          # Lower for shale
+    compressibility: 12.5e-6  # psi^-1
+    kozeny_carman_constant: 15.0  # Very high for shale
+    
+    rel_perm_ow:
+      Swir: 0.35
+      Sor: 0.45
+      krw_Sor: 0.05
+      kro_Swir: 0.25
+      nw: 5.0
+      no: 4.0
+    
+    rel_perm_go:
+      Sgr: 0.25
+      Sorg: 0.35
+      krg_Sorg: 0.15
+      krog_Sgr: 0.30
+      ng: 4.0
+      nog: 4.5
+    
+    capillary_pressure:
+      pc_entry: 25.0          # psi
+      pc_max: 100.0           # psi
+      lambda: 0.15
+    
+    poro_perm_correlation:
+      a: 0.0001
+      n: 6.0
+
+# LEGACY PROPERTIES (for backward compatibility)
 sandstone_properties:
   lithology_type: "sandstone"
-  
-  # POROSITY DISTRIBUTION
   porosity:
-    average: 0.225            # 22.5% - Average porosity
-    minimum: 0.20             # 20% - Minimum porosity
-    maximum: 0.25             # 25% - Maximum porosity
-    distribution: "lognormal" # Statistical distribution
-    standard_deviation: 0.02  # Porosity variability
-  
-  # PERMEABILITY DISTRIBUTION
+    average: 0.225
+    minimum: 0.20
+    maximum: 0.25
+    distribution: "lognormal"
+    standard_deviation: 0.02
   horizontal_permeability:
-    average: 160              # mD - Average horizontal permeability
-    minimum: 120              # mD - Minimum horizontal permeability
-    maximum: 200              # mD - Maximum horizontal permeability
-    distribution: "lognormal" # Statistical distribution
-    correlation_length_x: 500 # ft - Correlation in X direction
-    correlation_length_y: 500 # ft - Correlation in Y direction
-  
+    average: 160
+    minimum: 120
+    maximum: 200
+    distribution: "lognormal"
+    correlation_length_x: 500
+    correlation_length_y: 500
   vertical_permeability:
-    kv_kh_ratio_avg: 0.20     # Average Kv/Kh ratio
-    kv_kh_ratio_min: 0.15     # Minimum Kv/Kh ratio
-    kv_kh_ratio_max: 0.25     # Maximum Kv/Kh ratio
-  
-  # COMPRESSIBILITY
-  rock_compressibility: 3.0e-6  # 1/psi - Rock compressibility
-  
-  # THERMAL PROPERTIES
-  thermal_conductivity: 1.5     # BTU/hr-ft-°F
-  heat_capacity: 0.2           # BTU/lbm-°F
+    kv_kh_ratio_avg: 0.20
+    kv_kh_ratio_min: 0.15
+    kv_kh_ratio_max: 0.25
+  rock_compressibility: 3.0e-6
+  thermal_conductivity: 1.5
+  heat_capacity: 0.2
 
-# SECONDARY LITHOLOGIES
 shale_properties:
   lithology_type: "shale"
-  
-  # SEAL/BARRIER PROPERTIES
   porosity:
-    average: 0.08             # 8% - Low porosity
-    minimum: 0.05             # 5% - Minimum porosity
-    maximum: 0.12             # 12% - Maximum porosity
-  
+    average: 0.08
+    minimum: 0.05
+    maximum: 0.12
   horizontal_permeability:
-    average: 0.01             # mD - Very low permeability
-    minimum: 0.001            # mD - Minimum permeability
-    maximum: 0.1              # mD - Maximum permeability
-  
+    average: 0.01
+    minimum: 0.001
+    maximum: 0.1
   vertical_permeability:
-    kv_kh_ratio_avg: 0.1      # Lower vertical flow
-  
-  rock_compressibility: 5.0e-6  # 1/psi - Higher compressibility
+    kv_kh_ratio_avg: 0.1
+  rock_compressibility: 5.0e-6
 
 limestone_properties:
   lithology_type: "limestone"
-  
-  # TIGHT CARBONATE PROPERTIES
   porosity:
-    average: 0.15             # 15% - Moderate porosity
-    minimum: 0.10             # 10% - Minimum porosity
-    maximum: 0.20             # 20% - Maximum porosity
-  
+    average: 0.15
+    minimum: 0.10
+    maximum: 0.20
   horizontal_permeability:
-    average: 50               # mD - Moderate permeability
-    minimum: 10               # mD - Minimum permeability
-    maximum: 100              # mD - Maximum permeability
-  
+    average: 50
+    minimum: 10
+    maximum: 100
   vertical_permeability:
-    kv_kh_ratio_avg: 0.15     # Reduced vertical flow
-  
-  rock_compressibility: 2.0e-6  # 1/psi - Lower compressibility
+    kv_kh_ratio_avg: 0.15
+  rock_compressibility: 2.0e-6
 
 # LAYER ARCHITECTURE AND FACIES
 layer_definition:

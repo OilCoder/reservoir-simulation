@@ -1,21 +1,16 @@
 function [G, status] = s02_create_grid(varargin)
-%S02_CREATE_GRID Create basic Cartesian grid from configuration
+%S02_CREATE_GRID Create basic Cartesian grid from YAML configuration
 
 % Suppress warnings for cleaner output
 warning('off', 'Octave:language-extension');
 warning('off', 'Octave:str-to-num');
 %
-% This script creates a Cartesian tensor grid based on the centralized
-% configuration for the Eagle West Field simulation.
+% This script creates a Cartesian tensor grid based on the grid
+% configuration YAML file for the Eagle West Field simulation.
 %
 % USAGE:
-%   [G, status] = s02_create_grid(config)                    % Normal mode (clean output)
-%   [G, status] = s02_create_grid(config, 'verbose', true)   % Verbose mode (detailed output)
-%   [G, status] = s02_create_grid('verbose', true)           % Load config automatically, verbose
-%
-% INPUT:
-%   config - Configuration structure from s00_load_config (optional)
-%            If not provided, will load configuration automatically
+%   [G, status] = s02_create_grid()                    % Normal mode (clean output)
+%   [G, status] = s02_create_grid('verbose', true)     % Verbose mode (detailed output)
 %
 % OUTPUT:
 %   G      - MRST grid structure with computed geometry
@@ -23,7 +18,8 @@ warning('off', 'Octave:str-to-num');
 %
 % DEPENDENCIES:
 %   - MRST environment (assumed already initialized by workflow)
-%   - s00_load_config.m (centralized configuration loader)
+%   - config/grid_config.yaml configuration file
+%   - util_read_config.m (YAML reader)
 %
 % SUCCESS CRITERIA:
 %   - Grid created without errors  
@@ -33,10 +29,8 @@ warning('off', 'Octave:str-to-num');
 
     % Parse input arguments
     p = inputParser;
-    addOptional(p, 'config', [], @isstruct);
     addParameter(p, 'verbose', false, @islogical);
     parse(p, varargin{:});
-    config = p.Results.config;
     verbose = p.Results.verbose;
     
     if verbose
@@ -63,26 +57,40 @@ warning('off', 'Octave:str-to-num');
     task_names = {'Load Configuration', 'Extract Parameters', 'Create Cartesian Grid', 'Compute Geometry', 'Validate Quality'};
     
     try
-        %% Step 1: Load configuration if not provided
+        %% Step 1: Load grid configuration from YAML
         if verbose
-            fprintf('Step 1: Loading configuration...\n');
+            fprintf('Step 1: Loading grid configuration from YAML...\n');
         end
         
         try
-            % Load config if not provided as input
-            if isempty(config)
-                config = s00_load_config('verbose', false);
-                if ~config.loaded
-                    error('Failed to load configuration');
-                end
-                config_source = 'auto-loaded';
-            else
-                config_source = 'provided';
-            end
-            grid_config = config.grid;
+            % Load grid configuration directly from YAML
+            config_dir = 'config';
+            grid_file = fullfile(config_dir, 'grid_config.yaml');
+            grid_raw = util_read_config(grid_file);
+            
+            % Build grid configuration structure
+            grid_config = struct();
+            grid_config.nx = parse_numeric(grid_raw.nx);
+            grid_config.ny = parse_numeric(grid_raw.ny);
+            grid_config.nz = parse_numeric(grid_raw.nz);
+            
+            % Cell dimensions (convert ft to m)
+            ft_to_m = 0.3048;
+            grid_config.dx = parse_numeric(grid_raw.dx) * ft_to_m;
+            grid_config.dy = parse_numeric(grid_raw.dy) * ft_to_m;
+            grid_config.dz = parse_numeric(grid_raw.dz) * ft_to_m;
+            
+            % Field extent
+            grid_config.Lx = parse_numeric(grid_raw.length_x);     % already in m
+            grid_config.Ly = parse_numeric(grid_raw.length_y);     % already in m
+            grid_config.Lz = parse_numeric(grid_raw.gross_thickness); % already in m
+            
             step1_success = true;
-        catch
+        catch ME
             step1_success = false;
+            if verbose
+                fprintf('Error loading grid configuration: %s\n', ME.message);
+            end
         end
         
         if ~verbose
@@ -94,7 +102,8 @@ warning('off', 'Octave:str-to-num');
             fprintf('| %-35s |   %s    |\n', task_names{1}, status_symbol);
         else
             if step1_success
-                fprintf('  - Configuration %s successfully\n', config_source);
+                fprintf('  - Grid configuration loaded from YAML\n');
+                fprintf('  - Grid: %dx%dx%d cells\n', grid_config.nx, grid_config.ny, grid_config.nz);
             end
         end
         
@@ -315,4 +324,24 @@ warning('off', 'Octave:str-to-num');
     end
     
     fprintf('\n');
+end
+
+function val = parse_numeric(str_val)
+%PARSE_NUMERIC Extract numeric value from string (removing comments)
+%
+% Handles strings like "20                    # Number of cells"
+% and returns just the numeric value 20
+
+    if isnumeric(str_val)
+        val = str_val;
+    else
+        % Remove comments after # symbol
+        clean_str = strtok(str_val, '#');
+        % Convert to number
+        val = str2double(clean_str);
+        
+        if isnan(val)
+            error('Failed to parse numeric value from: %s', str_val);
+        end
+    end
 end

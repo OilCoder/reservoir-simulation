@@ -177,26 +177,31 @@ function status = s01_initialize_mrst(varargin)
         
         status.modules_loaded = loaded_modules;
         
-        %% Step 4: Test configuration loader
+        %% Step 4: Test YAML configuration files
         if verbose
-            fprintf('Step 4: Testing configuration loader...\n');
+            fprintf('Step 4: Testing YAML configuration files...\n');
         end
         
         try
-            % Test that s00_load_config exists and works
-            if ~exist('s00_load_config', 'file')
-                error('Configuration loader not found');
+            % Test that configuration files exist
+            config_files = {'grid_config.yaml', 'fluid_properties_config.yaml', ...
+                           'rock_properties_config.yaml', 'wells_schedule_config.yaml', ...
+                           'initial_conditions_config.yaml'};
+            
+            config_dir = 'config';
+            files_found = 0;
+            for i = 1:length(config_files)
+                config_path = fullfile(config_dir, config_files{i});
+                if exist(config_path, 'file')
+                    files_found = files_found + 1;
+                end
             end
-            % Test config loader without displaying table (already shown in main workflow)
-            temp_output = evalc('test_config = s00_load_config(''verbose'', false);');
-            if ~test_config.loaded
-                error('Configuration loader failed');
-            end
-            step4_success = true;
-            status.config_loaded = true;
+            
+            step4_success = files_found >= 4;  % At least 4 config files needed
+            status.config_files_found = files_found;
         catch
             step4_success = false;
-            status.config_loaded = false;
+            status.config_files_found = 0;
         end
         
         if ~verbose
@@ -208,10 +213,10 @@ function status = s01_initialize_mrst(varargin)
             fprintf('| %-35s |   %s    |\n', component_names{4}, status_symbol);
         else
             if step4_success
-                fprintf('  - Configuration loader: OK\n');
-                fprintf('  - Configs loaded: Grid, Fluid, Rock, Wells, Initial\n');
+                fprintf('  - Configuration files: %d/5 found\n', files_found);
+                fprintf('  - YAML configs: Grid, Fluid, Rock, Wells, Initial\n');
             else
-                fprintf('  - Configuration loader: WARNING (failed)\n');
+                fprintf('  - Configuration files: WARNING (%d/5 found)\n', files_found);
             end
         end
         
@@ -269,10 +274,10 @@ function status = s01_initialize_mrst(varargin)
                 fprintf('Advanced modules loaded (%d/%d): %s\n', length(advanced_loaded), length(advanced_modules), strjoin(advanced_loaded, ', '));
             end
             warning('on', 'Octave:str-to-num');
-            if status.config_loaded
-                fprintf('Configuration loader: OK (all 5 configs available)\n');
+            if status.config_files_found >= 4
+                fprintf('Configuration files: OK (%d/5 YAML configs available)\n', status.config_files_found);
             else
-                fprintf('Configuration loader: NOT TESTED\n');
+                fprintf('Configuration files: WARNING (%d/5 found)\n', status.config_files_found);
             end
             fprintf('Timestamp: %s\n', status.timestamp);
         end

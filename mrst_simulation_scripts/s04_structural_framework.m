@@ -8,14 +8,11 @@ warning('off', 'all');
 % dip angles, and elevation variations to create a realistic reservoir framework.
 %
 % USAGE:
-%   [G, status] = s04_structural_framework(G_basic, config)                    % Normal mode (clean output)
-%   [G, status] = s04_structural_framework(G_basic, config, 'verbose', true)   % Verbose mode (detailed output)
-%   [G, status] = s04_structural_framework(G_basic, 'verbose', true)           % Load config automatically, verbose
+%   [G, status] = s04_structural_framework(G_basic)                    % Normal mode (clean output)
+%   [G, status] = s04_structural_framework(G_basic, 'verbose', true)   % Verbose mode (detailed output)
 %
 % INPUT:
 %   G_basic - Basic MRST grid structure from s02_create_grid
-%   config  - Configuration structure from s00_load_config (optional)
-%            If not provided, will load configuration automatically
 %
 % OUTPUT:
 %   G      - MRST grid structure with structural framework applied
@@ -23,7 +20,8 @@ warning('off', 'all');
 %
 % DEPENDENCIES:
 %   - MRST environment (assumed already initialized by workflow)
-%   - s00_load_config.m (centralized configuration loader)
+%   - config/grid_config.yaml for grid parameters
+%   - util_read_config.m (YAML reader)
 %
 % SUCCESS CRITERIA:
 %   - Structural framework created without errors
@@ -34,10 +32,8 @@ warning('off', 'all');
     % Parse input arguments
     p = inputParser;
     addRequired(p, 'G_basic', @isstruct);
-    addOptional(p, 'config', [], @isstruct);
     addParameter(p, 'verbose', false, @islogical);
     parse(p, G_basic, varargin{:});
-    config = p.Results.config;
     verbose = p.Results.verbose;
     
     if verbose
@@ -64,26 +60,32 @@ warning('off', 'all');
     task_names = {'Load Configuration', 'Extract Parameters', 'Create Anticline (340 ft relief)', 'Apply Structural Depths', 'Validate Framework'};
     
     try
-        %% Step 1: Load configuration if not provided
+        %% Step 1: Load grid configuration from YAML
         if verbose
-            fprintf('Step 1: Loading configuration...\n');
+            fprintf('Step 1: Loading grid configuration from YAML...\n');
         end
         
         try
-            % Load config if not provided as input
-            if isempty(config)
-                config = s00_load_config('verbose', false);
-                if ~config.loaded
-                    error('Failed to load configuration');
-                end
-                config_source = 'auto-loaded';
-            else
-                config_source = 'provided';
-            end
-            grid_config = config.grid;
+            % Load grid configuration directly from YAML
+            config_dir = 'config';
+            grid_file = fullfile(config_dir, 'grid_config.yaml');
+            grid_raw = util_read_config(grid_file);
+            
+            % Extract basic grid parameters
+            grid_config = struct();
+            grid_config.nx = parse_numeric(grid_raw.nx);
+            grid_config.ny = parse_numeric(grid_raw.ny);
+            grid_config.nz = parse_numeric(grid_raw.nz);
+            grid_config.Lx = parse_numeric(grid_raw.length_x);     % m
+            grid_config.Ly = parse_numeric(grid_raw.length_y);     % m
+            grid_config.Lz = parse_numeric(grid_raw.gross_thickness); % m
+            
             step1_success = true;
-        catch
+        catch ME
             step1_success = false;
+            if verbose
+                fprintf('Error loading grid configuration: %s\n', ME.message);
+            end
         end
         
         if ~verbose
@@ -95,7 +97,8 @@ warning('off', 'all');
             fprintf('| %-35s |   %s    |\n', task_names{1}, status_symbol);
         else
             if step1_success
-                fprintf('  - Configuration %s successfully\n', config_source);
+                fprintf('  - Grid configuration loaded from YAML\n');
+                fprintf('  - Grid dimensions: %dx%dx%d\n', grid_config.nx, grid_config.ny, grid_config.nz);
             end
         end
         
@@ -110,12 +113,12 @@ warning('off', 'all');
         
         try
             % Extract grid parameters
-            nx = config.grid.nx;  % 40
-            ny = config.grid.ny;  % 40  
-            nz = config.grid.nz;  % 12
-            Lx = config.grid.Lx;  % 3280 m
-            Ly = config.grid.Ly;  % 2950 m
-            Lz = config.grid.Lz;  % 100 m
+            nx = grid_config.nx;  % 40
+            ny = grid_config.ny;  % 40  
+            nz = grid_config.nz;  % 12
+            Lx = grid_config.Lx;  % 3280 m
+            Ly = grid_config.Ly;  % 2950 m
+            Lz = grid_config.Lz;  % 100 m
             step2_success = true;
         catch
             step2_success = false;
@@ -460,4 +463,17 @@ warning('off', 'all');
     end
     
     fprintf('\n');
+end
+
+function val = parse_numeric(str_val)
+%PARSE_NUMERIC Extract numeric value from string (removing comments)
+    if isnumeric(str_val)
+        val = str_val;
+    else
+        clean_str = strtok(str_val, '#');
+        val = str2double(clean_str);
+        if isnan(val)
+            error('Failed to parse numeric value from: %s', str_val);
+        end
+    end
 end
