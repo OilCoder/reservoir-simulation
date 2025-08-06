@@ -6,7 +6,7 @@
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces/claudeclean"]
     },
     "sequential-thinking": {
       "command": "npx",
@@ -14,11 +14,15 @@
     },
     "obsidian": {
       "command": "npx",
-      "args": ["-y", "obsidian-mcp", "/workspace/obsidian-vault"]
+      "args": ["-y", "obsidian-mcp", "/workspaces/claudeclean/obsidian-vault"]
     },
     "todo": {
-      "command": "/workspace/todo_list/todo-wrapper.sh",
+      "command": "/workspaces/claudeclean/obsidian-vault/Planning/Todo_Lists/todo-wrapper.sh",
       "args": []
+    },
+    "ref": {
+      "command": "npx",
+      "args": ["-y", "ref-tools-mcp@latest"]
     }
   }
 }

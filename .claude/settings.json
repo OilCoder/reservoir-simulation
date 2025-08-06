@@ -1,0 +1,121 @@
+{
+  "description": "Configuration for the 3-Agent System (CODER, TESTER, DEBUGGER) with MCP integration",
+  
+  "hooks": {
+    "userPromptSubmit": {
+      "description": "Analyzes user prompts and distributes tasks to appropriate agents",
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py"
+    },
+    "subagentStop": {
+      "description": "Consolidates results when subagents complete their tasks",
+      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py"
+    }
+  },
+  
+  "permissions": {
+    "description": "Tool permissions for the 3-agent system",
+    "allow": [
+      "Task",
+      "Read", 
+      "Write", 
+      "Edit", 
+      "MultiEdit",
+      "Bash", 
+      "Grep", 
+      "Glob",
+      "LS",
+      "mcp__filesystem__*",
+      "mcp__memory__*",
+      "mcp__obsidian__*",
+      "mcp__ref__*",
+      "mcp__sequential-thinking__*",
+      "mcp__todo__*"
+    ],
+    "deny": []
+  },
+  
+  "agents": {
+    "description": "Configuration for the 3 specialized agents",
+    "coder": {
+      "description": "Production code writer for src/ and mrst_simulation_scripts/",
+      "folders": ["src/", "mrst_simulation_scripts/"],
+      "rules": [0, 1, 2, 5, 6, 8],
+      "mcp_servers": ["filesystem", "memory", "obsidian", "sequential-thinking", "todo"],
+      "allowed_tools": [
+        "mcp__filesystem__*",
+        "mcp__memory__*", 
+        "mcp__obsidian__*",
+        "mcp__sequential-thinking__*",
+        "mcp__todo__*",
+        "Read", "Write", "Edit", "MultiEdit", "Grep", "Glob"
+      ]
+    },
+    "tester": {
+      "description": "Test creator for tests/ directory",
+      "folders": ["tests/"],
+      "rules": [0, 3, 5],
+      "mcp_servers": ["filesystem", "memory", "ref", "todo"],
+      "allowed_tools": [
+        "mcp__filesystem__*",
+        "mcp__memory__*",
+        "mcp__ref__*", 
+        "mcp__todo__*",
+        "Read", "Write", "Bash"
+      ]
+    },
+    "debugger": {
+      "description": "Debug script creator for debug/ directory",
+      "folders": ["debug/"],
+      "rules": [0, 4, 5],
+      "mcp_servers": ["filesystem", "memory", "sequential-thinking", "obsidian"],
+      "allowed_tools": [
+        "mcp__filesystem__*",
+        "mcp__memory__*",
+        "mcp__sequential-thinking__*",
+        "mcp__obsidian__*",
+        "Read", "Write", "Bash"
+      ]
+    }
+  },
+  
+  "workflow": {
+    "description": "Workflow configuration for automatic agent selection",
+    "auto_activation": {
+      "coder_keywords": ["create", "implement", "write", "edit", "add", "build", "develop", "function", "class", "module", "script", "code", "algorithm"],
+      "tester_keywords": ["test", "testing", "pytest", "unittest", "validation", "verify", "check", "assert", "coverage", "edge case"],
+      "debugger_keywords": ["debug", "fix", "error", "bug", "issue", "problem", "investigate", "analyze", "trace", "diagnose", "troubleshoot", "broken"]
+    },
+    "default_agents": ["coder", "tester"],
+    "parallel_execution": true
+  },
+  
+  "project": {
+    "description": "Project-specific settings",
+    "type": "geomechanical_ml",
+    "languages": ["python", "octave"],
+    "rules_path": ".claude/rules/",
+    "documentation_path": "obsidian-vault/",
+    "logging": {
+      "enabled": true,
+      "path": ".claude/logs/",
+      "format": "jsonl"
+    }
+  },
+  
+  "mcp": {
+    "description": "MCP server configuration and usage guidelines",
+    "servers": {
+      "filesystem": "Optimized file operations - use instead of native Read/Write/Edit",
+      "memory": "Persistent knowledge graph for code patterns and context", 
+      "obsidian": "Project documentation and notes management",
+      "ref": "External documentation and best practices lookup",
+      "sequential-thinking": "Complex problem analysis and step-by-step reasoning",
+      "todo": "Task and progress tracking"
+    },
+    "performance_benefits": {
+      "filesystem": "10x faster than native file operations",
+      "memory": "Persistent context across sessions",
+      "sequential-thinking": "Better complex problem solving"
+    }
+  }
+}
