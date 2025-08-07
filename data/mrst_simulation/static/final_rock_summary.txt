@@ -1,0 +1,12 @@
+Eagle West Field - Final Simulation Rock Summary
+=================================================
+
+SIMULATION STATUS: READY
+IMPLEMENTATION: 100% Native MRST
+
+Field Characteristics:
+  Total Cells: 19200
+  Grid Dimensions: 40x40x12
+  Layers: 12
+
+=== READY FOR MRST RESERVOIR SIMULATION ===

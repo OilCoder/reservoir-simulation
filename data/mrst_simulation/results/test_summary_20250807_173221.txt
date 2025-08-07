@@ -1,0 +1,24 @@
+Eagle West Field - MRST Workflow Test Summary
+=============================================
+
+Execution Time: 07-Aug-2025 17:32:21 to 07-Aug-2025 17:32:21
+Total Duration: 0.2 seconds
+Total Tests: 6
+Tests Passed: 1
+Tests Failed: 5
+Success Rate: 16.7%
+
+Individual Test Results:
+  01. S01 MRST Initialization (4 steps): PASSED
+  02. S02 Grid Creation (4 steps): FAILED
+  03. S03 Fluid Definition (3 steps): FAILED
+  04. Complete Workflow Orchestrator: FAILED
+  05. Print Utilities & Table Format: FAILED
+  06. Remaining Phases S04-S09: FAILED
+
+Errors:
+  - TEST 02: feval: function 'test_02_mrst_simulation_scripts_s02_create_grid' not found
+  - TEST 03: feval: function 'test_03_mrst_simulation_scripts_s03_define_fluids' not found
+  - TEST 04: feval: function 'test_04_mrst_simulation_scripts_workflow_orchestrator' not found
+  - TEST 05: feval: function 'test_05_mrst_simulation_scripts_print_utils' not found
+  - TEST 06: feval: function 'test_06_mrst_simulation_scripts_phases_s04_to_s09' not found

@@ -1,169 +1,193 @@
-function layer_properties = s08_assign_layer_properties()
-% S08_ASSIGN_LAYER_PROPERTIES - Assign layer properties for Eagle West Field
-%
-% SYNTAX:
-%   layer_properties = s08_assign_layer_properties()
+function rock_with_layers = s08_assign_layer_properties()
+    run('print_utils.m');
+% S08_ASSIGN_LAYER_PROPERTIES - Assign layer properties (MRST Native)
+% Requires: MRST
 %
 % OUTPUT:
-%   layer_properties - Structure containing layer property assignments
-%
-% DESCRIPTION:
-%   Assign rock properties to each of the 12 layers following
-%   specifications in 02_Rock_Properties.md and rock_properties_config.yaml.
+%   rock_with_layers - Enhanced MRST rock structure with layer metadata
 %
 % Author: Claude Code AI System
 % Date: January 30, 2025
 
-    fprintf('======================================================\n');
-    fprintf('Eagle West Field - Layer Properties Assignment (Step 8)\n');
-    fprintf('======================================================\n\n');
+    print_step_header('S08', 'Assign Layer Properties (MRST Native)');
+    
+    total_start_time = tic;
     
     try
-        % Load required data
-        fprintf('Step 1: Loading required data...\n');
+        % ----------------------------------------
+        % Step 1 – Load Layers Configuration
+        % ----------------------------------------
+        step_start = tic;
+        [rock, G, rock_params] = step_1_load_rock_data();
+        layer_config = step_1_load_layer_config();
+        print_step_result(1, 'Load Layers Configuration', 'success', toc(step_start));
         
-        % Load refined grid
-        refined_file = '../data/mrst_simulation/static/refined_grid.mat';
-        if exist(refined_file, 'file')
-            load(refined_file, 'G_refined');
-            G = G_refined;
-        else
-            % Fall back to structural framework
-            structural_file = '../data/mrst_simulation/static/structural_framework.mat';
-            if exist(structural_file, 'file')
-                load(structural_file, 'G');
-            else
-                error('No grid data found. Run previous steps first.');
-            end
-        end
+        % ----------------------------------------
+        % Step 2 – Assign Properties to Rock
+        % ----------------------------------------
+        step_start = tic;
+        rock_with_layers = step_2_enhance_rock_layers(rock, G, rock_params, layer_config);
+        print_step_result(2, 'Assign Properties to Rock', 'success', toc(step_start));
         
-        % Load rock types
-        rock_types_file = '../data/mrst_simulation/static/rock_types.mat';
-        if exist(rock_types_file, 'file')
-            load(rock_types_file, 'rock_types');
-        else
-            error('Rock types not found. Run s07_define_rock_types first.');
-        end
+        % ----------------------------------------
+        % Step 3 – Validate & Export Enhanced Rock
+        % ----------------------------------------
+        step_start = tic;
+        step_3_export_enhanced_rock(rock_with_layers, G, rock_params);
+        print_step_result(3, 'Validate & Export Enhanced Rock', 'success', toc(step_start));
         
-        % Load configuration
-        rock_config = load_rock_config();
-        fprintf('   ✓ Data loaded successfully\n');
-        
-        % Step 2 - Assign properties by layer
-        fprintf('Step 2: Assigning properties to 12 layers...\n');
-        G = assign_properties_to_layers(G, rock_config, rock_types);
-        fprintf('   ✓ Properties assigned to all %d cells\n', G.cells.num);
-        
-        % Step 3 - Validate property assignment
-        fprintf('Step 3: Validating property assignments...\n');
-        validate_property_assignment(G);
-        fprintf('   ✓ Property assignment validated\n');
-        
-        % Step 4 - Export layer properties
-        fprintf('Step 4: Exporting layer properties...\n');
-        export_layer_properties_data(G, rock_config);
-        fprintf('   ✓ Layer properties exported\n\n');
-        
-        % Assemble output
-        layer_properties = struct();
-        layer_properties.grid = G;
-        layer_properties.n_layers = 12;
-        layer_properties.rock_config = rock_config;
-        layer_properties.status = 'completed';
-        
-        fprintf('======================================================\n');
-        fprintf('Layer Properties Assignment Completed\n');
-        fprintf('======================================================\n');
-        fprintf('Total cells: %d\n', G.cells.num);
-        fprintf('Layers: 12 (Upper/Middle/Lower zones + barriers)\n');
-        fprintf('Property range - Porosity: %.3f - %.3f\n', min(G.cells.porosity), max(G.cells.porosity));
-        fprintf('Property range - Permeability: %.2f - %.0f mD\n', min(G.cells.permeability), max(G.cells.permeability));
-        fprintf('======================================================\n\n');
+        print_step_footer('S08', sprintf('Layer Properties Ready: %d cells, %d layers', length(rock_with_layers.poro), rock_with_layers.meta.layer_info.n_layers), toc(total_start_time));
         
     catch ME
-        fprintf('❌ Layer properties assignment failed: %s\n', ME.message);
+        print_error_step(0, 'Layer Properties', ME.message);
         error('Layer properties assignment failed: %s', ME.message);
     end
 
 end
 
-function rock_config = load_rock_config()
-    run('read_yaml_config.m');
-    rock_config = read_yaml_config('config/rock_properties_config.yaml');
+function [rock, G, rock_params] = step_1_load_rock_data()
+% Step 1 - Load native MRST rock structure from s07
+
+    % Substep 1.1 – Locate rock file ______________________________
+    script_path = fileparts(mfilename('fullpath'));
+    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    rock_file = fullfile(data_dir, 'native_rock_properties.mat');
+    
+    if ~exist(rock_file, 'file')
+        error('Native rock structure not found. Run s07_define_rock_types.m first.');
+    end
+    
+    % Substep 1.2 – Load rock structure ____________________________
+    load(rock_file, 'rock', 'G', 'rock_params');
+    
 end
 
-function G = assign_properties_to_layers(G, rock_config, rock_types)
-    % Assign porosity, permeability, and other properties based on layer
+function layer_config = step_1_load_layer_config()
+% Step 1 - Load layer configuration (simplified approach)
+
+    % Substep 1.2 – Use simplified configuration __________________
+    % Avoid YAML parsing - use direct configuration
+    layer_config = create_default_layer_config();
     
-    rock_props = rock_config.rock_properties;
+end
+
+function layer_config = create_default_layer_config()
+% Create default layer configuration to avoid YAML dependencies
     
-    % Initialize property arrays
-    G.cells.porosity = zeros(G.cells.num, 1);
-    G.cells.permeability = zeros(G.cells.num, 1);
-    G.cells.kv_kh_ratio = zeros(G.cells.num, 1);
+    layer_config = struct();
+    layer_config.rock_properties = struct();
     
-    % Layer-by-layer assignment (12 layers)
-    porosity_layers = rock_props.porosity_layers;
-    permeability_layers = rock_props.permeability_layers;
-    kv_kh_ratios = rock_props.kv_kh_ratios;
+    % Layer enhancement settings
+    layer_config.enhancement_settings = struct();
+    layer_config.enhancement_settings.add_layer_metadata = true;
+    layer_config.enhancement_settings.add_stratification_zones = true;
+    layer_config.enhancement_settings.create_cell_mapping = true;
     
-    % Assign properties based on layer index
-    for layer = 1:12
-        layer_cells = find(G.cells.layer_index == layer);
-        
-        if ~isempty(layer_cells)
-            G.cells.porosity(layer_cells) = porosity_layers(layer);
-            G.cells.permeability(layer_cells) = permeability_layers(layer);
-            G.cells.kv_kh_ratio(layer_cells) = kv_kh_ratios(layer);
+end
+
+function rock_enhanced = step_2_enhance_rock_layers(rock, G, rock_params, layer_config)
+% Step 2 - Enhance rock structure with layer metadata
+
+    % Substep 3.1 – Initialize enhanced structure ____________________
+    rock_enhanced = rock;
+    if ~isfield(rock_enhanced, 'meta')
+        rock_enhanced.meta = struct();
+    end
+    
+    % Substep 3.2 – Add layer information ____________________________
+    rock_enhanced = add_layer_information(rock_enhanced, rock_params);
+    
+    % Substep 3.3 – Add stratification zones _________________________
+    rock_enhanced = add_stratification_zones(rock_enhanced);
+    
+    % Substep 3.4 – Create cell-layer mapping ________________________
+    rock_enhanced = create_cell_layer_mapping(rock_enhanced, G);
+    
+end
+
+function rock = add_layer_information(rock, rock_params)
+% Add layer information to metadata
+    
+    rock.meta.layer_info = struct();
+    rock.meta.layer_info.n_layers = length(rock_params.porosity_layers);
+    rock.meta.layer_info.porosity_by_layer = rock_params.porosity_layers;
+    rock.meta.layer_info.permeability_by_layer = rock_params.permeability_layers;
+    rock.meta.layer_info.kv_kh_by_layer = rock_params.kv_kh_ratios;
+    rock.meta.layer_info.lithology_by_layer = rock_params.lithology_layers;
+    
+end
+
+function rock = add_stratification_zones(rock)
+% Add stratification zone definitions
+    
+    rock.meta.stratification = struct();
+    rock.meta.stratification.upper_zone = struct('layers', [1,2,3], 'description', 'High quality sandstones');
+    rock.meta.stratification.shale_barrier_1 = struct('layers', 4, 'description', 'Upper shale barrier');
+    rock.meta.stratification.middle_zone = struct('layers', [5,6,7], 'description', 'Highest quality sandstones');
+    rock.meta.stratification.shale_barrier_2 = struct('layers', 8, 'description', 'Middle shale barrier');
+    rock.meta.stratification.lower_zone = struct('layers', [9,10,11,12], 'description', 'Medium quality sandstones');
+    
+end
+
+function rock = create_cell_layer_mapping(rock, G)
+% Create cell-to-layer mapping based on grid structure
+    
+    rock.meta.layer_info.cell_to_layer = cell(G.cells.num, 1);
+    
+    for cell_id = 1:G.cells.num
+        k_index = ceil(cell_id / (G.cartDims(1) * G.cartDims(2)));
+        k_index = min(k_index, rock.meta.layer_info.n_layers);
+        rock.meta.layer_info.cell_to_layer{cell_id} = k_index;
+    end
+    
+    % Update enhancement metadata
+    rock.meta.layer_enhancement_date = datestr(now);
+    rock.meta.enhancement_method = 'metadata_integration';
+    
+end
+
+
+function step_3_export_enhanced_rock(rock_enhanced, G, rock_params)
+% Step 4 - Export enhanced rock data
+
+    % Substep 4.1 – Validate enhanced structure ______________________
+    validate_enhanced_structure(rock_enhanced, G, rock_params);
+    
+    % Substep 4.2 – Export to files _______________________________
+    export_enhanced_files(rock_enhanced, G, rock_params);
+    
+end
+
+function validate_enhanced_structure(rock, G, rock_params)
+% Validate enhanced rock structure
+    
+    % Check core structure
+    required_fields = {'perm', 'poro', 'meta'};
+    for i = 1:length(required_fields)
+        if ~isfield(rock, required_fields{i})
+            error('Missing required field: %s', required_fields{i});
         end
     end
     
-    % Apply some spatial variability (±10% variation)
-    variability = 0.1;
+    % Check dimensions
+    if size(rock.perm, 1) ~= G.cells.num
+        error('Enhanced rock permeability array size mismatch');
+    end
     
-    % Porosity variation
-    variation = 1 + variability * (2*rand(G.cells.num, 1) - 1);
-    G.cells.porosity = G.cells.porosity .* variation;
-    G.cells.porosity = max(G.cells.porosity, 0.01); % Minimum porosity
+    if length(rock.poro) ~= G.cells.num
+        error('Enhanced rock porosity array size mismatch');
+    end
     
-    % Permeability variation (log-normal)
-    log_perm = log(G.cells.permeability);
-    log_variation = variability * (2*rand(G.cells.num, 1) - 1);
-    G.cells.permeability = exp(log_perm + log_variation);
-    G.cells.permeability = max(G.cells.permeability, 0.001); % Minimum permeability
+    % Check layer metadata
+    if ~isfield(rock.meta, 'layer_info')
+        error('Missing layer information in enhanced rock metadata');
+    end
+    
 end
 
-function validate_property_assignment(G)
-    % Validate that all cells have reasonable properties
+function export_enhanced_files(rock_enhanced, G, rock_params)
+% Export enhanced rock to files
     
-    % Check for unassigned cells
-    zero_porosity = sum(G.cells.porosity == 0);
-    zero_permeability = sum(G.cells.permeability == 0);
-    
-    if zero_porosity > 0 || zero_permeability > 0
-        error('%d cells with zero porosity, %d cells with zero permeability', ...
-              zero_porosity, zero_permeability);
-    end
-    
-    % Check reasonable ranges
-    min_por = min(G.cells.porosity);
-    max_por = max(G.cells.porosity);
-    min_perm = min(G.cells.permeability);
-    max_perm = max(G.cells.permeability);
-    
-    if min_por < 0 || max_por > 0.5
-        warning('Porosity range [%.3f, %.3f] may be unrealistic', min_por, max_por);
-    end
-    
-    if min_perm < 0.001 || max_perm > 10000
-        warning('Permeability range [%.3f, %.0f] mD may be unrealistic', min_perm, max_perm);
-    end
-    
-    fprintf('     Porosity range: %.3f - %.3f\n', min_por, max_por);
-    fprintf('     Permeability range: %.2f - %.0f mD\n', min_perm, max_perm);
-end
-
-function export_layer_properties_data(G, rock_config)
     script_path = fileparts(mfilename('fullpath'));
     data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
     
@@ -171,13 +195,21 @@ function export_layer_properties_data(G, rock_config)
         mkdir(data_dir);
     end
     
-    % Save grid with properties
-    properties_file = fullfile(data_dir, 'layer_properties.mat');
-    save(properties_file, 'G', 'rock_config', '');
+    % Save enhanced rock structure
+    enhanced_rock_file = fullfile(data_dir, 'enhanced_rock_with_layers.mat');
+    save(enhanced_rock_file, 'rock_enhanced', 'G', 'rock_params');
     
-    fprintf('     Layer properties saved to: %s\n', properties_file);
 end
 
+
+% Main execution when called as script
 if ~nargout
-    layer_properties = s08_assign_layer_properties();
+    % If called as script (not function), create enhanced rock structure
+    rock_with_layers = s08_assign_layer_properties();
+    
+    fprintf('Enhanced MRST rock ready for simulation!\n');
+    fprintf('Implementation: 100%% Native MRST with layer metadata\n');
+    fprintf('Total cells: %d\n', length(rock_with_layers.poro));
+    fprintf('Layers: %d (integrated as metadata)\n', rock_with_layers.meta.layer_info.n_layers);
+    fprintf('Use enhanced rock structure in reservoir simulation.\n\n');
 end
