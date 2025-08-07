@@ -1,0 +1,71 @@
+# Fault Configuration for Eagle West Field MRST Simulation
+# Based on: 04_Faults.md - Fault network geometry
+# Date: January 30, 2025
+
+fault_system:
+  # Major faults (from 04_Faults.md)
+  faults:
+    - name: "Fault_A"
+      type: "sealing"
+      is_sealing: true
+      strike: 45          # degrees
+      dip: 75            # degrees
+      length: 2500       # ft
+      transmissibility_multiplier: 0.001  # Very low trans (sealing)
+      position_offset_x: 400   # ft from min x
+      position_offset_y: 600   # ft from center y
+      
+    - name: "Fault_B"
+      type: "partially_sealing"
+      is_sealing: false
+      strike: 50         # degrees
+      dip: 70           # degrees
+      length: 2000      # ft
+      transmissibility_multiplier: 0.05  # Partial flow
+      position_offset_x: -600  # ft from center x
+      position_offset_y: -200  # ft from center y
+      
+    - name: "Fault_C"
+      type: "sealing"
+      is_sealing: true
+      strike: 135        # degrees (NW-SE)
+      dip: 80           # degrees
+      length: 1800      # ft
+      transmissibility_multiplier: 0.002  # Very low trans (sealing)
+      position_offset_x: 300   # ft from center x
+      position_offset_y: -300  # ft from max y
+      
+    - name: "Fault_D"
+      type: "partially_sealing"
+      is_sealing: false
+      strike: 40         # degrees
+      dip: 65           # degrees
+      length: 2200      # ft
+      transmissibility_multiplier: 0.1  # Some flow allowed
+      position_offset_x: 600   # ft from min x
+      position_offset_y: -700  # ft from center y
+      
+    - name: "Fault_E"
+      type: "sealing"
+      is_sealing: true
+      strike: 30         # degrees
+      dip: 78           # degrees
+      length: 1600      # ft
+      transmissibility_multiplier: 0.001  # Very low trans (sealing)
+      position_offset_x: -800  # ft from max x
+      position_offset_y: 400   # ft from min y
+      
+  # Fault zone properties
+  fault_zone:
+    damage_zone_width: 50    # ft (typical damage zone)
+    core_zone_width: 10      # ft (fault core)
+    
+  # Compartmentalization effect
+  compartments:
+    northern:
+      bounded_by: ["Fault_A", "Fault_C"]
+      pressure_communication: "limited"
+      
+    southern:
+      bounded_by: ["Fault_D", "Fault_E"]
+      pressure_communication: "moderate"

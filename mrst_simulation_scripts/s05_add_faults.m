@@ -73,11 +73,14 @@ end
 function fault_geometries = step_1_define_geometries(G)
 % Step 1 - Define 5 major fault geometries
 
+    % Substep 1.1 – Load fault configuration from YAML _____________
+    fault_config = load_fault_config();
+    
     % Substep 1.2 – Get field dimensions ___________________________
     field_bounds = get_field_bounds(G);
     
-    % Substep 1.3 – Create fault array _____________________________
-    fault_geometries = create_fault_array(field_bounds);
+    % Substep 1.3 – Create fault array from YAML config ____________
+    fault_geometries = create_fault_array(field_bounds, fault_config);
     
     % Substep 1.4 – Add fault properties ___________________________
     fault_geometries = add_fault_properties(fault_geometries);
@@ -94,65 +97,47 @@ function bounds = get_field_bounds(G)
     bounds.center_y = (bounds.y_min + bounds.y_max) / 2;
 end
 
-function faults = create_fault_array(bounds)
-% Create array of 5 major faults
+function faults = create_fault_array(bounds, fault_config)
+% Create array of faults from YAML configuration - Policy compliance
     
     faults = struct([]);
     
-    % Fault A - Major NE-SW sealing fault
-    faults(1).name = 'Fault_A';
-    faults(1).type = 'sealing';
-    faults(1).is_sealing = true;
-    faults(1).strike = 45;
-    faults(1).dip = 75;
-    faults(1).length = 2500;
-    faults(1).trans_mult = 0.001;
-    [faults(1).x1, faults(1).y1, faults(1).x2, faults(1).y2] = ...
-        calculate_fault_endpoints(bounds.x_min + 400, bounds.center_y + 600, faults(1).length, faults(1).strike);
+    % Load fault definitions from YAML - NO HARDCODING
+    yaml_faults = fault_config.faults;
+    n_faults = length(yaml_faults);
     
-    % Fault B - Secondary partially sealing fault
-    faults(2).name = 'Fault_B';
-    faults(2).type = 'partially_sealing';
-    faults(2).is_sealing = false;
-    faults(2).strike = 50;
-    faults(2).dip = 70;
-    faults(2).length = 2000;
-    faults(2).trans_mult = 0.05;
-    [faults(2).x1, faults(2).y1, faults(2).x2, faults(2).y2] = ...
-        calculate_fault_endpoints(bounds.center_x - 600, bounds.center_y - 200, faults(2).length, faults(2).strike);
-    
-    % Fault C - NW-SE cross fault
-    faults(3).name = 'Fault_C';
-    faults(3).type = 'sealing';
-    faults(3).is_sealing = true;
-    faults(3).strike = 135;
-    faults(3).dip = 80;
-    faults(3).length = 1800;
-    faults(3).trans_mult = 0.002;
-    [faults(3).x1, faults(3).y1, faults(3).x2, faults(3).y2] = ...
-        calculate_fault_endpoints(bounds.center_x + 300, bounds.y_max - 300, faults(3).length, faults(3).strike);
-    
-    % Fault D - Southern boundary fault
-    faults(4).name = 'Fault_D';
-    faults(4).type = 'partially_sealing';
-    faults(4).is_sealing = false;
-    faults(4).strike = 40;
-    faults(4).dip = 65;
-    faults(4).length = 2200;
-    faults(4).trans_mult = 0.1;
-    [faults(4).x1, faults(4).y1, faults(4).x2, faults(4).y2] = ...
-        calculate_fault_endpoints(bounds.x_min + 600, bounds.center_y - 700, faults(4).length, faults(4).strike);
-    
-    % Fault E - Eastern boundary fault
-    faults(5).name = 'Fault_E';
-    faults(5).type = 'sealing';
-    faults(5).is_sealing = true;
-    faults(5).strike = 30;
-    faults(5).dip = 78;
-    faults(5).length = 1600;
-    faults(5).trans_mult = 0.001;
-    [faults(5).x1, faults(5).y1, faults(5).x2, faults(5).y2] = ...
-        calculate_fault_endpoints(bounds.x_max - 800, bounds.y_min + 400, faults(5).length, faults(5).strike);
+    % Create all faults from YAML data - Policy compliance
+    for i = 1:n_faults
+        faults(i).name = yaml_faults{i}.name;
+        faults(i).type = yaml_faults{i}.type;
+        faults(i).is_sealing = yaml_faults{i}.is_sealing;
+        faults(i).strike = yaml_faults{i}.strike;
+        faults(i).dip = yaml_faults{i}.dip;
+        faults(i).length = yaml_faults{i}.length;
+        faults(i).trans_mult = yaml_faults{i}.transmissibility_multiplier;
+        
+        % Calculate fault endpoints from YAML position offsets
+        switch i
+            case 1  % Fault A
+                start_x = bounds.x_min + yaml_faults{i}.position_offset_x;
+                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+            case 2  % Fault B
+                start_x = bounds.center_x + yaml_faults{i}.position_offset_x;
+                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+            case 3  % Fault C
+                start_x = bounds.center_x + yaml_faults{i}.position_offset_x;
+                start_y = bounds.y_max + yaml_faults{i}.position_offset_y;
+            case 4  % Fault D
+                start_x = bounds.x_min + yaml_faults{i}.position_offset_x;
+                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+            case 5  % Fault E
+                start_x = bounds.x_max + yaml_faults{i}.position_offset_x;
+                start_y = bounds.y_min + yaml_faults{i}.position_offset_y;
+        end
+        
+        [faults(i).x1, faults(i).y1, faults(i).x2, faults(i).y2] = ...
+            calculate_fault_endpoints(start_x, start_y, faults(i).length, faults(i).strike);
+    end
     
 end
 
@@ -428,6 +413,25 @@ function fault_data = create_fault_output_structure(G, fault_geometries, interse
 end
 
 
+
+function config = load_fault_config()
+% Load fault configuration from YAML - NO HARDCODING POLICY
+    try
+        % Policy Compliance: Load ALL parameters from YAML config
+        full_config = read_yaml_config('config/fault_config.yaml');
+        config = full_config.fault_system;
+        
+        % Validate required fields exist
+        if ~isfield(config, 'faults')
+            error('Missing required field in fault_config.yaml: faults');
+        end
+        
+        fprintf('Fault configuration loaded from YAML: %d faults\n', length(config.faults));
+        
+    catch ME
+        error('Failed to load fault configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
+    end
+end
 
 % Main execution when called as script
 if ~nargout

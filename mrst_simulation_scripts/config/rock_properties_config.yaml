@@ -9,31 +9,15 @@ rock_properties:
   # Middle Zone (Layers 5-7: Sand, Layer 8: Shale barrier)  
   # Lower Zone (Layers 9-12: Sand with decreasing quality)
   
-  porosity_layers: [
-    0.200, 0.195, 0.190, 0.050,  # Upper zone: 3 sands + 1 shale barrier
-    0.235, 0.230, 0.225, 0.050,  # Middle zone: 3 sands + 1 shale barrier
-    0.150, 0.145, 0.140, 0.135   # Lower zone: 4 sands with decreasing quality
-  ]
+  porosity_layers: [0.200, 0.195, 0.190, 0.050, 0.235, 0.230, 0.225, 0.050, 0.150, 0.145, 0.140, 0.135]
   
-  permeability_layers: [
-    90, 85, 80, 0.01,      # Upper zone: Canon Section 9.1 specification + shale barrier
-    175, 170, 160, 0.01,   # Middle zone: Canon Section 9.1 specification + shale barrier  
-    30, 25, 22, 20         # Lower zone: Canon Section 9.1 specification (no barrier at bottom)
-  ]
+  permeability_layers: [90, 85, 80, 0.01, 175, 170, 160, 0.01, 30, 25, 22, 20]
   
   # Vertical-horizontal permeability ratios by layer
-  kv_kh_ratios: [
-    0.5, 0.5, 0.5, 0.1,   # Upper: sandstone 0.5, shale 0.1
-    0.5, 0.5, 0.5, 0.1,   # Middle: sandstone 0.5, shale 0.1
-    0.5, 0.5, 0.5, 0.5    # Lower: all sandstone 0.5
-  ]
+  kv_kh_ratios: [0.5, 0.5, 0.5, 0.1, 0.5, 0.5, 0.5, 0.1, 0.5, 0.5, 0.5, 0.5]
   
   # Lithology by layer (for reference)
-  lithology_layers: [
-    "sandstone", "sandstone", "sandstone", "shale",
-    "sandstone", "sandstone", "sandstone", "shale", 
-    "sandstone", "sandstone", "sandstone", "sandstone"
-  ]
+  lithology_layers: ["sandstone", "sandstone", "sandstone", "shale", "sandstone", "sandstone", "sandstone", "shale", "sandstone", "sandstone", "sandstone", "sandstone"]
   
   # Dynamic Rock Properties Models (per 02_Rock_Properties.md Section 4)
   

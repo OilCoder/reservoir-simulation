@@ -1,0 +1,32 @@
+# Structural Framework Configuration for Eagle West Field MRST Simulation
+# Based on: 01_Field_Description.md - Structural geology
+# Date: January 30, 2025
+
+structural_framework:
+  # Anticline structure properties (from field documentation)
+  anticline:
+    structural_relief: 340.0    # ft (total structural closure)
+    crest_depth: 7900.0        # ft TVDSS (top of structure)
+    axis_trend: 15.0           # degrees (N15°E trending anticline)
+    
+  # Layer framework
+  layering:
+    layer_thickness: 8.33      # ft per layer (100ft/12layers)
+    total_thickness: 100.0     # ft total reservoir thickness
+    
+  # Compartmentalization
+  compartments:
+    - name: "Northern"
+      description: "Northern structural compartment"
+    - name: "Southern" 
+      description: "Southern structural compartment"
+      
+  # Field geometry
+  field_dimensions:
+    length: 3200.0             # ft (N-S extent)
+    width: 3200.0              # ft (E-W extent)
+    
+  # Dip information
+  structural_dip:
+    maximum_dip: 8.0           # degrees (maximum flank dip)
+    minimum_dip: 2.0           # degrees (crest dip)

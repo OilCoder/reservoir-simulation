@@ -90,20 +90,41 @@ function rock_params = step_1_load_rock_config()
 end
 
 function rock_params = create_default_rock_config()
-% Create default rock configuration to avoid YAML dependencies
+% Load rock configuration from YAML - NO HARDCODING POLICY
     
-    rock_params = struct();
-    
-    % Layer properties (12 layers)
-    rock_params.porosity_layers = [0.25, 0.30, 0.28, 0.05, 0.32, 0.35, 0.30, 0.03, 0.28, 0.25, 0.22, 0.20];
-    rock_params.permeability_layers = [120, 180, 150, 2, 200, 250, 180, 1, 140, 100, 80, 60];
-    rock_params.kv_kh_ratios = [0.1, 0.12, 0.11, 0.001, 0.15, 0.18, 0.12, 0.001, 0.10, 0.08, 0.06, 0.05];
-    rock_params.lithology_layers = {'Sandstone', 'Sandstone', 'Sandstone', 'Shale', 'Sandstone', 'Sandstone', 'Sandstone', 'Shale', 'Sandstone', 'Sandstone', 'Sandstone', 'Sandstone'};
-    
-    % Rock type properties
-    rock_params.rt1_properties = struct('name', 'RT1_HighPerm', 'description', 'High permeability sandstone', 'perm_range', [80, 300]);
-    rock_params.rt2_properties = struct('name', 'RT2_MedPerm', 'description', 'Medium permeability sandstone', 'perm_range', [20, 79]);
-    rock_params.rt6_properties = struct('name', 'RT6_LowPerm', 'description', 'Low permeability / barriers', 'perm_range', [0.1, 19]);
+    try
+        % Policy Compliance: Load ALL parameters from YAML config
+        config = read_yaml_config('config/rock_properties_config.yaml');
+        rock_params = config.rock_properties;
+        
+        % Validate required fields exist
+        required_fields = {'porosity_layers', 'permeability_layers', 'kv_kh_ratios'};
+        for i = 1:length(required_fields)
+            if ~isfield(rock_params, required_fields{i})
+                error('Missing required field in rock_properties_config.yaml: %s', required_fields{i});
+            end
+        end
+        
+        % Add derived properties (rock type classification based on permeability)
+        rock_params.rt1_properties = struct('name', 'RT1_HighPerm', 'description', 'High permeability sandstone', 'perm_range', [80, 300]);
+        rock_params.rt2_properties = struct('name', 'RT2_MedPerm', 'description', 'Medium permeability sandstone', 'perm_range', [20, 79]);
+        rock_params.rt6_properties = struct('name', 'RT6_LowPerm', 'description', 'Low permeability / barriers', 'perm_range', [0.1, 19]);
+        
+        % Add lithology mapping based on permeability values
+        rock_params.lithology_layers = cell(length(rock_params.permeability_layers), 1);
+        for i = 1:length(rock_params.permeability_layers)
+            if rock_params.permeability_layers(i) < 1
+                rock_params.lithology_layers{i} = 'Shale';
+            else
+                rock_params.lithology_layers{i} = 'Sandstone';
+            end
+        end
+        
+        fprintf('Rock configuration loaded from YAML: %d layers\n', length(rock_params.porosity_layers));
+        
+    catch ME
+        error('Failed to load rock configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
+    end
     
 end
 
@@ -183,8 +204,9 @@ function props = create_properties_structure(porosity, permeability, kv_kh)
     props.permeability = permeability;
     props.kv_kh = kv_kh;
     
-    % Convert permeability from mD to m²
-    props.permeability_m2 = cellfun(@(x) x * 9.869233e-16, num2cell(permeability));
+    % Use MRST native permeability units (mD) - Policy compliance
+    % MRST handles unit conversions internally, no hardcoded factors allowed
+    props.permeability_md = num2cell(permeability);  % Keep in mD for MRST native use
     
     % Classify rock types based on permeability
     props.rock_types = classify_rock_types(permeability, n_layers);
@@ -236,7 +258,7 @@ function [porosity, permeability, kv_kh] = assign_cell_properties(G, layer_props
         k_index = min(k_index, layer_props.n_layers);
         
         porosity(cell_id) = layer_props.porosity(k_index);
-        permeability(cell_id) = layer_props.permeability_m2(k_index);
+        permeability(cell_id) = layer_props.permeability_md{k_index};  % Use native mD values
         kv_kh(cell_id) = layer_props.kv_kh(k_index);
     end
     

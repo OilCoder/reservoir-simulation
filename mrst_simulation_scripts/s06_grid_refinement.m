@@ -110,22 +110,25 @@ end
 function refinement_zones = step_1_identify_zones(G, well_locations, fault_geometries)
 % Step 1 - Identify refinement zones around wells and faults
 
+    % Substep 1.3 – Load refinement configuration from YAML ________
+    refinement_config = load_refinement_config();
+    
     % Substep 1.4 – Create well refinement zones ___________________
-    well_zones = create_well_refinement_zones(well_locations);
+    well_zones = create_well_refinement_zones(well_locations, refinement_config);
     
     % Substep 1.5 – Create fault refinement zones __________________
-    fault_zones = create_fault_refinement_zones(fault_geometries);
+    fault_zones = create_fault_refinement_zones(fault_geometries, refinement_config);
     
     % Substep 1.6 – Combine all zones _____________________________
     refinement_zones = [well_zones, fault_zones];
     
 end
 
-function well_zones = create_well_refinement_zones(well_locations)
-% Create refinement zones around wells
+function well_zones = create_well_refinement_zones(well_locations, refinement_config)
+% Create refinement zones around wells using YAML config
     
     well_zones = [];
-    well_radius = 250; % ft refinement radius
+    well_radius = refinement_config.well_refinement.radius; % From YAML - Policy compliance
     
     for w = 1:size(well_locations, 1)
         % Convert grid coordinates to physical coordinates
@@ -141,16 +144,16 @@ function well_zones = create_well_refinement_zones(well_locations)
         well_zones(w).center_x = well_x;
         well_zones(w).center_y = well_y;
         well_zones(w).radius = well_radius;
-        well_zones(w).refinement_factor = 2;
+        well_zones(w).refinement_factor = refinement_config.well_refinement.factor;
     end
     
 end
 
-function fault_zones = create_fault_refinement_zones(fault_geometries)
-% Create refinement zones around sealing faults
+function fault_zones = create_fault_refinement_zones(fault_geometries, refinement_config)
+% Create refinement zones around sealing faults using YAML config
     
     fault_zones = [];
-    fault_buffer = 300; % ft buffer around faults
+    fault_buffer = refinement_config.fault_refinement.buffer; % From YAML - Policy compliance
     zone_id = 1;
     
     for f = 1:length(fault_geometries)
@@ -166,7 +169,7 @@ function fault_zones = create_fault_refinement_zones(fault_geometries)
             fault_zones(zone_id).x2 = fault.x2;
             fault_zones(zone_id).y2 = fault.y2;
             fault_zones(zone_id).buffer = fault_buffer;
-            fault_zones(zone_id).refinement_factor = 2;
+            fault_zones(zone_id).refinement_factor = refinement_config.fault_refinement.factor;
             
             zone_id = zone_id + 1;
         end
@@ -246,12 +249,17 @@ end
 function G_refined = apply_real_subdivision(G, cells_to_refine, factors)
 % Apply real cell subdivision for refinement
     
-    % For simplicity, we'll use a 2x2 subdivision in x-y plane
-    refinement_factor = 2; % Fixed 2x2 refinement
+    % Use the refinement factor passed as parameter
+    % factors could be a scalar or array - take first element for consistency
+    if length(factors) == 1
+        refinement_factor = factors;
+    else
+        refinement_factor = factors(1); % Use first factor for all cells
+    end
     
     % Calculate new grid dimensions
     original_cells = G.cells.num;
-    refined_cells_count = length(cells_to_refine) * (refinement_factor^2 - 1);
+    refined_cells_count = length(cells_to_refine) * (refinement_factor.^2 - 1);
     new_total_cells = original_cells + refined_cells_count;
     
     % Create new grid structure
@@ -286,7 +294,7 @@ function G_refined = apply_real_subdivision(G, cells_to_refine, factors)
         % Create 2x2 subdivision
         sub_dx = dx / refinement_factor;
         sub_dy = dy / refinement_factor;
-        sub_volume = orig_volume / (refinement_factor^2);
+        sub_volume = orig_volume / (refinement_factor.^2);
         
         % Update original cell (becomes top-left subcell)
         new_centroids(cell_id, :) = orig_centroid + [-sub_dx/2, -sub_dy/2, 0];
@@ -500,6 +508,34 @@ function wells_config = create_default_wells_config()
     wells_config.wells.producer_2 = struct('x', 1500, 'y', 1500, 'type', 'producer');
     wells_config.wells.injector_1 = struct('x', 1000, 'y', 1000, 'type', 'injector');
     
+end
+
+function config = load_refinement_config()
+% Load refinement configuration from YAML - NO HARDCODING POLICY
+    try
+        % Policy Compliance: Load ALL parameters from YAML config
+        full_config = read_yaml_config('config/grid_config.yaml');
+        
+        % Check if refinement section exists
+        if ~isfield(full_config, 'refinement')
+            error('Missing refinement section in grid_config.yaml');
+        end
+        
+        config = full_config.refinement;
+        
+        % Validate required fields exist
+        required_fields = {'well_refinement', 'fault_refinement'};
+        for i = 1:length(required_fields)
+            if ~isfield(config, required_fields{i})
+                error('Missing required field in grid_config.yaml refinement: %s', required_fields{i});
+            end
+        end
+        
+        fprintf('Refinement configuration loaded from YAML\n');
+        
+    catch ME
+        error('Failed to load refinement configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
+    end
 end
 
 % Main execution

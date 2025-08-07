@@ -26,7 +26,8 @@ function structural_data = s04_structural_framework()
         % Step 2 – Apply Structural Framework
         % ----------------------------------------
         step_start = tic;
-        layers = step_2_create_layers(G, surfaces);
+        config = load_structural_config();  % Load config for layer creation
+        layers = step_2_create_layers(G, surfaces, config);
         G = step_2_apply_framework(G, surfaces, layers);
         print_step_result(2, 'Apply Structural Framework', 'success', toc(step_start));
         
@@ -65,34 +66,39 @@ end
 function surfaces = step_1_define_surfaces(G)
 % Step 1 - Define structural surfaces for anticline
 
-    % Substep 1.1 – Create anticline structure ____________________
-    surfaces = struct();
-    surfaces.anticline_axis = define_anticline_axis(G);
-    surfaces.structural_relief = 340;  % ft (from documentation)
-    surfaces.crest_depth = 7900;      % ft TVDSS
+    % Substep 1.1 – Load structural configuration from YAML ______
+    config = load_structural_config();
     
-    % Substep 1.2 – Define compartments ___________________________
+    % Substep 1.2 – Create anticline structure ____________________
+    surfaces = struct();
+    surfaces.anticline_axis = define_anticline_axis(G, config);
+    surfaces.structural_relief = config.anticline.structural_relief;
+    surfaces.crest_depth = config.anticline.crest_depth;
+    
+    % Substep 1.3 – Define compartments ___________________________
+    % Simple compartment definition (avoiding complex array parsing)
     surfaces.compartments = {'Northern', 'Southern'};
     
 end
 
-function axis_data = define_anticline_axis(G)
+function axis_data = define_anticline_axis(G, config)
 % Define anticline axis through field center
     field_center_x = mean([min(G.cells.centroids(:,1)), max(G.cells.centroids(:,1))]);
     field_center_y = mean([min(G.cells.centroids(:,2)), max(G.cells.centroids(:,2))]);
     
-    % Anticline axis trending N15°E (from documentation)
-    axis_trend = 15 * pi/180;  % Convert to radians
+    % Anticline axis trend from YAML configuration - Policy compliance
+    axis_trend = config.anticline.axis_trend * pi/180;  % Convert degrees to radians
     axis_data = struct('center_x', field_center_x, 'center_y', field_center_y, 'trend', axis_trend);
 end
 
-function layers = step_2_create_layers(G, surfaces)  
+function layers = step_2_create_layers(G, surfaces, config)  
 % Step 2 - Create geological layer framework
 
-    % Substep 2.1 – Create layer structure ________________________
+    % Substep 2.1 – Create layer structure from YAML config ______
     layers = struct();
     layers.n_layers = G.cartDims(3);
-    layers.layer_tops = surfaces.crest_depth + (0:layers.n_layers-1) * 8.33;  % 8.33 ft per layer
+    layer_thickness = config.layering.layer_thickness;  % From YAML - Policy compliance
+    layers.layer_tops = surfaces.crest_depth + (0:layers.n_layers-1) * layer_thickness;
     layers.anticline_structure = true;
     
 end
@@ -133,6 +139,28 @@ function structural_data = step_3_export_framework(G, surfaces, layers)
     framework_file = fullfile(data_dir, 'structural_framework.mat');
     save(framework_file, 'structural_data');
     
+end
+
+function config = load_structural_config()
+% Load structural configuration from YAML - NO HARDCODING POLICY
+    try
+        % Policy Compliance: Load ALL parameters from YAML config
+        full_config = read_yaml_config('config/structural_framework_config.yaml');
+        config = full_config.structural_framework;
+        
+        % Validate required fields exist
+        required_fields = {'anticline', 'layering', 'compartments'};
+        for i = 1:length(required_fields)
+            if ~isfield(config, required_fields{i})
+                error('Missing required field in structural_framework_config.yaml: %s', required_fields{i});
+            end
+        end
+        
+        fprintf('Structural framework configuration loaded from YAML\n');
+        
+    catch ME
+        error('Failed to load structural configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
+    end
 end
 
 % Main execution when called as script

@@ -200,18 +200,34 @@ function export_grid_data(G, grid_params)
 end
 
 function grid_config = create_default_grid_config()
-% Create default grid configuration to avoid YAML dependency
+% Load grid configuration from YAML - NO HARDCODING POLICY
     
-    grid_config = struct();
-    
-    % Grid parameters
-    grid_config.grid = struct();
-    grid_config.grid.nx = 40;
-    grid_config.grid.ny = 40;
-    grid_config.grid.nz = 12;
-    grid_config.grid.cell_size_x = 50;  % meters
-    grid_config.grid.cell_size_y = 50;  % meters
-    grid_config.grid.layer_thicknesses = [8, 12, 15, 3, 18, 20, 15, 2, 12, 10, 8, 7];  % meters per layer
+    try
+        % Policy Compliance: Load ALL parameters from YAML config
+        grid_config = read_yaml_config('config/grid_config.yaml');
+        
+        % Validate required fields exist
+        required_fields = {'grid'};
+        for i = 1:length(required_fields)
+            if ~isfield(grid_config, required_fields{i})
+                error('Missing required field in grid_config.yaml: %s', required_fields{i});
+            end
+        end
+        
+        % Validate grid sub-fields
+        grid_required = {'nx', 'ny', 'nz', 'cell_size_x', 'cell_size_y', 'layer_thicknesses'};
+        for i = 1:length(grid_required)
+            if ~isfield(grid_config.grid, grid_required{i})
+                error('Missing required grid parameter in YAML: %s', grid_required{i});
+            end
+        end
+        
+        fprintf('Grid configuration loaded from YAML: %dx%dx%d cells\n', ...
+                grid_config.grid.nx, grid_config.grid.ny, grid_config.grid.nz);
+                
+    catch ME
+        error('Failed to load grid configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
+    end
     
 end
 

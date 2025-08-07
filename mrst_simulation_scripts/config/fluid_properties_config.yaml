@@ -139,3 +139,35 @@ fluid_properties:
   # Capillary pressure (estimated - not specified in documentation)
   capillary_entry_pressure: 5.0  # psi (unchanged, not in documentation)
   capillary_lambda: 2.0           # (unchanged, not in documentation)
+  
+  # Default saturation values for fallback (Policy 1 compliance)
+  default_saturations:
+    swc: 0.20    # Connate water saturation (default)
+    sorw: 0.20   # Residual oil saturation to water (default)
+    sorg: 0.15   # Residual oil saturation to gas (default)
+    sgc: 0.05    # Critical gas saturation (default)
+    sw_max: 0.80 # Maximum water saturation (default)
+    sg_max: 0.50 # Maximum gas saturation (default)
+  
+  # Default relative permeability endpoints (Policy 1 compliance)
+  default_relperm_endpoints:
+    krw_max: 0.720  # Maximum water relative permeability
+    kro_max: 1.000  # Maximum oil relative permeability
+    krg_max: 0.500  # Maximum gas relative permeability
+    
+  # Default Corey exponents (Policy 1 compliance)
+  default_corey_exponents:
+    nw: 2.0   # Water Corey exponent
+    now: 2.5  # Oil-water Corey exponent
+    ng: 1.8   # Gas Corey exponent
+    nog: 2.2  # Oil-gas Corey exponent
+    
+  # Default viscosity parameters (Policy 1 compliance)
+  default_viscosity:
+    oil_viscosity_dead: 2.85      # cP (dead oil viscosity)
+    gas_viscosity_ref: 0.0245     # cP (reference gas viscosity)
+    
+  # Default FVF parameters (Policy 1 compliance)
+  default_fvf:
+    bo_bubble: 1.305  # rb/STB (oil FVF at bubble point)
+    bw_ref: 1.0335    # rb/STB (water FVF at reference)
