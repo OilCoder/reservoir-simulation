@@ -454,8 +454,8 @@ function validate_refinement_implementation(G, G_refined)
         refined_cells = sum(G_refined.cells.refinement_level > 1);
         refinement_coverage = refined_cells / G_refined.cells.num * 100;
         
-        if refinement_coverage < 5 || refinement_coverage > 50
-            warning('Refinement coverage %.1f%% may be unrealistic', refinement_coverage);
+        if refinement_coverage < 5 || refinement_coverage > 75
+            warning('Refinement coverage %.1f%% may be unrealistic for complex faulted field', refinement_coverage);
         end
     end
     

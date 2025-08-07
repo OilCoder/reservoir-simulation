@@ -16,9 +16,9 @@ function workflow_results = s99_run_workflow(varargin)
     fprintf('\n');
     fprintf('################################################################\n');
     fprintf('#                                                              #\n');
-    fprintf('#     🛢️   EAGLE WEST FIELD RESERVOIR SIMULATION   🛢️       #\n');  
-    fprintf('#              MRST Workflow Orchestrator v3.0                #\n');
-    fprintf('#                With Table Format Display                    #\n');
+    fprintf('#     🛢️   EAGLE WEST FIELD RESERVOIR SIMULATION   🛢️            #\n');  
+    fprintf('#              MRST Workflow Orchestrator v3.0                 #\n');
+    fprintf('#                With Table Format Display                     #\n');
     fprintf('#                                                              #\n');
     fprintf('################################################################\n\n');
     
@@ -67,7 +67,7 @@ function workflow_results = s99_run_workflow(varargin)
             print_workflow_header(validation_only, phases_to_run, phases);
         end
         
-        % Start workflow execution with consistent table format
+        % Start workflow execution with header only
         print_step_header('WORKFLOW', 'EAGLE WEST FIELD EXECUTION');
         
         for i = 1:length(phases_to_run)
@@ -75,7 +75,7 @@ function workflow_results = s99_run_workflow(varargin)
             
             % Check validation-only mode
             if validation_only && i > 3
-                fprintf(' -- │ Validation Mode Stop         │   ✋   │   --  \n');
+                fprintf('\n⏸️  Validation Mode: Stopping at phase 3 as requested.\n\n');
                 break;
             end
             
@@ -83,7 +83,7 @@ function workflow_results = s99_run_workflow(varargin)
             try
                 phase_start_time = tic;
                 
-                % Execute the specific phase (silent mode for table format)
+                % Execute the specific phase (each phase prints its own detailed table)
                 phase_result = execute_phase_fixed(phase, workflow_results);
                 
                 % Record success
@@ -91,9 +91,6 @@ function workflow_results = s99_run_workflow(varargin)
                 workflow_results.phases_executed{end+1} = phase.phase_id;
                 workflow_results.phase_results.(phase.phase_id) = phase_result;
                 workflow_results.success_count = workflow_results.success_count + 1;
-                
-                % Print table row for success using print utilities
-                print_step_result(i, phase.description, 'success', execution_time);
                 
             catch ME
                 % Handle phase failure
@@ -105,19 +102,17 @@ function workflow_results = s99_run_workflow(varargin)
                 workflow_results.failure_count = workflow_results.failure_count + 1;
                 workflow_results.errors{end+1} = sprintf('Phase %s: %s', phase.phase_id, ME.message);
                 
-                % Print table row for failure using print utilities  
-                print_step_result(i, phase.description, 'error', execution_time);
-                
                 if phase.critical
-                    print_error_step(i, phase.description, ME.message);
+                    fprintf('\n❌ Critical phase %s failed: %s\n\n', phase.phase_id, ME.message);
                     error('Critical phase %s failed: %s', phase.phase_id, ME.message);
                 else
+                    fprintf('\n⚠️  Phase %s failed but workflow continued: %s\n\n', phase.phase_id, ME.message);
                     workflow_results.warnings{end+1} = sprintf('Phase %s failed but workflow continued', phase.phase_id);
                 end
             end
         end
         
-        % Close table with footer
+        % Close with summary footer
         total_time = (now - datenum(workflow_results.start_time)) * 24 * 60 * 60; % Convert to seconds
         status_msg = sprintf('Workflow Completed: %d/%d phases successful', workflow_results.success_count, length(phases_to_run));
         print_step_footer('WORKFLOW', status_msg, total_time);

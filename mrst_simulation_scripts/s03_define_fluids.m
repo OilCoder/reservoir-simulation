@@ -38,11 +38,6 @@ function fluid = s03_define_fluids()
         print_step_result(3, 'Validate & Export Fluid', 'success', toc(step_start));
         
         print_step_footer('S03', 'Native MRST Fluid Ready (3-phase)', toc(total_start_time));
-        fprintf('Water Density: %.0f kg/m³\n', fluid_params.water_density);
-        fprintf('Gas Density: %.1f kg/m³\n', fluid_params.gas_density);
-        fprintf('Bubble Point: %.0f psi @ %.0f°F\n', fluid_params.bubble_point, fluid_params.reservoir_temperature);
-        fprintf('MRST Module: ad-blackoil with deck tables\n');
-        fprintf('======================================================\n\n');
         
     catch ME
         print_error_step(0, 'Fluid Definition', ME.message);

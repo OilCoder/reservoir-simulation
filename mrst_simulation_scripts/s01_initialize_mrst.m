@@ -125,8 +125,13 @@ function step_2_initialize_core(mrst_root)
         % Substep 2.1 – Add core paths permanently _________________
         add_mrst_paths(mrst_root);
         
-        % Substep 2.2 – Initialize MRST for persistent session ____
+        % Substep 2.2 – Run MRST startup to initialize modules properly
         cd(mrst_root);
+        if exist('startup.m', 'file')
+            run('startup.m');
+        end
+        
+        % Substep 2.3 – Initialize MRST for persistent session ____
         
         % Initialize MRST with persistent session
         if exist('mrstModule', 'file')
