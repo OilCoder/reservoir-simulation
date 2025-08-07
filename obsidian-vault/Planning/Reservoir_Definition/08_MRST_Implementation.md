@@ -1,46 +1,50 @@
-# MRST Implementation Specification
+# MRST Implementation Specification (Native MATLAB/Octave)
 
 ## Executive Summary
 
-This document defines technical specifications and requirements for MRST (MATLAB Reservoir Simulation Toolbox) implementation of a multi-compartment reservoir simulation. It serves as a comprehensive technical guide for developers implementing the simulation system for a mature offshore sandstone reservoir under waterflood conditions.
+This document defines technical specifications and requirements for **native MRST** implementation of a multi-compartment reservoir simulation. It serves as a comprehensive technical guide for developers implementing the simulation system for a mature offshore sandstone reservoir under waterflood conditions using native MATLAB/Octave MRST scripts.
 
 **Technical Specifications:**
-- **Grid Architecture**: 20×20×10 Cartesian tensor grid (4,000 active cells)
-- **Reservoir Model**: 3-layer heterogeneous sandstone with fault compartmentalization  
+- **Grid Architecture**: 40×40×12 Cartesian tensor grid (19,200 active cells)
+- **Reservoir Model**: 12-layer heterogeneous sandstone with fault compartmentalization  
 - **Fluid System**: 3-phase black oil model with PVT correlations
-- **Well Network**: 10 producers + 5 injectors with multi-layer completions [CORRECTED]
+- **Well Network**: 15 wells with multi-layer completions
 - **Flow Physics**: Multi-phase Darcy flow with capillary and gravitational effects
 - **Numerical Methods**: Fully-implicit finite volume with automatic differentiation
 
 ---
 
-## 1. Required MRST Modules
+## 1. Required MRST Dependencies
 
-### Core Modules (Essential)
+### Core MRST Environment
+- **MRST**: MATLAB Reservoir Simulation Toolbox (native installation)
+- **MATLAB/Octave**: Runtime environment for MRST execution
+- **Core modules**: Essential MRST modules for reservoir simulation
+
+### Essential MRST Modules
 - **ad-core**: Automatic differentiation framework
 - **ad-blackoil**: Black oil model implementation
-- **ad-props**: Fluid and rock property functions
-- **mrst-gui**: Visualization and plotting tools
+- **ad-props**: Advanced fluid and rock property models
+- **ad-fi**: Fully-implicit solvers
 - **incomp**: Incompressible flow solvers
-- **gridtools**: Grid manipulation utilities
+- **gridprocessing**: Grid generation and processing tools
+- **mrst-gui**: Visualization and plotting utilities
 
-### Advanced Modules (Recommended)
-- **ad-fi**: Fully-implicit solver with advanced linear algebra
-- **upscaling**: Grid coarsening and property upscaling
-- **diagnostics**: Flow diagnostics and connectivity analysis
-- **streamlines**: Streamline tracing and time-of-flight calculations
-- **optimization**: History matching and parameter estimation
+### Optional MRST Modules
+- **upscaling**: Grid coarsening and upscaling
+- **diagnostics**: Flow diagnostics and analysis
+- **ad-mechanics**: Geomechanical coupling
+- **wellpaths**: Well trajectory and completion modeling
 
-### Specialized Modules (Optional)
-- **compositional**: Compositional modeling capabilities
-- **geomech**: Geomechanical coupling
-- **co2lab**: CO2 injection and storage studies
-- **ensemble**: Uncertainty quantification and ensemble runs
+### Development Dependencies
+- **YAML parser**: Custom YAML configuration reader (read_yaml_config.m)
+- **Visualization**: MRST plotting functions and custom visualization
+- **Data export**: MATLAB/Octave data formats (.mat files)
 
-### Module Dependencies
-- Core modules must be loaded before advanced modules
-- Automatic dependency resolution available via MRST startup
-- Module compatibility validated for MRST 2023a or later
+### Container Requirements
+- **Octave 6.0+**: Open-source MATLAB alternative
+- **MRST 2025a**: Latest MRST release with required modules
+- **File system**: Access to configuration files and data directories
 
 ---
 
@@ -190,11 +194,14 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - **Quality Control**: Statistical validation against geological model
 
 ### Rock Property Specifications
-- **Upper Zone**: Porosity 19.5%, Permeability 85 mD
-- **Middle Zone**: Porosity 22.8%, Permeability 165 mD  
-- **Lower Zone**: Porosity 14.5%, Permeability 25 mD
+**Layer-by-Layer Implementation (40×40×12 grid):**
+- **Upper Zone** (Layers 1-3): Sandstone - 19.5% avg porosity, 85 mD avg permeability, Kv/Kh=0.5
+- **Layer 4**: Shale barrier - 5.0% porosity, 0.01 mD permeability, Kv/Kh=0.1
+- **Middle Zone** (Layers 5-7): Sandstone - 22.8% avg porosity, 165 mD avg permeability, Kv/Kh=0.5
+- **Layer 8**: Shale barrier - 5.0% porosity, 0.01 mD permeability, Kv/Kh=0.1
+- **Lower Zone** (Layers 9-12): Sandstone - 14.5% avg porosity, 25 mD avg permeability, Kv/Kh=0.5
 - **Fault Zones**: Reduced transmissibility (0.1-0.01 multipliers)
-- **Property Correlation**: Porosity-permeability relationships maintained
+- **Property Correlation**: See Section 9.1 in [[02_Rock_Properties]] for complete specification
 
 ### Fluid Property Requirements
 - **Phase System**: Water-Oil-Gas (3-phase black oil)
@@ -218,27 +225,29 @@ This document defines technical specifications and requirements for MRST (MATLAB
 
 ### Memory Management Requirements
 - **Memory Allocation**: Minimum 8 GB RAM, recommended 16 GB for full field model
-- **Sparse Matrix Storage**: Connectivity matrices must use sparse format for memory efficiency
-- **State Vector Preallocation**: Pre-allocate arrays for $N_{cells} \times N_{phases} \times N_{timesteps}$ state data
-- **Memory Monitoring**: System must track and report memory usage at each major operation
+- **NumPy Arrays**: Use efficient numpy arrays with appropriate dtype (float32/float64)
+- **Sparse Matrices**: scipy.sparse matrices for connectivity and transmissibility
+- **State Vector Storage**: HDF5 format for time-series data with compression
+- **Memory Monitoring**: psutil for tracking memory usage at each major operation
 - **Memory Target**: Total memory usage should not exceed 75% of available system RAM
 
 ### Parallel Computing Requirements
-- **Parallel Toolbox**: MATLAB Parallel Computing Toolbox required for multi-core execution
+- **Multiprocessing**: Native Python multiprocessing or concurrent.futures
+- **Dask Integration**: Distributed computing for large grid operations
 - **Worker Configuration**: Optimal worker count = $\min(N_{cores}, \lfloor N_{cells}/1000 \rfloor)$
 - **Parallel Efficiency**: Target parallel efficiency $\eta = T_{sequential}/(N_{workers} \times T_{parallel}) > 0.7$
-- **Load Balancing**: Computational load must be distributed to achieve $\pm 10\%$ variance in worker utilization
-- **Communication Overhead**: Inter-worker communication time should not exceed 5% of total computation time
+- **Load Balancing**: Use dask.distributed for automatic load balancing
+- **Communication Overhead**: Minimize data transfer between workers using shared memory
 
 ### Solver Performance Requirements
 - **Linear Solver Selection**: 
-  - BackslashSolverAD for systems with $N_{DOF} < 100,000$
-  - AMGCLSolverAD for systems with $N_{DOF} \geq 100,000$
+  - scipy.sparse.linalg.spsolve for systems with $N_{DOF} < 100,000$
+  - scipy.sparse.linalg.lgmres or petsc4py for systems with $N_{DOF} \geq 100,000$
 - **Convergence Efficiency**: Target convergence rate of $10^{-1}$ reduction per Newton iteration
 - **Linear Solver Efficiency**: Linear solver must achieve $>90\%$ success rate within maximum iterations
 - **Preconditioning Requirements**: 
-  - ILU preconditioner for condition numbers $\kappa < 10^6$
-  - AMG preconditioner for condition numbers $\kappa \geq 10^6$
+  - scipy.sparse.linalg incomplete LU for condition numbers $\kappa < 10^6$
+  - pyamg algebraic multigrid for condition numbers $\kappa \geq 10^6$
 
 ### Grid Optimization Requirements
 - **Adaptive Refinement**: Grid resolution near wells must be $\leq 0.5 \times r_w$ within drainage radius
@@ -254,26 +263,87 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - **Diagnostic Output**: Generate material balance and convergence plots every 100 timesteps
 
 ### Results Management Requirements
-- **Data Export**: Time series data exported in CSV format with minimum daily frequency
-- **Visualization**: Generate standardized plots for pressure, saturation, and production data
-- **File Organization**: Structured directory hierarchy for results, logs, and restart files
-- **Data Integrity**: MD5 checksums required for all output files
+- **Data Export**: Time series data in HDF5/NetCDF format with automatic compression
+- **Alternative Formats**: Parquet for tabular data, JSON for metadata
+- **Visualization**: matplotlib/plotly for 2D plots, pyvista for 3D visualization
+- **File Organization**: Structured directory hierarchy following Python conventions
+- **Data Integrity**: hashlib for checksum validation of all output files
 - **Quality Assurance**: Results validation against material balance closure $< 0.1\%$
+
+---
+
+## 7. Python-MRST Integration Architecture
+
+### Interface Strategy Options
+1. **oct2py Interface**: Python-to-Octave bridge for MRST functions
+2. **MATLAB Engine API**: Direct Python-to-MATLAB interface
+3. **Native Python**: Pure Python reservoir simulation (pyrst, devito)
+4. **Hybrid Approach**: Python orchestration with MRST computational core
+
+### Recommended Architecture: Hybrid Python-MRST
+```python
+# Core Python modules for workflow orchestration
+import numpy as np
+import scipy.sparse as sp
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+import h5py
+import yaml
+
+# MRST interface (choose one)
+from oct2py import octave  # Option 1: Octave interface
+# import matlab.engine     # Option 2: MATLAB engine
+
+@dataclass
+class ReservoirConfig:
+    grid_dims: Tuple[int, int, int]
+    cell_size: Tuple[float, float, float]
+    rock_properties: Dict[str, float]
+    fluid_properties: Dict[str, float]
+    well_config: Dict[str, List]
+```
+
+### File Structure Convention
+```
+mrst_simulation_scripts/
+├── python/                      # Python implementation
+│   ├── __init__.py
+│   ├── s01_initialize_mrst.py   # MRST setup and validation
+│   ├── s02_create_grid.py       # Grid construction
+│   ├── s03_define_fluids.py     # Fluid property setup
+│   ├── s99_run_workflow.py      # Main orchestrator
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── config_reader.py     # YAML configuration parser
+│   │   ├── data_export.py       # HDF5/NetCDF export utilities
+│   │   └── validation.py        # Quality control functions
+│   └── tests/                   # Unit tests
+├── config/                      # YAML configuration files
+└── output/                      # Simulation results
+```
+
+### Data Type Conventions
+- **Arrays**: numpy.ndarray with explicit dtype specification
+- **Sparse Matrices**: scipy.sparse.csr_matrix for efficient storage
+- **Time Series**: pandas.DataFrame with datetime index
+- **Configuration**: Python dataclasses or pydantic models
+- **Output**: HDF5 with compression, metadata in JSON/YAML
 
 ---
 
 ## Technical Implementation Requirements
 
 ### System Architecture Requirements
-1. **MRST Environment**: Minimum MRST 2023a with required modules loaded
-2. **Grid System**: Cartesian tensor grid with fault transmissibility multipliers
-3. **Property Framework**: Multi-zone rock properties with spatial correlation
-4. **Well System**: 7-well network with multi-layer completions
-5. **Control System**: Adaptive timestep scheduling with constraint handling  
-6. **Solver Framework**: Coupled non-linear/linear solver system
-7. **State Management**: Pressure-saturation initialization from equilibrium
-8. **Execution Engine**: Full-field simulation with restart capability
-9. **Output System**: Structured data export and visualization pipeline
+1. **Python Environment**: Python 3.8+ with scientific computing stack
+2. **MRST Interface**: oct2py or matlab.engine for MRST function access
+3. **Grid System**: Cartesian tensor grid with fault transmissibility multipliers
+4. **Property Framework**: Multi-zone rock properties with spatial correlation
+5. **Well System**: 15-well network with multi-layer completions [CORRECTED]
+6. **Control System**: Adaptive timestep scheduling with constraint handling  
+7. **Solver Framework**: scipy.sparse linear solvers with Newton iteration
+8. **State Management**: Pressure-saturation initialization from equilibrium
+9. **Execution Engine**: Full-field simulation with HDF5 restart capability
+10. **Output System**: HDF5/NetCDF data export and matplotlib/pyvista visualization
 
 ### Quality Assurance Requirements
 - **Grid Validation**: Aspect ratios $< 10:1$, connectivity matrix rank validation
@@ -282,24 +352,25 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - **Initial State**: Pressure initialization within $\pm 1\%$ of hydrostatic equilibrium
 - **Convergence Monitoring**: Solver performance tracking with automated failure detection
 
-### Performance Targets
-- **Runtime**: Maximum 4 hours for 34-year simulation (12,500 timesteps)
+### Performance Targets (Python-MRST)
+- **Runtime**: Maximum 6 hours for 10-year simulation (500 timesteps)
 - **Memory Usage**: Peak memory consumption $\leq 16$ GB RAM
 - **Convergence**: Average Newton iterations $n_{avg} = 6-10$ per timestep
-- **Linear Solver**: Efficiency $\eta_{linear} \geq 85\%$ for condition numbers $\kappa < 10^8$
+- **Linear Solver**: scipy.sparse efficiency $\eta_{linear} \geq 80\%$ for condition numbers $\kappa < 10^8$
 - **Timestep Success**: Acceptance rate $\geq 95\%$ with adaptive control
-- **Parallel Scaling**: Speedup factor $S_p \geq 0.7 \times N_{processors}$ for $N_p \leq 8$
+- **Python Overhead**: Interface overhead $< 20\%$ compared to native MATLAB
+- **Data Export**: HDF5 export speed $\geq 100$ MB/s for time-series data
 
 ---
 
 ## Document Information
 
-**Document Version:** 3.0  
+**Document Version:** 4.0 (Python-MRST)  
 **Created:** January 25, 2025  
-**Updated:** January 28, 2025  
+**Updated:** January 30, 2025  
 **Document Type:** Technical Requirements Specification  
-**Target MRST Version:** 2023a or later  
-**Application:** Multi-compartment reservoir simulation  
+**Target Implementation:** Python 3.8+ with MRST interface  
+**Application:** Multi-compartment reservoir simulation via Python  
 
 **Related Documents:**
 - [[00_Overview]] - Field overview and parameters
@@ -307,8 +378,9 @@ This document defines technical specifications and requirements for MRST (MATLAB
 - [[02_Rock_Properties]] - Rock property distributions
 - [[03_Fluid_Properties]] - PVT data and correlations
 
-**Specification Status:** ✅ Requirements complete  
+**Specification Status:** ✅ Requirements updated for Python-MRST  
 **Mathematical Framework:** ✅ Equations and tolerances defined  
-**Performance Targets:** ✅ Quantitative benchmarks established  
+**Performance Targets:** ✅ Python-specific benchmarks established  
+**Implementation Type:** ✅ Hybrid Python-MRST architecture  
 
-This technical requirements specification defines comprehensive guidelines for MRST implementation of multi-compartment reservoir simulation. All specifications include mathematical formulations, performance targets, and validation criteria following MRST best practices and industry standards for reservoir simulation. This document serves as the definitive technical reference for developers implementing the simulation system.
+This technical requirements specification defines comprehensive guidelines for **Python-MRST** implementation of multi-compartment reservoir simulation. All specifications include mathematical formulations, performance targets, and validation criteria following Python best practices and MRST standards for reservoir simulation. This document serves as the definitive technical reference for developers implementing the Python-based simulation system.

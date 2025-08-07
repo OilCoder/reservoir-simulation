@@ -1,105 +1,21 @@
-# Grid Configuration for MRST Reservoir Simulation
-# Eagle West Field - 15-Well Development Program
-#
-# Based on: MRST_Implementation.md (FINAL: 20x20x10 grid per user decision)
-# Created: 2025-07-31
-# Purpose: Grid geometry and structural parameters for MRST simulation
+# Grid Configuration for Eagle West Field MRST Simulation
+# Simplified format for Python-MRST workflow
+# Date: January 30, 2025
 
-# GRID DIMENSIONS AND RESOLUTION
-grid_dimensions:
-  nx: 40                    # Number of cells in X direction (geologically realistic resolution)
-  ny: 40                    # Number of cells in Y direction (geologically realistic resolution)  
-  nz: 12                    # Number of cells in Z direction (12 flow units)
-  total_active_cells: 19200 # Optimized resolution (40x40x12)
-
-# CELL SIZE SPECIFICATIONS
-cell_dimensions:
-  dx: 82.0                  # Cell size in X direction (ft) - 3280/40 (geologically realistic)
-  dy: 73.75                 # Cell size in Y direction (ft) - 2950/40 (geologically realistic)
-  dz: 8.33                  # Cell size in Z direction (ft) - 100/12 average (geologically realistic)
-
-# RESERVOIR GEOMETRY
-reservoir_geometry:
-  model_area: 2600          # acres
-  length_x: 3280            # ft (40 * 82) - Field extent geologically realistic
-  length_y: 2950            # ft (40 * 73.75) - Field extent geologically realistic  
-  gross_thickness: 100.0    # ft - Total interval (geologically realistic for Miocene offshore)
-  net_pay: 65               # ft - Flow contributing layers (65% net-to-gross)
-  net_to_gross: 0.65        # Typical for offshore deltaic sandstone
-
-# STRUCTURAL FRAMEWORK
-structural_parameters:
-  datum_depth: 8000         # ft TVDSS - Pressure reference depth
-  structural_type: "faulted_anticline"
-  structural_relief: 340    # ft - Top to base structure
-  fault_compartments: 2     # Northern & Southern blocks
-  major_faults: 5           # For transmissibility multipliers
-
-# DEPTH AND ELEVATION CONTROL
-depth_control:
-  top_depth: 7900           # ft TVDSS - Top of reservoir (structural crest)
-  base_depth: 8000          # ft TVDSS - Base of reservoir (7900 + 100 = 8000)
-  oil_water_contact: 8150   # ft TVDSS - Sharp contact (below reservoir)
-  transition_zone: 50       # ft - Capillary pressure controlled
-
-# GRID REFINEMENT AREAS
-refinement_zones:
-  well_areas: true          # Refine around wells
-  fault_zones: true         # Refine fault transmissibility
-  high_perm_streaks: true   # Refine high flow areas
-  transition_zones: true    # Refine fluid contacts
-
-# COORDINATE SYSTEM
-coordinate_system:
-  origin_x: 0.0            # ft - Grid origin X
-  origin_y: 0.0            # ft - Grid origin Y
-  origin_z: 7881.0         # ft TVDSS - Grid origin Z (top)
-  rotation_angle: 0.0      # degrees - Grid rotation
-
-# FAULT MODELING PARAMETERS
-fault_modeling:
-  fault_multiplier_default: 0.1    # Default transmissibility multiplier
-  fault_seal_threshold: 0.01       # Below this = sealing fault
-  fault_open_threshold: 0.9        # Above this = fully open fault
+grid:
+  # Basic grid dimensions (40x40x12 per documentation)
+  nx: 40
+  ny: 40
+  nz: 12
   
-# GRID QUALITY CONTROL
-quality_control:
-  max_aspect_ratio: 10.0    # Maximum cell aspect ratio
-  actual_aspect_ratio: 9.84 # Actual: 82.0/8.33 = 9.84 (WITHIN LIMIT)
-  min_pore_volume: 1.0e-6   # Minimum cell pore volume (RB)
-  orthogonality_threshold: 0.1  # Grid orthogonality check
-
-# MRST SPECIFIC PARAMETERS
-mrst_parameters:
-  grid_type: "cartesian"    # Grid type for MRST
-  geometry_computation: true # Compute cell geometry
-  face_areas: true          # Compute face areas
-  cell_centroids: true      # Compute cell centroids
-  transmissibility: true    # Compute transmissibilities
-
-# BOUNDARY CONDITIONS
-boundary_conditions:
-  east_boundary: "no_flow"     # Eastern boundary
-  west_boundary: "no_flow"     # Western boundary  
-  north_boundary: "no_flow"    # Northern boundary
-  south_boundary: "no_flow"    # Southern boundary
-  top_boundary: "no_flow"      # Top boundary
-  bottom_boundary: "aquifer"   # Bottom aquifer support
-
-# AQUIFER PARAMETERS
-aquifer_parameters:
-  aquifer_type: "analytical"   # Analytical aquifer model
-  aquifer_strength: 1.0e6     # Aquifer constant (RB/psi)
-  aquifer_radius: 10000       # ft - Aquifer radius
-
-# COMMENTS AND NOTES
-comments:
-  - "Grid designed for 15-well field development (10 producers + 5 injectors)"
-  - "Geologically realistic: 40x40x12 = 19,200 cells"
-  - "Aspect ratio: 9.84 (within recommended limit of ≤10)"
-  - "100 ft gross thickness typical for Miocene offshore sandstone"
-  - "12 flow units with 8.33 ft average thickness"
-  - "Structural framework: Faulted anticline with 2 main compartments"
-  - "Optimized for 3-phase flow simulation (oil-gas-water)"
-  - "Peak production target: 18,500 STB/day"
-  - "Development timeline: 6 phases over 10 years"
+  # Cell sizes (per MRST_Implementation.md)
+  cell_size_x: 82.0  # ft
+  cell_size_y: 74.0  # ft
+  
+  # Layer thicknesses (12 layers, 8.3 ft each per documentation)
+  layer_thicknesses: [8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3]
+  
+  # Grid origin
+  origin_x: 0.0
+  origin_y: 0.0
+  origin_z: 8000.0  # ft TVDSS

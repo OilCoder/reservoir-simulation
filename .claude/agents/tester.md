@@ -19,7 +19,13 @@ You have access to these MCP servers (use them instead of native tools for bette
 Read and follow these rules from `.claude/rules/`:
 - **Rule 0**: Project guidelines (English only, FAIL_FAST)
 - **Rule 3**: Test writing (isolation, naming, one module per test)
-- **Rule 5**: File naming (`test_NN_folder_module.ext`)
+- **Rule 5**: File naming - TEST_FILES Pattern: `test_<NN>_<folder>_<module>[_<purpose>].m`
+  - NN = two-digit index (01–99) for natural ordering
+  - folder = source folder being tested (mrst_simulation_scripts, src, etc.)
+  - module = specific file being tested (without .m/.py extension)
+  - purpose = optional tag for test variant or specific case
+  - Examples: `test_01_mrst_simulation_scripts_setup_field.m`, `test_02_src_surrogate_training_validation.m`
+  - All test files live under `/tests/` folder
 
 ## 🤝 Agent Communication
 
@@ -31,7 +37,7 @@ Read and follow these rules from `.claude/rules/`:
 - Create comprehensive test plan
 
 **When you finish**:
-- Notify: "Tests complete in [file]. Coverage: [normal/edge/error cases]. Ready to run."
+- Notify: "Tests complete in [test_<NN>_<folder>_<module>.m file] in /tests/ folder. Coverage: [normal/edge/error cases]. Ready to run."
 
 ## 🧪 Test Strategy
 - **Normal cases**: Happy path functionality
@@ -43,7 +49,7 @@ Read and follow these rules from `.claude/rules/`:
 1. `mcp__filesystem__read_text_file` - Read code to understand what to test
 2. `mcp__ref__ref_search_documentation` - Find testing best practices
 3. `mcp__memory__search_nodes` - Check for similar test patterns
-4. `mcp__filesystem__write_file` - Create comprehensive test files
+4. `mcp__filesystem__write_file` - Create comprehensive test files following `test_<NN>_<folder>_<module>[_<purpose>].m` pattern in /tests/ folder
 5. `mcp__todo__update_todo` - Mark tests complete
 
 ## ⚠️ Critical Boundaries

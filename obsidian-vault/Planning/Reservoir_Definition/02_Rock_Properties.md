@@ -538,3 +538,57 @@ where:
 - [[Eagle West Field Development Plan]]
 
 **Simulation Compatibility**: All rock properties and correlations are specified for direct input into reservoir simulation models supporting 3-phase oil/gas/water flow.
+
+---
+
+## 9. SIMULATION GRID LAYER SPECIFICATION
+
+### 9.1 Layer-by-Layer Rock Properties Distribution
+
+**For 40×40×12 simulation grid - Definitive specification for all simulation studies:**
+
+#### Upper Zone (Layers 1-4)
+| Layer | Lithology | Porosity (fraction) | Permeability (mD) | Kv/Kh Ratio | Thickness (ft) |
+|-------|-----------|-------------------|-------------------|-------------|----------------|
+| 1 | Sandstone | 0.200 | 90 | 0.5 | 8.3 |
+| 2 | Sandstone | 0.195 | 85 | 0.5 | 8.3 |
+| 3 | Sandstone | 0.190 | 80 | 0.5 | 8.3 |
+| 4 | **Shale Barrier** | 0.050 | 0.01 | 0.1 | 8.3 |
+
+**Upper Zone Average**: 19.5% porosity, 85 mD permeability (sand layers only)
+
+#### Middle Zone (Layers 5-8)
+| Layer | Lithology | Porosity (fraction) | Permeability (mD) | Kv/Kh Ratio | Thickness (ft) |
+|-------|-----------|-------------------|-------------------|-------------|----------------|
+| 5 | Sandstone | 0.235 | 175 | 0.5 | 8.3 |
+| 6 | Sandstone | 0.230 | 170 | 0.5 | 8.3 |
+| 7 | Sandstone | 0.225 | 160 | 0.5 | 8.3 |
+| 8 | **Shale Barrier** | 0.050 | 0.01 | 0.1 | 8.3 |
+
+**Middle Zone Average**: 22.8% porosity, 165 mD permeability (sand layers only)
+
+#### Lower Zone (Layers 9-12)
+| Layer | Lithology | Porosity (fraction) | Permeability (mD) | Kv/Kh Ratio | Thickness (ft) |
+|-------|-----------|-------------------|-------------------|-------------|----------------|
+| 9 | Sandstone | 0.150 | 30 | 0.5 | 8.3 |
+| 10 | Sandstone | 0.145 | 25 | 0.5 | 8.3 |
+| 11 | Sandstone | 0.140 | 22 | 0.5 | 8.3 |
+| 12 | Sandstone | 0.135 | 20 | 0.5 | 8.3 |
+
+**Lower Zone Average**: 14.5% porosity, 25 mD permeability
+
+### 9.2 Rock Compressibility by Lithology
+- **Sandstone**: 1.0 × 10⁻⁵ psi⁻¹
+- **Shale**: 5.0 × 10⁻⁶ psi⁻¹  
+- **Limestone**: 8.0 × 10⁻⁶ psi⁻¹
+
+### 9.3 Implementation Notes
+- **Shale Barriers**: Layers 4 and 8 represent interbedded shale intervals that act as vertical flow barriers
+- **Vertical Permeability**: Calculated as Kv = Kh × (Kv/Kh ratio)
+- **Grid Compatibility**: Specifications exactly match 40×40×12 simulation grid
+- **Zonation**: Three main reservoir zones with realistic heterogeneity
+- **Flow Barriers**: Shale layers significantly restrict vertical communication
+
+---
+
+**CANON ESTABLISHED**: This layer specification is definitive for all Eagle West Field simulation studies. Any deviation must be explicitly documented and justified.

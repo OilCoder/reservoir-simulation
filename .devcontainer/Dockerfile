@@ -1,5 +1,38 @@
-# NVIDIA PyTorch Container + TensorFlow (Safe)
-FROM nvcr.io/nvidia/pytorch:24.11-py3
+# Ubuntu base with CUDA support
+FROM ubuntu:24.04
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-dev \
+    curl \
+    git \
+    wget \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create python symlink
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# Configure pip to allow system-wide installations
+RUN pip config set global.break-system-packages true
+
+# Install CUDA toolkit (12.6 to match NVIDIA container)
+RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt-get update && \
+    apt-get -y install cuda-toolkit-12-6 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* cuda-keyring_1.1-1_all.deb
+
+# Set CUDA environment variables
+ENV PATH=/usr/local/cuda-12.6/bin:${PATH}
+ENV LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64
+
+# Install PyTorch with CUDA support
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
 # Test PyTorch first (ensure it's working)
 RUN python -c "import torch; print(f'✅ PyTorch {torch.__version__} OK')"
@@ -58,7 +91,7 @@ RUN pip install --no-cache-dir --upgrade-strategy only-if-needed \
     dask \
     joblib
 
-# Install MATLAB/Octave integration
+# Install oct2py (Python-Octave bridge)
 RUN pip install --no-cache-dir --upgrade-strategy only-if-needed \
     oct2py
 
@@ -71,11 +104,20 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
 # Install Claude Code CLI
-RUN npm install -g @anthropic-ai/claude-code
+RUN npm install -g @anthropic-ai/claude-code    
 
-# Clone and setup MRST (without system Octave to avoid conflicts)
+# Clone and setup MRST
 RUN git clone https://github.com/SINTEF-AppliedCompSci/MRST.git /opt/mrst && \
     chmod -R 755 /opt/mrst
+
+# Install Octave AFTER everything else is configured (minimal install without MPI)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    octave \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Test that PyTorch still works after Octave installation
+RUN python -c "import torch; print(f'✅ PyTorch {torch.__version__} - GPU: {torch.cuda.is_available()}')"
 
 
 

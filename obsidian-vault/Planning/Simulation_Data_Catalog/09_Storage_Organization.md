@@ -4,11 +4,13 @@
 
 This document outlines three parallel organizational approaches for simulation data management, each optimized for different access patterns and use cases. These structures can coexist using symbolic links to avoid data duplication while providing flexible access patterns.
 
-## Current Implementation Status
+## Current Implementation Status (Python-MRST)
 
 **Base Structure**: `/workspace/data/simulation_data/`
-- Currently implements a hybrid by_type approach
+- Currently implements a hybrid by_type approach for Python-MRST
+- Primary formats: HDF5, NetCDF, Parquet for efficient Python access
 - Existing directories: static/, dynamic/, initial/, temporal/, metadata/
+- Optimized for numpy, pandas, and scientific Python ecosystem
 - Ready for expansion to support all three organizational strategies
 
 ---
@@ -24,75 +26,56 @@ Groups data by intrinsic characteristics and format, optimizing for data managem
 by_type/
 ├── static/
 │   ├── geology/
-│   │   ├── grid_geometry.mat
-│   │   ├── porosity_field.mat
-│   │   ├── permeability_field.mat
-│   │   ├── net_to_gross.mat
-│   │   ├── facies_model.mat
-│   │   ├── fault_model.mat
-│   │   └── rock_compressibility.mat
+│   │   ├── grid_geometry.h5
+│   │   ├── porosity_field.h5
+│   │   ├── permeability_field.h5
+│   │   ├── net_to_gross.h5
+│   │   ├── facies_model.h5
+│   │   ├── fault_model.h5
+│   │   └── rock_compressibility.h5
 │   ├── wells/
-│   │   ├── well_definitions.mat
-│   │   ├── well_trajectories.mat
-│   │   ├── completion_data.mat
-│   │   ├── perforation_intervals.mat
-│   │   └── well_constraints.mat
+│   │   ├── well_definitions.h5
+│   │   ├── well_trajectories.h5
+│   │   ├── completion_data.h5
+│   │   ├── perforation_intervals.h5
+│   │   └── well_constraints.h5
 │   ├── fluid_properties/
-│   │   ├── pvt_tables.mat
-│   │   ├── viscosity_data.mat
-│   │   ├── density_correlations.mat
-│   │   ├── compositional_data.mat
-│   │   └── surface_tension.mat
+│   │   ├── pvt_tables.h5
+│   │   ├── viscosity_data.h5
+│   │   ├── density_correlations.h5
+│   │   ├── compositional_data.h5
+│   │   └── surface_tension.h5
 │   ├── scal_properties/
-│   │   ├── relative_permeability.mat
-│   │   ├── capillary_pressure.mat
-│   │   ├── endpoint_saturations.mat
-│   │   └── rock_type_curves.mat
+│   │   ├── relative_permeability.h5
+│   │   ├── capillary_pressure.h5
+│   │   ├── endpoint_saturations.h5
+│   │   └── rock_type_curves.h5
 │   └── field_boundaries/
-│       ├── reservoir_outline.mat
-│       ├── oilwater_contact.mat
-│       ├── gasoil_contact.mat
-│       └── aquifer_boundaries.mat
+│       ├── reservoir_outline.h5
+│       ├── oilwater_contact.h5
+│       ├── gasoil_contact.h5
+│       └── aquifer_boundaries.h5
 ├── dynamic/
 │   ├── pressures/
-│   │   ├── timestep_0001/
-│   │   │   ├── pressure_field.mat
-│   │   │   ├── bhp_values.mat
-│   │   │   └── pressure_gradients.mat
-│   │   ├── timestep_0002/
-│   │   └── ... (continue for all timesteps)
+│   │   ├── pressure_timeseries.nc    # NetCDF for time-series data
+│   │   ├── bhp_timeseries.h5         # HDF5 for well data
+│   │   └── pressure_gradients.h5     # HDF5 for derived fields
 │   ├── saturations/
-│   │   ├── timestep_0001/
-│   │   │   ├── oil_saturation.mat
-│   │   │   ├── water_saturation.mat
-│   │   │   ├── gas_saturation.mat
-│   │   │   └── phase_fronts.mat
-│   │   ├── timestep_0002/
-│   │   └── ... (continue for all timesteps)
+│   │   ├── saturation_timeseries.nc  # NetCDF for 4D arrays [time,z,y,x]
+│   │   ├── phase_fronts.h5           # HDF5 for tracking data
+│   │   └── saturation_gradients.h5   # HDF5 for derived fields
 │   ├── rates/
-│   │   ├── timestep_0001/
-│   │   │   ├── oil_production_rates.mat
-│   │   │   ├── water_production_rates.mat
-│   │   │   ├── gas_production_rates.mat
-│   │   │   ├── injection_rates.mat
-│   │   │   └── well_allocation_factors.mat
-│   │   ├── timestep_0002/
-│   │   └── ... (continue for all timesteps)
+│   │   ├── well_rates.parquet        # Parquet for tabular time-series
+│   │   ├── field_rates.h5            # HDF5 for aggregated data
+│   │   └── allocation_factors.h5     # HDF5 for complex data
 │   ├── velocities/
-│   │   ├── timestep_0001/
-│   │   │   ├── darcy_velocity_x.mat
-│   │   │   ├── darcy_velocity_y.mat
-│   │   │   ├── darcy_velocity_z.mat
-│   │   │   └── streamlines.mat
-│   │   ├── timestep_0002/
-│   │   └── ... (continue for all timesteps)
+│   │   ├── velocity_timeseries.nc     # NetCDF for 4D velocity fields
+│   │   ├── streamlines.h5             # HDF5 for trajectory data
+│   │   └── flow_diagnostics.h5        # HDF5 for derived flow metrics
 │   └── compositions/
-│       ├── timestep_0001/
-│       │   ├── component_mole_fractions.mat
-│       │   ├── phase_compositions.mat
-│       │   └── k_values.mat
-│       ├── timestep_0002/
-│       └── ... (continue for all timesteps)
+│       ├── composition_timeseries.nc  # NetCDF for 4D composition arrays
+│       ├── k_values.h5                # HDF5 for PVT data
+│       └── phase_equilibrium.h5       # HDF5 for phase data
 ├── derived/
 │   ├── recovery_factors/
 │   │   ├── field_recovery_factor.mat
@@ -348,23 +331,51 @@ by_usage/
 ```
 
 ### Cross-Reference System
-```matlab
-% Cross-reference mapping for by_usage organization
-usage_xref = struct();
-usage_xref.to_type = containers.Map();
-usage_xref.to_phase = containers.Map();
-usage_xref.dependencies = containers.Map();
+```python
+# Cross-reference mapping for by_usage organization (Python)
+import json
+from typing import Dict, List
+from dataclasses import dataclass
 
-% Example mappings
-usage_xref.to_type('ML_training/features/static_features/') = 'static/geology/';
-usage_xref.dependencies('monitoring/real_time/') = {'dynamic/pressures/', 'dynamic/rates/'};
+@dataclass
+class CrossReference:
+    to_type: Dict[str, str]
+    to_phase: Dict[str, str]  
+    dependencies: Dict[str, List[str]]
+
+# Example mappings
+usage_xref = CrossReference(
+    to_type={
+        'ML_training/features/static_features/': 'static/geology/',
+        'monitoring/real_time/pressures/': 'dynamic/pressures/',
+    },
+    to_phase={
+        'monitoring/real_time/': 'runtime/',
+        'validation/quality_checks/': 'post-processing/'
+    },
+    dependencies={
+        'monitoring/real_time/': ['dynamic/pressures/', 'dynamic/rates/'],
+        'ML_training/features/': ['static/geology/', 'dynamic/saturations/']
+    }
+)
+
+# Save cross-reference as JSON
+with open('usage_xref.json', 'w') as f:
+    json.dump(usage_xref.__dict__, f, indent=2)
 ```
+
+### Python Data Format Strategy
+- **HDF5**: Complex hierarchical data, 3D/4D arrays, metadata support
+- **NetCDF**: Geospatial time-series, CF conventions, xarray integration  
+- **Parquet**: Tabular data, columnar storage, pandas optimization
+- **JSON**: Metadata, configurations, small structured data
+- **Zarr**: Cloud-optimized arrays, chunked storage, parallel access
 
 ### Access Pattern Optimization
 - **Co-location**: Related data stored together for workflow efficiency
-- **Pre-aggregation**: Common analysis results pre-computed
-- **Batch Processing**: Usage-specific batch job optimization
-- **Security**: Usage-based access control and permissions
+- **Pre-aggregation**: Common analysis results pre-computed with pandas
+- **Batch Processing**: Dask for usage-specific distributed processing
+- **Security**: Usage-based access control with Python pathlib
 
 ---
 

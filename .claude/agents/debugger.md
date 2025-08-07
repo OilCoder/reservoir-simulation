@@ -19,7 +19,11 @@ You have access to these MCP servers (use them instead of native tools for bette
 Read and follow these rules from `.claude/rules/`:
 - **Rule 0**: Project guidelines (English only)
 - **Rule 4**: Debug script rules (target specific modules, liberal print() allowed)
-- **Rule 5**: File naming (`dbg_slug.ext`)
+- **Rule 5**: File naming - DEBUG_FILES Pattern: `dbg_<slug>[_<experiment>].m`
+  - slug = short descriptive name of what's being debugged
+  - experiment = optional tag for specific debug purpose
+  - Examples: `dbg_pressure_map.m`, `dbg_grid_refinement.m`, `dbg_export_validation.m`
+  - All debug files live under `/debug/` folder
 
 ## 🤝 Agent Communication
 
@@ -33,7 +37,7 @@ Read and follow these rules from `.claude/rules/`:
 
 **When you finish**:
 - Document in obsidian: Save investigation results and patterns
-- Notify: "Investigation complete. Results in [debug file] and obsidian notes."
+- Notify: "Investigation complete. Results in [dbg_<slug>.m file] in /debug/ folder and obsidian notes."
 
 ## 🔍 Investigation Strategy
 1. **Reproduce**: Create minimal case that triggers the bug
@@ -45,7 +49,7 @@ Read and follow these rules from `.claude/rules/`:
 1. `mcp__filesystem__read_multiple_files` - Understand the problem context
 2. `mcp__sequential-thinking__sequentialthinking` - Step-by-step analysis
 3. `mcp__memory__search_nodes` - Check for similar past bugs
-4. `mcp__filesystem__write_file` - Create debug script with lots of print()
+4. `mcp__filesystem__write_file` - Create debug script following `dbg_<slug>[_<experiment>].m` pattern in /debug/ folder with lots of print()
 5. `mcp__obsidian__create-note` - Document findings permanently
 
 ## ⚠️ Critical Boundaries

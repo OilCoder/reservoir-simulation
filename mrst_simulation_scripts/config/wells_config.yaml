@@ -1,0 +1,276 @@
+# Wells Configuration for Eagle West Field MRST Simulation
+# Simplified format for Python-MRST workflow
+# Based on: 05_Wells_Completions.md + 06_Production_History.md
+# Date: January 30, 2025
+
+# FIELD DEVELOPMENT SUMMARY
+field_development:
+  total_wells: 15             # 10 producers + 5 injectors
+  development_phases: 6       # 6 phases over 10 years (3650 days)
+  peak_production_target: 18500 # STB/day field target
+
+# WELL LOCATIONS (per 05_Wells_Completions.md)
+wells:
+  # PRODUCER WELLS (EW-001 to EW-010)
+  producers:
+    - name: "EW-001"
+      grid_location: [15, 10]   # Grid (i,j) for 40x40 grid
+      start_day: 180            # Phase 1
+      well_type: "vertical"
+      target: "structural_crest"
+    
+    - name: "EW-002" 
+      grid_location: [12, 6]
+      start_day: 550            # Phase 2
+      well_type: "vertical"
+      target: "upper_sand_high"
+    
+    - name: "EW-003"
+      grid_location: [18, 14]
+      start_day: 850            # Phase 3
+      well_type: "horizontal"
+      target: "east_flank_lateral"
+    
+    - name: "EW-004"
+      grid_location: [8, 8]
+      start_day: 1000           # Phase 3
+      well_type: "vertical"
+      target: "west_flank"
+    
+    - name: "EW-005"
+      grid_location: [16, 12]
+      start_day: 1200           # Phase 4
+      well_type: "horizontal"
+      target: "central_lateral"
+    
+    - name: "EW-006"
+      grid_location: [11, 15]
+      start_day: 1400           # Phase 4
+      well_type: "multilateral"
+      target: "north_complex"
+    
+    - name: "EW-007"
+      grid_location: [38, 8]
+      start_day: 1950           # Phase 5
+      well_type: "horizontal"
+      target: "southeast_lateral"
+    
+    - name: "EW-008"
+      grid_location: [6, 12]
+      start_day: 2100           # Phase 5
+      well_type: "vertical"
+      target: "southwest_flank"
+    
+    - name: "EW-009"
+      grid_location: [19, 18]
+      start_day: 2300           # Phase 5
+      well_type: "horizontal"
+      target: "northeast_lateral"
+    
+    - name: "EW-010"
+      grid_location: [14, 16]
+      start_day: 2800           # Phase 6
+      well_type: "multilateral"
+      target: "north_central_complex"
+
+  # INJECTOR WELLS (IW-001 to IW-005)
+  injectors:
+    - name: "IW-001"
+      grid_location: [5, 10]
+      start_day: 450            # Phase 2
+      well_type: "vertical"
+      target: "down_dip_support"
+    
+    - name: "IW-002"
+      grid_location: [10, 18]
+      start_day: 950            # Phase 3
+      well_type: "vertical"
+      target: "north_flank_support"
+    
+    - name: "IW-003"
+      grid_location: [20, 5]
+      start_day: 1300           # Phase 4
+      well_type: "horizontal"
+      target: "southeast_support"
+    
+    - name: "IW-004"
+      grid_location: [38, 12]
+      start_day: 1600           # Phase 4
+      well_type: "vertical"
+      target: "east_flank_support"
+    
+    - name: "IW-005"
+      grid_location: [7, 20]
+      start_day: 3200           # Phase 6
+      well_type: "multilateral"
+      target: "northwest_complex"
+
+# DEVELOPMENT PHASES (per 06_Production_History.md)
+development_phases:
+  - phase: 1
+    duration: 365             # days (1-365)
+    active_wells: ["EW-001"]
+    strategy: "natural_depletion"
+  
+  - phase: 2
+    duration: 730             # days (366-1095)  
+    active_wells: ["EW-001", "EW-002", "IW-001"]
+    strategy: "pressure_support"
+  
+  - phase: 3
+    duration: 1095            # days (1096-2190)
+    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "IW-001", "IW-002"]
+    strategy: "infill_development"
+  
+  - phase: 4
+    duration: 730             # days (2191-2920)
+    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "IW-001", "IW-002", "IW-003", "IW-004"]
+    strategy: "pattern_waterflood"
+  
+  - phase: 5
+    duration: 365             # days (2921-3285)
+    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "IW-001", "IW-002", "IW-003"]
+    strategy: "field_expansion"
+  
+  - phase: 6
+    duration: 365             # days (3286-3650)
+    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "EW-010", "IW-001", "IW-002", "IW-003", "IW-004", "IW-005"]
+    strategy: "optimization"
+
+# PRODUCTION SCHEDULE (per 06_Production_History.md)
+production_schedule:
+  # Phase 1: Natural Depletion (Days 1-365)
+  phase_1:
+    duration: 365
+    total_oil_rate: 1500      # STB/day (per documentation Section 6.4)
+    total_water_rate: 500     # STB/day  
+    total_gas_rate: 1200      # Mscf/day
+    wells_producing: ["EW-001"]
+    rates_per_well:
+      "EW-001": 1500         # STB/day oil rate
+    injection_rate: 0         # BWPD - Natural depletion
+    voidage_replacement: 0    # N/A
+
+  # Phase 2: Pressure Support (Days 366-1095)  
+  phase_2:
+    duration: 730
+    total_oil_rate: 3200      # STB/day (per documentation Section 6.4)
+    total_water_rate: 2600    # STB/day
+    total_gas_rate: 2560      # Mscf/day
+    wells_producing: ["EW-001", "EW-002"]
+    rates_per_well:
+      "EW-001": 1600         # STB/day oil rate
+      "EW-002": 1600         # STB/day oil rate
+    injection_rate: 15000     # BWPD total (per documentation Section 6.4)
+    wells_injecting: ["IW-001"]
+    injection_per_well:
+      "IW-001": 15000        # BWPD
+    voidage_replacement: 0.95  # 0.95:1 VRR (per documentation)
+
+  # Phase 3: Infill Development (Days 1096-2190)
+  phase_3:
+    duration: 1095
+    total_oil_rate: 6800      # STB/day (per documentation Section 6.4)
+    total_water_rate: 7200    # STB/day
+    total_gas_rate: 5440      # Mscf/day
+    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004"]
+    rates_per_well:
+      "EW-001": 1700         # STB/day oil rate
+      "EW-002": 1700         # STB/day oil rate  
+      "EW-003": 1700         # STB/day oil rate
+      "EW-004": 1700         # STB/day oil rate
+    injection_rate: 28000     # BWPD total (per documentation Section 6.4)
+    wells_injecting: ["IW-001", "IW-002"]
+    injection_per_well:
+      "IW-001": 14000        # BWPD
+      "IW-002": 14000        # BWPD
+    voidage_replacement: 1.05  # 1.05:1 VRR (per documentation)
+
+  # Phase 4: Pattern Waterflood (Days 2191-2920)
+  phase_4:
+    duration: 730
+    total_oil_rate: 11500     # STB/day (per documentation Section 6.4)
+    total_water_rate: 16500   # STB/day
+    total_gas_rate: 9200      # Mscf/day
+    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006"]
+    rates_per_well:
+      "EW-001": 1917         # STB/day oil rate
+      "EW-002": 1917         # STB/day oil rate
+      "EW-003": 1917         # STB/day oil rate
+      "EW-004": 1917         # STB/day oil rate
+      "EW-005": 1917         # STB/day oil rate
+      "EW-006": 1917         # STB/day oil rate
+    injection_rate: 69000     # BWPD total (per documentation Section 6.4)
+    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004"]
+    injection_per_well:
+      "IW-001": 17250        # BWPD
+      "IW-002": 17250        # BWPD
+      "IW-003": 17250        # BWPD
+      "IW-004": 17250        # BWPD
+    voidage_replacement: 1.15 # 1.15:1 VRR (per documentation)
+
+  # Phase 5: Field Expansion (Days 2921-3285)
+  phase_5:
+    duration: 365
+    total_oil_rate: 16200     # STB/day (per documentation Section 6.4)
+    total_water_rate: 25800   # STB/day
+    total_gas_rate: 12960     # Mscf/day
+    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009"]
+    rates_per_well:
+      "EW-001": 1800         # STB/day oil rate
+      "EW-002": 1800         # STB/day oil rate
+      "EW-003": 1800         # STB/day oil rate
+      "EW-004": 1800         # STB/day oil rate
+      "EW-005": 1800         # STB/day oil rate
+      "EW-006": 1800         # STB/day oil rate
+      "EW-007": 1800         # STB/day oil rate
+      "EW-008": 1800         # STB/day oil rate
+      "EW-009": 1800         # STB/day oil rate
+    injection_rate: 66000     # BWPD total (per documentation Section 6.4)
+    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004"]
+    injection_per_well:
+      "IW-001": 16500        # BWPD
+      "IW-002": 16500        # BWPD
+      "IW-003": 16500        # BWPD
+      "IW-004": 16500        # BWPD
+    voidage_replacement: 1.10 # 1.10:1 VRR (per documentation)
+
+  # Phase 6: Optimization (Days 3286-3650)
+  phase_6:
+    duration: 365
+    total_oil_rate: 18500     # STB/day (per documentation Section 6.4)
+    total_water_rate: 33500   # STB/day
+    total_gas_rate: 14800     # Mscf/day
+    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "EW-010"]
+    rates_per_well:
+      "EW-001": 1850         # STB/day oil rate
+      "EW-002": 1850         # STB/day oil rate
+      "EW-003": 1850         # STB/day oil rate
+      "EW-004": 1850         # STB/day oil rate
+      "EW-005": 1850         # STB/day oil rate
+      "EW-006": 1850         # STB/day oil rate
+      "EW-007": 1850         # STB/day oil rate
+      "EW-008": 1850         # STB/day oil rate
+      "EW-009": 1850         # STB/day oil rate
+      "EW-010": 1850         # STB/day oil rate
+    injection_rate: 95000     # BWPD total (per documentation Section 6.4)
+    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004", "IW-005"]
+    injection_per_well:
+      "IW-001": 19000        # BWPD
+      "IW-002": 19000        # BWPD
+      "IW-003": 19000        # BWPD
+      "IW-004": 19000        # BWPD
+      "IW-005": 19000        # BWPD
+    voidage_replacement: 1.20 # 1.20:1 VRR (per documentation)
+
+# WELL CONSTRAINTS (simplified)
+constraints:
+  producers:
+    min_bhp: 1500             # psi minimum bottom hole pressure
+    max_water_cut: 0.95       # 95% maximum water cut
+    min_oil_rate: 50          # STB/day economic limit
+  
+  injectors:
+    max_bhp: 3600             # psi maximum bottom hole pressure
+    max_injection_rate: 35000 # STB/day maximum rate
+    min_injection_rate: 500   # STB/day minimum rate

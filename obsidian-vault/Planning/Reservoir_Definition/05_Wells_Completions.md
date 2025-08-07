@@ -10,12 +10,12 @@ The Eagle West Field development incorporates a comprehensive 15-well drilling p
 
 | Phase | Timeline (Days) | Duration | Wells Drilled | Cumulative Wells |
 |-------|----------------|----------|---------------|------------------|
-| Phase 1 | 0-365 | Year 1 | PROD1 | 1 |
-| Phase 2 | 366-730 | Year 2 | INJ1, PROD2 | 3 |
-| Phase 3 | 731-1,095 | Year 3 | PROD3, PROD4, INJ2 | 6 |
-| Phase 4 | 1,096-1,825 | Years 4-5 | PROD5, PROD6, INJ3, INJ4 | 10 |
-| Phase 5 | 1,826-2,555 | Years 6-7 | PROD7, PROD8, PROD9 | 13 |
-| Phase 6 | 2,556-3,650 | Years 8-10 | PROD10, INJ5 | 15 |
+| Phase 1 | 0-365 | Year 1 | EW-001 | 1 |
+| Phase 2 | 366-730 | Year 2 | IW-001, EW-002 | 3 |
+| Phase 3 | 731-1,095 | Year 3 | EW-003, EW-004, IW-002 | 6 |
+| Phase 4 | 1,096-1,825 | Years 4-5 | EW-005, EW-006, IW-003, IW-004 | 10 |
+| Phase 5 | 1,826-2,555 | Years 6-7 | EW-007, EW-008, EW-009 | 13 |
+| Phase 6 | 2,556-3,650 | Years 8-10 | EW-010, IW-005 | 15 |
 
 ### 1.2 Complete Well Inventory
 
@@ -23,26 +23,26 @@ The Eagle West Field development incorporates a comprehensive 15-well drilling p
 
 | Well ID | Phase | Drill Date (Day) | Well Type | Grid Location (i,j) | Surface Coordinates | Total Depth (ft TVD/MD) | Primary Target | Fault Block |
 |---------|-------|------------------|-----------|--------------------|--------------------|-------------------------|----------------|-------------|
-| PROD1   | 1 | 180 | Vertical | 15, 10 | X: 2,750 / Y: 1,750 | 8,200 / 8,200 | Structural Crest | Central High |
-| PROD2   | 2 | 550 | Vertical | 12, 6 | X: 2,150 / Y: 950 | 8,350 / 8,350 | Upper Sand High | West Block |
-| PROD3   | 3 | 850 | Horizontal | 18, 14 | X: 3,350 / Y: 2,550 | 8,180 / 9,450 | East Flank Lateral | East Block |
-| PROD4   | 3 | 1,000 | Vertical | 8, 8 | X: 1,350 / Y: 1,350 | 8,420 / 8,420 | West Flank | West Block |
-| PROD5   | 4 | 1,200 | Horizontal | 16, 12 | X: 2,950 / Y: 2,150 | 8,150 / 9,680 | Central Lateral | Central High |
-| PROD6   | 4 | 1,400 | Multi-lateral | 11, 15 | X: 1,950 / Y: 2,750 | 8,280 / 10,200 | North Complex | North Block |
-| PROD7   | 5 | 1,950 | Horizontal | 22, 8 | X: 4,150 / Y: 1,350 | 8,380 / 9,890 | Southeast Lateral | Southeast Block |
-| PROD8   | 5 | 2,100 | Vertical | 6, 12 | X: 950 / Y: 2,150 | 8,480 | Southwest Flank | Southwest Block |
-| PROD9   | 5 | 2,300 | Horizontal | 19, 18 | X: 3,550 / Y: 3,350 | 8,120 / 9,520 | Northeast Lateral | Northeast Block |
-| PROD10  | 6 | 2,800 | Multi-lateral | 14, 16 | X: 2,550 / Y: 2,950 | 8,220 / 10,850 | North Central Complex | Central High |
+| EW-001  | 1 | 180 | Vertical | 15, 10 | X: 2,750 / Y: 1,750 | 8,200 / 8,200 | Structural Crest | Central High |
+| EW-002  | 2 | 550 | Vertical | 12, 6 | X: 2,150 / Y: 950 | 8,350 / 8,350 | Upper Sand High | West Block |
+| EW-003  | 3 | 850 | Horizontal | 18, 14 | X: 3,350 / Y: 2,550 | 8,180 / 9,450 | East Flank Lateral | East Block |
+| EW-004  | 3 | 1,000 | Vertical | 8, 8 | X: 1,350 / Y: 1,350 | 8,420 / 8,420 | West Flank | West Block |
+| EW-005  | 4 | 1,200 | Horizontal | 16, 12 | X: 2,950 / Y: 2,150 | 8,150 / 9,680 | Central Lateral | Central High |
+| EW-006  | 4 | 1,400 | Multi-lateral | 11, 15 | X: 1,950 / Y: 2,750 | 8,280 / 10,200 | North Complex | North Block |
+| EW-007  | 5 | 1,950 | Horizontal | 38, 8 | X: 3,116 / Y: 592 | 8,380 / 9,890 | Southeast Lateral | Southeast Block |
+| EW-008  | 5 | 2,100 | Vertical | 6, 12 | X: 950 / Y: 2,150 | 8,480 | Southwest Flank | Southwest Block |
+| EW-009  | 5 | 2,300 | Horizontal | 19, 18 | X: 1,558 / Y: 1,332 | 8,120 / 9,520 | Northeast Lateral | Northeast Block |
+| EW-010  | 6 | 2,800 | Multi-lateral | 14, 16 | X: 2,550 / Y: 2,950 | 8,220 / 10,850 | North Central Complex | Central High |
 
 #### Injector Wells (5 Total)
 
 | Well ID | Phase | Drill Date (Day) | Well Type | Grid Location (i,j) | Surface Coordinates | Total Depth (ft TVD/MD) | Primary Objective | Fault Block |
 |---------|-------|------------------|-----------|--------------------|--------------------|-------------------------|-------------------|-------------|
-| INJ1    | 2 | 450 | Vertical | 5, 10 | X: 750 / Y: 1,750 | 8,300 / 8,300 | Down-dip Support | West Aquifer |
-| INJ2    | 3 | 950 | Vertical | 10, 18 | X: 1,750 / Y: 3,350 | 8,250 / 8,250 | North Flank Support | North Aquifer |
-| INJ3    | 4 | 1,300 | Horizontal | 20, 5 | X: 3,750 / Y: 750 | 8,450 / 9,200 | Southeast Support | Southeast Aquifer |
-| INJ4    | 4 | 1,600 | Vertical | 25, 12 | X: 4,750 / Y: 2,150 | 8,520 / 8,520 | East Flank Support | East Aquifer |
-| INJ5    | 6 | 3,200 | Multi-lateral | 7, 20 | X: 1,150 / Y: 3,750 | 8,380 / 9,850 | Northwest Complex | Northwest Aquifer |
+| IW-001  | 2 | 450 | Vertical | 5, 10 | X: 750 / Y: 1,750 | 8,300 / 8,300 | Down-dip Support | West Aquifer |
+| IW-002  | 3 | 950 | Vertical | 10, 18 | X: 1,750 / Y: 3,350 | 8,250 / 8,250 | North Flank Support | North Aquifer |
+| IW-003  | 4 | 1,300 | Horizontal | 20, 5 | X: 1,640 / Y: 370 | 8,450 / 9,200 | Southeast Support | Southeast Aquifer |
+| IW-004  | 4 | 1,600 | Vertical | 38, 12 | X: 3,116 / Y: 888 | 8,520 / 8,520 | East Flank Support | East Aquifer |
+| IW-005  | 6 | 3,200 | Multi-lateral | 7, 20 | X: 574 / Y: 1,480 | 8,380 / 9,850 | Northwest Complex | Northwest Aquifer |
 
 ## 2. Well Placement Strategy and Rationale
 

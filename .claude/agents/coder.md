@@ -21,7 +21,13 @@ Read and follow these rules from `.claude/rules/`:
 - **Rule 0**: Project guidelines (KISS, FAIL_FAST, DATA_GENERATION)
 - **Rule 1**: Code style (step/substep structure, English only)
 - **Rule 2**: Code change discipline
-- **Rule 5**: File naming (`sNN_verb_noun.ext`)
+- **Rule 5**: File naming patterns:
+  - **Octave + MRST Scripts**: `sNN[x]_<verb>_<noun>.m` in `/mrst_simulation_scripts/`
+    - Must include `% Requires: MRST` at the top
+    - Examples: `s01_create_grid.m`, `s03b_define_fluids.m`
+  - **Python Scripts**: `sNN[x]_<verb>_<noun>.py` in `/src/` with logical subfolders
+    - Examples: `s00_prepare_dataset.py`, `s01_split_data.py`
+  - **Main launcher**: `s99_<descriptive_phrase>.<ext>` (appears last in listings)
 - **Rule 6**: Google Style docstrings
 - **Rule 8**: No print() in final code
 

@@ -1,0 +1,14 @@
+Eagle West Field - Grid Summary
+================================
+
+Grid Dimensions: 40 × 40 × 12
+Total Cells: 19200
+Total Faces: 60160
+Total Nodes: 21853
+Grid Volume: 9.67e+08 ft³
+Average Cell Volume: 50364.4 ft³
+
+Cell Size: 82.0 ft × 74.0 ft
+Layer Thicknesses: 8.3 - 8.3 ft
+
+Creation Date: 06-Aug-2025 22:53:26

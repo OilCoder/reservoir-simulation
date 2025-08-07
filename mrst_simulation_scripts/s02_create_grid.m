@@ -1,347 +1,439 @@
-function [G, status] = s02_create_grid(varargin)
-%S02_CREATE_GRID Create basic Cartesian grid from YAML configuration
-
-% Suppress warnings for cleaner output
-warning('off', 'Octave:language-extension');
-warning('off', 'Octave:str-to-num');
+function G = s02_create_grid()
+% S02_CREATE_GRID - Create reservoir grid for Eagle West Field simulation
 %
-% This script creates a Cartesian tensor grid based on the grid
-% configuration YAML file for the Eagle West Field simulation.
-%
-% USAGE:
-%   [G, status] = s02_create_grid()                    % Normal mode (clean output)
-%   [G, status] = s02_create_grid('verbose', true)     % Verbose mode (detailed output)
+% SYNTAX:
+%   G = s02_create_grid()
 %
 % OUTPUT:
-%   G      - MRST grid structure with computed geometry
-%   status - Structure containing grid creation status and information
+%   G - MRST grid structure with geometry and properties
 %
-% DEPENDENCIES:
-%   - MRST environment (assumed already initialized by workflow)
-%   - config/grid_config.yaml configuration file
-%   - util_read_config.m (YAML reader)
+% DESCRIPTION:
+%   This script creates the 3D Cartesian grid structure for Eagle West Field
+%   following specifications in 01_Structural_Geology.md and grid_config.yaml.
+%   
+%   Grid Specifications:
+%   - Dimensions: 40×40×12 cells (19,200 total cells)
+%   - Cell sizes: 82 ft × 74 ft × 8.3 ft (variable by layer)
+%   - Field extent: 3,280 ft × 2,960 ft × 100 ft
+%   - Top depth: 8,000 ft TVDSS
 %
-% SUCCESS CRITERIA:
-%   - Grid created without errors  
-%   - Geometry computed successfully
-%   - Properties assigned from config
-%   - Grid quality validated
+%   The grid represents the faulted anticline structure with proper
+%   aspect ratios for numerical stability.
+%
+% Author: Claude Code AI System
+% Date: January 30, 2025
 
-    % Parse input arguments
-    p = inputParser;
-    addParameter(p, 'verbose', false, @islogical);
-    parse(p, varargin{:});
-    verbose = p.Results.verbose;
-    
-    if verbose
-        fprintf('\n=== Grid Creation ===\n');
-    else
-        fprintf('\n>> Creating Grid Structure:\n');
-        fprintf('+-------------------------------------+--------+\n');
-        fprintf('| Task                                | Status |\n');
-        fprintf('+-------------------------------------+--------+\n');
-    end
-    
-    % Initialize status structure
-    status = struct();
-    status.success = false;
-    status.grid_created = false;
-    status.geometry_computed = false;
-    status.errors = {};
-    status.warnings = {};
-    
-    % Initialize return values
-    G = [];
-    
-    % Define grid creation tasks
-    task_names = {'Load Configuration', 'Extract Parameters', 'Create Cartesian Grid', 'Compute Geometry', 'Validate Quality'};
+    fprintf('======================================================\n');
+    fprintf('Eagle West Field - Grid Construction (Step 2)\n');
+    fprintf('======================================================\n\n');
     
     try
-        %% Step 1: Load grid configuration from YAML
-        if verbose
-            fprintf('Step 1: Loading grid configuration from YAML...\n');
-        end
+        % Step 1 - Load grid configuration
+        fprintf('Step 1: Loading grid configuration...\n');
+        grid_config = load_grid_config();
+        grid_params = grid_config.grid;
+        fprintf('   ✓ Configuration loaded from grid_config.yaml\n\n');
         
-        try
-            % Load grid configuration directly from YAML
-            config_dir = 'config';
-            grid_file = fullfile(config_dir, 'grid_config.yaml');
-            grid_raw = util_read_config(grid_file);
-            
-            % Build grid configuration structure
-            grid_config = struct();
-            grid_config.nx = parse_numeric(grid_raw.nx);
-            grid_config.ny = parse_numeric(grid_raw.ny);
-            grid_config.nz = parse_numeric(grid_raw.nz);
-            
-            % Cell dimensions (convert ft to m)
-            ft_to_m = 0.3048;
-            grid_config.dx = parse_numeric(grid_raw.dx) * ft_to_m;
-            grid_config.dy = parse_numeric(grid_raw.dy) * ft_to_m;
-            grid_config.dz = parse_numeric(grid_raw.dz) * ft_to_m;
-            
-            % Field extent
-            grid_config.Lx = parse_numeric(grid_raw.length_x);     % already in m
-            grid_config.Ly = parse_numeric(grid_raw.length_y);     % already in m
-            grid_config.Lz = parse_numeric(grid_raw.gross_thickness); % already in m
-            
-            step1_success = true;
-        catch ME
-            step1_success = false;
-            if verbose
-                fprintf('Error loading grid configuration: %s\n', ME.message);
-            end
-        end
+        % Step 2 - Validate grid parameters
+        fprintf('Step 2: Validating grid parameters...\n');
+        validate_grid_parameters(grid_params);
+        fprintf('   ✓ Grid parameters validated\n\n');
         
-        if ~verbose
-            if step1_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', task_names{1}, status_symbol);
-        else
-            if step1_success
-                fprintf('  - Grid configuration loaded from YAML\n');
-                fprintf('  - Grid: %dx%dx%d cells\n', grid_config.nx, grid_config.ny, grid_config.nz);
-            end
-        end
+        % Step 3 - Create Cartesian grid
+        fprintf('Step 3: Creating Cartesian grid...\n');
+        G = create_cartesian_grid(grid_params);
+        fprintf('   ✓ Grid created: %d×%d×%d = %d cells\n\n', ...
+                G.cartDims(1), G.cartDims(2), G.cartDims(3), G.cells.num);
         
-        if ~step1_success
-            error('Failed to load configuration');
-        end
+        % Step 4 - Compute geometry
+        fprintf('Step 4: Computing grid geometry...\n');
+        G = computeGeometry(G);
+        fprintf('   ✓ Geometry computed\n');
+        fprintf('   ✓ Grid volume: %.2e ft³\n\n', sum(G.cells.volumes));
         
-        %% Step 2: Extract grid parameters
-        if verbose
-            fprintf('Step 2: Extracting grid parameters...\n');
-        end
+        % Step 5 - Validate grid quality
+        fprintf('Step 5: Validating grid quality...\n');
+        quality_metrics = validate_grid_quality(G, grid_params);
+        fprintf('   ✓ Grid quality validated\n');
+        print_quality_metrics(quality_metrics);
         
-        try
-            % Grid dimensions (already processed)
-            nx = grid_config.nx;
-            ny = grid_config.ny; 
-            nz = grid_config.nz;
-            
-            % Cell dimensions (already in m)
-            dx = grid_config.dx;
-            dy = grid_config.dy;
-            dz = grid_config.dz;
-            
-            % Field extent (already in m)
-            Lx = grid_config.Lx;
-            Ly = grid_config.Ly;
-            Lz = grid_config.Lz;
-            
-            % Validate parameters
-            if nx <= 0 || ny <= 0 || nz <= 0 || dx <= 0 || dy <= 0 || dz <= 0
-                error('Invalid grid parameters');
-            end
-            step2_success = true;
-        catch
-            step2_success = false;
-        end
+        % Step 6 - Add field-specific properties
+        fprintf('Step 6: Adding field-specific properties...\n');
+        G = add_field_properties(G, grid_params);
+        fprintf('   ✓ Field properties added\n\n');
         
-        if ~verbose
-            if step2_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', task_names{2}, status_symbol);
-        else
-            fprintf('  - Grid dimensions: %d x %d x %d cells\n', nx, ny, nz);
-            fprintf('  - Cell size: %.1f x %.1f x %.1f m\n', dx, dy, dz);
-            fprintf('  - Field extent: %.0f x %.0f x %.1f m\n', Lx, Ly, Lz);
-        end
+        % Step 7 - Export grid data
+        fprintf('Step 7: Exporting grid data...\n');
+        export_grid_data(G, grid_params);
+        fprintf('   ✓ Grid data exported\n\n');
         
-        if ~step2_success
-            error('Failed to extract grid parameters');
-        end
-        
-        %% Step 3: Create Cartesian grid
-        if verbose
-            fprintf('Step 3: Creating Cartesian tensor grid...\n');
-        end
-        
-        try
-            % Create MRST Cartesian grid
-            G = cartGrid([nx, ny, nz], [Lx, Ly, Lz]);
-            if isempty(G) || G.cells.num == 0
-                error('Grid creation failed');
-            end
-            step3_success = true;
-        catch
-            step3_success = false;
-        end
-        
-        if ~verbose
-            if step3_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', sprintf('%s (%dx%dx%d)', task_names{3}, nx, ny, nz), status_symbol);
-        else
-            fprintf('  - Cartesian grid created: %d cells\n', G.cells.num);
-        end
-        
-        if ~step3_success
-            error('Failed to create Cartesian grid');
-        end
-        
-        status.grid_created = true;
-        
-        %% Step 4: Compute grid geometry
-        if verbose
-            fprintf('Step 4: Computing grid geometry...\n');
-        end
-        
-        try
-            G = computeGeometry(G);
-            % Verify geometry computation
-            if ~isfield(G, 'cells') || ~isfield(G.cells, 'volumes') || ...
-               ~isfield(G, 'faces') || ~isfield(G.faces, 'areas')
-                error('Geometry computation failed');
-            end
-            step4_success = true;
-        catch
-            step4_success = false;
-        end
-        
-        if ~verbose
-            if step4_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', task_names{4}, status_symbol);
-        else
-            fprintf('  - Geometry computed successfully\n');
-            fprintf('  - Total pore volume: %.2e m??\n', sum(G.cells.volumes));
-            fprintf('  - Average cell volume: %.2e m??\n', mean(G.cells.volumes));
-        end
-        
-        if ~step4_success
-            error('Failed to compute grid geometry');
-        end
-        
-        status.geometry_computed = true;
-        
-        %% Step 5: Grid quality validation
-        if verbose
-            fprintf('Step 5: Validating grid quality...\n');
-        end
-        
-        try
-            % Check aspect ratios
-            cell_dims = [dx, dy, dz];
-            max_aspect = max(cell_dims) / min(cell_dims);
-            
-            % Check volume consistency
-            expected_volume = Lx * Ly * Lz;
-            actual_volume = sum(G.cells.volumes);
-            volume_error = abs(actual_volume - expected_volume) / expected_volume;
-            
-            if max_aspect > 10
-                status.warnings{end+1} = sprintf('High aspect ratio: %.1f', max_aspect);
-            end
-            
-            if volume_error > 0.01
-                status.warnings{end+1} = sprintf('Volume error: %.2f%%', volume_error * 100);
-            end
-            
-            step5_success = true;
-        catch
-            step5_success = false;
-        end
-        
-        if ~verbose
-            if step5_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', sprintf('%s (ratio %.1f)', task_names{5}, max_aspect), status_symbol);
-        else
-            fprintf('  - Aspect ratio: %.1f\n', max_aspect);
-            fprintf('  - Volume consistency: %.4f%% error\n', volume_error * 100);
-        end
-        
-        % Store grid parameters in status
-        status.grid_params = struct();
-        status.grid_params.nx = nx;
-        status.grid_params.ny = ny;
-        status.grid_params.nz = nz;
-        status.grid_params.dx = dx;
-        status.grid_params.dy = dy;  
-        status.grid_params.dz = dz;
-        status.grid_params.Lx = Lx;
-        status.grid_params.Ly = Ly;
-        status.grid_params.Lz = Lz;
-        status.grid_params.total_cells = G.cells.num;
-        status.grid_params.total_volume = actual_volume;
-        status.grid_params.aspect_ratio = max_aspect;
-        
-        %% Success
-        status.success = step1_success && step2_success && step3_success && step4_success && step5_success;
-        status.timestamp = datestr(now, 'yyyy-mm-dd HH:MM:SS');
-        
-        if verbose
-            fprintf('\n=== Grid Creation SUCCESSFUL ===\n');
-            fprintf('Grid: %d x %d x %d = %d cells\n', nx, ny, nz, G.cells.num);
-            fprintf('Extent: %.0f x %.0f x %.1f m\n', Lx, Ly, Lz);
-            fprintf('Volume: %.2e m³\n', actual_volume);
-            fprintf('Timestamp: %s\n', status.timestamp);
-        else
-            % Close the table
-            fprintf('+-------------------------------------+--------+\n');
-            fprintf('>> Grid: %d cells (%dx%dx%d) created successfully\n', G.cells.num, nx, ny, nz);
-            fprintf('   Volume: %.2e m³ | Aspect ratio: %.1f | Quality: verified\n', actual_volume, max_aspect);
-        end
-        
-        if ~isempty(status.warnings)
-            fprintf('\nWarnings encountered:\n');
-            for i = 1:length(status.warnings)
-                fprintf('  - %s\n', status.warnings{i});
-            end
-        end
+        % Success summary
+        fprintf('======================================================\n');
+        fprintf('Grid Construction Completed Successfully\n');
+        fprintf('======================================================\n');
+        fprintf('Grid Dimensions: %d × %d × %d\n', G.cartDims);
+        fprintf('Total Cells: %d\n', G.cells.num);
+        fprintf('Total Faces: %d\n', G.faces.num);
+        fprintf('Total Nodes: %d\n', G.nodes.num);
+        fprintf('Grid Volume: %.2e ft³\n', sum(G.cells.volumes));
+        fprintf('Average Cell Volume: %.1f ft³\n', mean(G.cells.volumes));
+        fprintf('======================================================\n\n');
         
     catch ME
-        status.success = false;
-        status.errors{end+1} = ME.message;
-        
-        fprintf('\n=== Grid Creation FAILED ===\n');
+        fprintf('\n❌ Grid construction FAILED\n');
         fprintf('Error: %s\n', ME.message);
-        
-        if ~isempty(status.warnings)
-            fprintf('\nWarnings:\n');
-            for i = 1:length(status.warnings)
-                fprintf('  - %s\n', status.warnings{i});
-            end
+        if ~isempty(ME.stack)
+            fprintf('Location: %s (line %d)\n', ME.stack(1).file, ME.stack(1).line);
         end
-        
-        rethrow(ME);
+        error('Grid construction failed: %s', ME.message);
     end
-    
-    fprintf('\n');
+
 end
 
-function val = parse_numeric(str_val)
-%PARSE_NUMERIC Extract numeric value from string (removing comments)
+function validate_grid_parameters(grid_params)
+% VALIDATE_GRID_PARAMETERS - Validate configuration parameters
 %
-% Handles strings like "20                    # Number of cells"
-% and returns just the numeric value 20
+% INPUT:
+%   grid_params - Grid parameters structure from YAML
 
-    if isnumeric(str_val)
-        val = str_val;
-    else
-        % Remove comments after # symbol
-        clean_str = strtok(str_val, '#');
-        % Convert to number
-        val = str2double(clean_str);
-        
-        if isnan(val)
-            error('Failed to parse numeric value from: %s', str_val);
+    % Check required fields exist
+    required_fields = {'nx', 'ny', 'nz', 'cell_size_x', 'cell_size_y', 'layer_thicknesses'};
+    for i = 1:length(required_fields)
+        field = required_fields{i};
+        if ~isfield(grid_params, field)
+            error('Required grid parameter missing: %s', field);
         end
     end
+    
+    % Validate dimensions
+    if grid_params.nx <= 0 || grid_params.ny <= 0 || grid_params.nz <= 0
+        error('Grid dimensions must be positive integers. Got nx=%d, ny=%d, nz=%d', ...
+              grid_params.nx, grid_params.ny, grid_params.nz);
+    end
+    
+    % Validate cell sizes
+    if grid_params.cell_size_x <= 0 || grid_params.cell_size_y <= 0
+        error('Cell sizes must be positive. Got cell_size_x=%.1f, cell_size_y=%.1f', ...
+              grid_params.cell_size_x, grid_params.cell_size_y);
+    end
+    
+    % Validate layer thicknesses
+    if length(grid_params.layer_thicknesses) ~= grid_params.nz
+        error('Layer thickness count (%d) must match nz (%d)', ...
+              length(grid_params.layer_thicknesses), grid_params.nz);
+    end
+    
+    if any(grid_params.layer_thicknesses <= 0)
+        error('All layer thicknesses must be positive');
+    end
+    
+    % Check aspect ratio for numerical stability (should be < 10:1)
+    max_thickness = max(grid_params.layer_thicknesses);
+    min_horizontal = min(grid_params.cell_size_x, grid_params.cell_size_y);
+    aspect_ratio = min_horizontal / max_thickness;
+    
+    if aspect_ratio > 10
+        warning('High aspect ratio detected (%.1f:1). May cause numerical issues.', aspect_ratio);
+    end
+    
+    fprintf('     Grid dimensions: %d × %d × %d\n', grid_params.nx, grid_params.ny, grid_params.nz);
+    fprintf('     Cell sizes: %.1f ft × %.1f ft\n', grid_params.cell_size_x, grid_params.cell_size_y);
+    fprintf('     Layer thickness range: %.1f - %.1f ft\n', ...
+            min(grid_params.layer_thicknesses), max(grid_params.layer_thicknesses));
+
+end
+
+function G = create_cartesian_grid(grid_params)
+% CREATE_CARTESIAN_GRID - Create the basic Cartesian grid structure
+%
+% INPUT:
+%   grid_params - Grid parameters from configuration
+%
+% OUTPUT:
+%   G - MRST grid structure
+
+    % Extract dimensions
+    nx = grid_params.nx;
+    ny = grid_params.ny;
+    nz = grid_params.nz;
+    
+    % Calculate physical dimensions
+    dx = grid_params.cell_size_x;
+    dy = grid_params.cell_size_y;
+    layer_thicknesses = grid_params.layer_thicknesses;
+    
+    % Total domain size
+    Lx = nx * dx;  % Total X dimension
+    Ly = ny * dy;  % Total Y dimension
+    Lz = sum(layer_thicknesses);  % Total Z dimension
+    
+    fprintf('     Physical domain: %.1f ft × %.1f ft × %.1f ft\n', Lx, Ly, Lz);
+    
+    % Create basic Cartesian grid with MRST
+    % Note: MRST uses [nx, ny, nz] for dimensions and [Lx, Ly, Lz] for physical size
+    G = cartGrid([nx, ny, nz], [Lx, Ly, Lz]);
+    
+    % Adjust Z-coordinates for variable layer thicknesses
+    if length(unique(layer_thicknesses)) > 1
+        % Variable layer thicknesses - need to adjust Z coordinates
+        G = adjust_layer_thicknesses(G, layer_thicknesses);
+    end
+    
+    % Apply coordinate transforms for Eagle West Field location
+    if isfield(grid_params, 'origin_x') && isfield(grid_params, 'origin_y') && isfield(grid_params, 'origin_z')
+        G = apply_coordinate_transform(G, grid_params);
+    end
+
+end
+
+function G = adjust_layer_thicknesses(G, layer_thicknesses)
+% ADJUST_LAYER_THICKNESSES - Adjust Z-coordinates for variable layer thickness
+%
+% INPUT:
+%   G - MRST grid structure
+%   layer_thicknesses - Array of layer thicknesses
+%
+% OUTPUT:
+%   G - Grid with adjusted Z-coordinates
+
+    % Get grid dimensions
+    nx = G.cartDims(1);
+    ny = G.cartDims(2);
+    nz = G.cartDims(3);
+    
+    % Calculate cumulative depths for layer interfaces
+    layer_tops = [0, cumsum(layer_thicknesses(1:end-1))];
+    layer_bottoms = cumsum(layer_thicknesses);
+    
+    % Adjust node coordinates
+    total_nodes = (nx+1) * (ny+1) * (nz+1);
+    
+    for k = 1:nz+1
+        % Find all nodes at this K level
+        k_start = (k-1) * (nx+1) * (ny+1) + 1;
+        k_end = k * (nx+1) * (ny+1);
+        
+        if k == 1
+            % Top surface
+            z_value = 0;
+        else
+            % Layer interface
+            z_value = layer_bottoms(k-1);
+        end
+        
+        % Update Z coordinates for all nodes at this level
+        G.nodes.coords(k_start:k_end, 3) = z_value;
+    end
+
+end
+
+function G = apply_coordinate_transform(G, grid_params)
+% APPLY_COORDINATE_TRANSFORM - Apply field-specific coordinate transformation
+%
+% INPUT:
+%   G - MRST grid structure
+%   grid_params - Grid parameters including origin
+%
+% OUTPUT:
+%   G - Grid with transformed coordinates
+
+    % Get origin coordinates
+    origin_x = grid_params.origin_x;
+    origin_y = grid_params.origin_y; 
+    origin_z = grid_params.origin_z;
+    
+    % Apply translation
+    G.nodes.coords(:, 1) = G.nodes.coords(:, 1) + origin_x;
+    G.nodes.coords(:, 2) = G.nodes.coords(:, 2) + origin_y;
+    G.nodes.coords(:, 3) = G.nodes.coords(:, 3) + origin_z;
+    
+    fprintf('     Grid origin: (%.1f, %.1f, %.1f) ft\n', origin_x, origin_y, origin_z);
+
+end
+
+function quality_metrics = validate_grid_quality(G, grid_params)
+% VALIDATE_GRID_QUALITY - Check grid quality metrics
+%
+% INPUT:
+%   G - MRST grid structure
+%   grid_params - Grid parameters
+%
+% OUTPUT:
+%   quality_metrics - Structure with quality assessment
+
+    quality_metrics = struct();
+    
+    % Check cell count consistency
+    expected_cells = grid_params.nx * grid_params.ny * grid_params.nz;
+    quality_metrics.cell_count_match = (G.cells.num == expected_cells);
+    
+    if ~quality_metrics.cell_count_match
+        error('Cell count mismatch. Expected %d, got %d', expected_cells, G.cells.num);
+    end
+    
+    % Check for degenerate cells (zero or negative volume)
+    min_volume = min(G.cells.volumes);
+    quality_metrics.min_volume = min_volume;
+    quality_metrics.has_degenerate_cells = (min_volume <= 0);
+    
+    if quality_metrics.has_degenerate_cells
+        error('Degenerate cells detected (volume ≤ 0). Minimum volume: %.2e', min_volume);
+    end
+    
+    % Check volume distribution
+    volume_std = std(G.cells.volumes);
+    volume_mean = mean(G.cells.volumes);
+    quality_metrics.volume_cv = volume_std / volume_mean;
+    quality_metrics.volume_uniformity_ok = (quality_metrics.volume_cv < 0.5);
+    
+    if ~quality_metrics.volume_uniformity_ok
+        warning('High volume variation detected (CV=%.3f). Grid may have quality issues.', ...
+                quality_metrics.volume_cv);
+    end
+    
+    % Check coordinate ranges
+    x_range = max(G.cells.centroids(:,1)) - min(G.cells.centroids(:,1));
+    y_range = max(G.cells.centroids(:,2)) - min(G.cells.centroids(:,2));
+    z_range = max(G.cells.centroids(:,3)) - min(G.cells.centroids(:,3));
+    
+    quality_metrics.x_range = x_range;
+    quality_metrics.y_range = y_range;
+    quality_metrics.z_range = z_range;
+    quality_metrics.coordinate_ranges_ok = (x_range > 0 && y_range > 0 && z_range > 0);
+    
+    if ~quality_metrics.coordinate_ranges_ok
+        error('Invalid coordinate ranges. X: %.1f, Y: %.1f, Z: %.1f', x_range, y_range, z_range);
+    end
+    
+    % Overall quality assessment
+    quality_metrics.overall_quality = quality_metrics.cell_count_match && ...
+                                     ~quality_metrics.has_degenerate_cells && ...
+                                     quality_metrics.volume_uniformity_ok && ...
+                                     quality_metrics.coordinate_ranges_ok;
+
+end
+
+function print_quality_metrics(quality_metrics)
+% PRINT_QUALITY_METRICS - Display grid quality assessment
+%
+% INPUT:
+%   quality_metrics - Quality metrics structure
+
+    fprintf('     Cell count consistency: %s\n', bool_to_status(quality_metrics.cell_count_match));
+    fprintf('     Minimum cell volume: %.2e ft³\n', quality_metrics.min_volume);
+    fprintf('     Volume uniformity (CV): %.3f %s\n', quality_metrics.volume_cv, ...
+            bool_to_status(quality_metrics.volume_uniformity_ok));
+    fprintf('     Coordinate ranges: X=%.1f, Y=%.1f, Z=%.1f ft %s\n', ...
+            quality_metrics.x_range, quality_metrics.y_range, quality_metrics.z_range, ...
+            bool_to_status(quality_metrics.coordinate_ranges_ok));
+    fprintf('     Overall quality: %s\n', bool_to_status(quality_metrics.overall_quality));
+
+end
+
+function status_str = bool_to_status(bool_val)
+% BOOL_TO_STATUS - Convert boolean to status string
+    if bool_val
+        status_str = '✓';
+    else
+        status_str = '❌';
+    end
+end
+
+function G = add_field_properties(G, grid_params)
+% ADD_FIELD_PROPERTIES - Add Eagle West Field specific properties to grid
+%
+% INPUT:
+%   G - MRST grid structure
+%   grid_params - Grid configuration parameters
+%
+% OUTPUT:
+%   G - Grid with added properties
+
+    % Add field identification
+    G.field_name = 'Eagle West Field';
+    G.creation_date = datestr(now);
+    
+    % Add layer information
+    nz = grid_params.nz;
+    layer_thicknesses = grid_params.layer_thicknesses;
+    
+    % Assign layer indices to cells
+    cells_per_layer = G.cells.num / nz;
+    G.cells.layer_index = zeros(G.cells.num, 1);
+    G.cells.layer_thickness = zeros(G.cells.num, 1);
+    
+    for k = 1:nz
+        cell_start = (k-1) * cells_per_layer + 1;
+        cell_end = k * cells_per_layer;
+        
+        G.cells.layer_index(cell_start:cell_end) = k;
+        G.cells.layer_thickness(cell_start:cell_end) = layer_thicknesses(k);
+    end
+    
+    % Add grid metrics
+    G.metrics = struct();
+    G.metrics.total_volume = sum(G.cells.volumes);
+    G.metrics.average_cell_volume = mean(G.cells.volumes);
+    G.metrics.aspect_ratio = min(grid_params.cell_size_x, grid_params.cell_size_y) / ...
+                            max(layer_thicknesses);
+
+end
+
+function export_grid_data(G, grid_params)
+% EXPORT_GRID_DATA - Export grid data to files
+%
+% INPUT:
+%   G - MRST grid structure
+%   grid_params - Grid configuration parameters
+
+    % Create output directory
+    script_path = fileparts(mfilename('fullpath'));
+    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
+    end
+    
+    % Save grid in MATLAB format
+    grid_file = fullfile(data_dir, 'grid_structure.mat');
+    save(grid_file, 'G', 'grid_params', '');
+    
+    % Export grid summary
+    summary_file = fullfile(data_dir, 'grid_summary.txt');
+    fid = fopen(summary_file, 'w');
+    
+    fprintf(fid, 'Eagle West Field - Grid Summary\n');
+    fprintf(fid, '================================\n\n');
+    fprintf(fid, 'Grid Dimensions: %d × %d × %d\n', G.cartDims);
+    fprintf(fid, 'Total Cells: %d\n', G.cells.num);
+    fprintf(fid, 'Total Faces: %d\n', G.faces.num);
+    fprintf(fid, 'Total Nodes: %d\n', G.nodes.num);
+    fprintf(fid, 'Grid Volume: %.2e ft³\n', sum(G.cells.volumes));
+    fprintf(fid, 'Average Cell Volume: %.1f ft³\n', mean(G.cells.volumes));
+    fprintf(fid, '\nCell Size: %.1f ft × %.1f ft\n', grid_params.cell_size_x, grid_params.cell_size_y);
+    fprintf(fid, 'Layer Thicknesses: %.1f - %.1f ft\n', ...
+            min(grid_params.layer_thicknesses), max(grid_params.layer_thicknesses));
+    fprintf(fid, '\nCreation Date: %s\n', datestr(now));
+    
+    fclose(fid);
+    
+    fprintf('     Grid saved to: %s\n', grid_file);
+    fprintf('     Summary saved to: %s\n', summary_file);
+
+end
+
+% Load grid configuration (calls read_yaml_config)
+function grid_config = load_grid_config()
+    % Load grid configuration using the YAML reader
+    grid_config = read_yaml_config('config/grid_config.yaml');
+end
+
+% Main execution when called as script  
+if ~nargout
+    % If called as script (not function), create and display grid
+    G = s02_create_grid();
+    
+    % Display basic grid info
+    fprintf('Grid ready for simulation!\n');
+    fprintf('Use "plotGrid(G)" to visualize the grid structure.\n\n');
 end

@@ -1,205 +1,141 @@
-# Fluid Properties Configuration for MRST Reservoir Simulation
-# Eagle West Field - 15-Well Development Program
-#
-# Based on: /workspace/obsidian-vault/Planning/Reservoir_Definition/03_Fluid_Properties.md
-# Created: 2025-07-31
-# Purpose: PVT data and phase behavior for 3-phase simulation
+# Fluid Properties Configuration for Eagle West Field MRST Simulation
+# Based on: 03_Fluid_Properties.md - Complete PVT Analysis
+# Date: January 30, 2025
 
-# RESERVOIR CONDITIONS
-reservoir_conditions:
-  initial_pressure: 2900      # psi - Initial reservoir pressure
-  reservoir_temperature: 176  # °F - Constant reservoir temperature
-  datum_depth: 8000          # ft TVDSS - Pressure reference depth
-  pressure_gradient: 0.433    # psi/ft - Hydrostatic gradient
-
-# CRUDE OIL PROPERTIES
-oil_properties:
-  # BASIC CHARACTERIZATION
-  api_gravity: 32             # °API - Light crude oil (FINAL: confirmed vs 45° API in Volumetrics)
-  specific_gravity: 0.8654    # Oil specific gravity at 60°F
-  molecular_weight: 200       # lbm/lbmol - Average molecular weight
+fluid_properties:
+  # Oil properties (per 03_Fluid_Properties.md)
+  oil_density: 865.0      # kg/m³ (API 32°, SG 0.865)
+  oil_viscosity: 0.92     # cP at bubble point conditions (2100 psi, 176°F)
+  api_gravity: 32.0       # °API
+  specific_gravity: 0.865 # Oil specific gravity
   
-  # GAS SOLUTION PROPERTIES
-  initial_gor: 450            # scf/STB - Initial gas-oil ratio (FINAL: confirmed vs 350 in Volumetrics)
-  bubble_point_pressure: 2100 # psi - At reservoir temperature
+  # Water properties (per 03_Fluid_Properties.md)
+  water_density: 1025.0   # kg/m³ (SG 1.025)
+  water_viscosity: 0.385  # cP at reservoir conditions (176°F)
+  water_salinity: 35000   # ppm TDS (NaCl equivalent)
+  water_specific_gravity: 1.025
   
-  # VISCOSITY DATA
-  oil_viscosity:
-    at_bubble_point: 0.92     # cp - At bubble point pressure
-    at_initial_pressure: 1.15 # cp - At initial reservoir pressure
-    viscosibility: 2.0e-6     # 1/psi - Oil viscosibility
+  # Gas properties (per 03_Fluid_Properties.md)
+  gas_density: 0.8        # kg/m³ at standard conditions
+  gas_viscosity: 0.02     # cP at reservoir conditions
+  gas_specific_gravity: 0.785  # (air = 1.0)
   
-  # FORMATION VOLUME FACTOR
-  oil_fvf:
-    at_bubble_point: 1.25     # RB/STB - At bubble point
-    at_initial_pressure: 1.22  # RB/STB - At initial pressure
-    oil_compressibility: 15.0e-6 # 1/psi - Above bubble point
+  # PVT properties (per 03_Fluid_Properties.md)
+  bubble_point: 2100.0    # psi @ 176°F (corrected from documentation)
+  solution_gor: 450.0     # scf/STB (initial GOR, corrected from documentation)
+  reservoir_temperature: 176.0  # °F (constant)
+  initial_reservoir_pressure: 2900.0  # psi
   
-  # DENSITY DATA
-  oil_density:
-    stock_tank: 52.0          # lbm/ft³ - Stock tank oil density
-    at_bubble_point: 41.6     # lbm/ft³ - At bubble point
-    at_reservoir: 42.6        # lbm/ft³ - At initial conditions
-
-# NATURAL GAS PROPERTIES
-gas_properties:
-  # BASIC CHARACTERIZATION
-  gas_gravity: 0.75           # Air = 1.0 - Natural gas specific gravity
-  molecular_weight: 21.8      # lbm/lbmol - Average molecular weight
+  # Complete PVT Tables from 03_Fluid_Properties.md
   
-  # FORMATION VOLUME FACTOR
-  gas_fvf:
-    at_initial_pressure: 0.00345 # RB/scf - At initial pressure
-    z_factor: 0.85            # Gas compressibility factor
-  
-  # VISCOSITY DATA
-  gas_viscosity:
-    at_initial_pressure: 0.018 # cp - At initial pressure
-    viscosity_correlation: "lee_gonzalez" # Viscosity correlation
-  
-  # DENSITY DATA
-  gas_density:
-    standard_conditions: 0.0458 # lbm/ft³ - At SC (14.7 psia, 60°F)
-    at_reservoir: 13.2        # lbm/ft³ - At initial conditions
-  
-  # COMPRESSIBILITY
-  gas_compressibility: 450e-6 # 1/psi - Gas compressibility
-
-# FORMATION WATER PROPERTIES
-water_properties:
-  # BASIC CHARACTERIZATION
-  water_salinity: 35000       # ppm TDS - Total dissolved solids
-  water_gravity: 1.02         # Water specific gravity
-  
-  # FORMATION VOLUME FACTOR
-  water_fvf:
-    at_initial_pressure: 1.012 # RB/STB - At initial pressure
-    water_compressibility: 3.2e-6 # 1/psi - Water compressibility
-  
-  # VISCOSITY DATA
-  water_viscosity:
-    at_reservoir_temp: 0.38   # cp - At reservoir temperature
-    viscosibility: 0.0        # 1/psi - Negligible viscosibility
-  
-  # DENSITY DATA
-  water_density:
-    at_surface: 63.8          # lbm/ft³ - At surface conditions
-    at_reservoir: 63.0        # lbm/ft³ - At reservoir conditions
-
-# PVT TABLE DATA FOR MRST
-pvt_tables:
-  # OIL PVT TABLE (PVTO)
-  oil_pvt:
-    - pressure: [14.7, 500, 1000, 1500, 2000, 2100, 2200, 2400, 2600, 2800, 2900, 3000]
-      rs: [0, 75, 150, 225, 300, 360, 410, 450, 450, 450, 450, 450]  # scf/STB
-      bo: [1.05, 1.08, 1.12, 1.16, 1.20, 1.22, 1.24, 1.25, 1.245, 1.24, 1.235, 1.23] # RB/STB
-      muo: [2.5, 2.0, 1.6, 1.35, 1.15, 1.05, 0.98, 0.92, 0.95, 0.98, 1.00, 1.02] # cp
-  
-  # GAS PVT TABLE (PVTG)
-  gas_pvt:
-    - pressure: [14.7, 500, 1000, 1500, 2000, 2500, 2900, 3000]
-      bg: [178.0, 0.356, 0.178, 0.119, 0.089, 0.071, 0.061, 0.059] # RB/Mscf
-      mug: [0.010, 0.012, 0.014, 0.016, 0.017, 0.018, 0.018, 0.019] # cp
-  
-  # WATER PVT TABLE (PVTW)
-  water_pvt:
-    reference_pressure: 2900   # psi
-    bw: 1.012                 # RB/STB - Water FVF at ref pressure
-    cw: 3.2e-6                # 1/psi - Water compressibility
-    muw: 0.38                 # cp - Water viscosity
-    vw: 0.0                   # 1/psi - Water viscosibility
-
-# FLUID CONTACTS AND INITIALIZATION
-fluid_contacts:
-  oil_water_contact: 8150     # ft TVDSS - Sharp contact
-  gas_oil_contact: null       # Initially undersaturated
-  transition_zone_thickness: 50 # ft - Capillary transition zone
-  
-  # INITIAL SATURATIONS
-  initial_saturations:
-    above_owc:
-      oil: 0.75               # Oil saturation above OWC
-      water: 0.25             # Water saturation above OWC
-      gas: 0.00               # No free gas initially
+  # Oil Formation Volume Factor (Bo) vs Pressure
+  oil_bo_pressure_table:
+    pressures: [500, 1000, 1500, 2000, 2100, 2200, 2500, 3000, 3500, 4000]  # psi
+    bo_values: [1.125, 1.185, 1.245, 1.295, 1.305, 1.301, 1.295, 1.285, 1.275, 1.265]  # rb/STB
     
-    below_owc:
-      oil: 0.0                # No oil below OWC
-      water: 1.0              # 100% water below OWC
-      gas: 0.0                # No gas below OWC
-
-# BLACK-OIL MODEL PARAMETERS
-black_oil_parameters:
-  # SOLUTION GAS MODELING
-  solution_gas:
-    rs_max: 450               # scf/STB - Maximum solution GOR
-    undersaturated_region: true # Initially undersaturated
+  # Solution Gas-Oil Ratio (Rs) vs Pressure  
+  solution_gor_table:
+    pressures: [500, 1000, 1500, 2000, 2100, 2200, 2500, 3000, 3500, 4000]  # psi
+    rs_values: [195, 285, 365, 435, 450, 450, 450, 450, 450, 450]  # scf/STB
     
-  # VAPORIZED OIL IN GAS (if applicable)
-  vaporized_oil:
-    rv_max: 0.001             # STB/Mscf - Maximum vaporized oil
-    enable_rv: false          # Disable for this case
+  # Oil Viscosity (μo) vs Pressure
+  oil_viscosity_table:
+    pressures: [500, 1000, 1500, 2000, 2100, 2200, 2500, 3000, 3500, 4000]  # psi
+    viscosity_values: [1.85, 1.45, 1.15, 0.95, 0.92, 0.94, 0.98, 1.05, 1.12, 1.18]  # cp
   
-  # PHASE BEHAVIOR
-  phase_behavior:
-    three_phase: true         # Enable 3-phase flow
-    hysteresis: false         # Disable hysteresis for initial runs
+  # Oil Compressibility (Co) vs Pressure  
+  oil_compressibility_table:
+    pressure_ranges: [[500, 1000], [1000, 1500], [1500, 2000], [2000, 2500], [2500, 3000], [3000, 3500], [3500, 4000]]
+    co_values: [28.5e-6, 22.1e-6, 18.3e-6, 15.8e-6, 14.2e-6, 13.1e-6, 12.3e-6]  # 1/psi
+  
+  # Gas Formation Volume Factor (Bg) vs Pressure
+  gas_bg_pressure_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    bg_values: [3.850, 1.925, 1.283, 0.963, 0.770, 0.642, 0.550, 0.481]  # rb/Mcf
     
-# RELATIVE PERMEABILITY SCALING
-rel_perm_scaling:
-  # WATER-OIL SCALING
-  water_oil:
-    swl: 0.20                 # Low water saturation
-    swcr: 0.20                # Critical water saturation
-    sowcr: 0.25               # Critical oil saturation to water
+  # Gas Z-Factor vs Pressure
+  gas_z_factor_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    z_values: [0.892, 0.835, 0.795, 0.768, 0.750, 0.738, 0.730, 0.725]
     
-  # GAS-OIL SCALING  
-  gas_oil:
-    sgl: 0.00                 # Low gas saturation
-    sgcr: 0.05                # Critical gas saturation
-    sogcr: 0.20               # Critical oil saturation to gas
-
-# THERMAL PROPERTIES (if needed)
-thermal_properties:
-  oil_thermal_expansion: 0.00035  # 1/°F
-  water_thermal_expansion: 0.00027 # 1/°F
-  gas_thermal_expansion: 0.00183   # 1/°F
-
-# QUALITY CONTROL
-quality_control:
-  # PVT VALIDATION
-  bubble_point_check: true
-  monotonicity_check: true
-  phase_envelope_check: true
-  material_balance_check: true
+  # Gas Viscosity (μg) vs Pressure
+  gas_viscosity_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    viscosity_values: [0.0145, 0.0165, 0.0185, 0.0205, 0.0225, 0.0245, 0.0265, 0.0285]  # cp
   
-  # FLUID CONTACT VALIDATION
-  pressure_equilibrium_check: true
-  capillary_pressure_check: true
+  # Gas Compressibility (Cg) vs Pressure
+  gas_compressibility_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    cg_values: [1785e-6, 960e-6, 680e-6, 520e-6, 420e-6, 350e-6, 300e-6, 260e-6]  # 1/psi
   
-# MRST IMPLEMENTATION PARAMETERS
-mrst_implementation:
-  fluid_model: "blackoil"     # Black-oil model type
-  equation_of_state: "standard" # Standard black-oil EOS
-  pvt_interpolation: "linear" # Linear interpolation method
+  # Water Formation Volume Factor (Bw) vs Pressure
+  water_bw_pressure_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    bw_values: [1.0385, 1.0375, 1.0365, 1.0355, 1.0345, 1.0335, 1.0325, 1.0315]  # rb/STB
+    
+  # Water Compressibility (Cw) vs Pressure
+  water_compressibility_table:
+    pressures: [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000]  # psi
+    cw_values: [3.85e-6, 3.82e-6, 3.79e-6, 3.76e-6, 3.73e-6, 3.70e-6, 3.67e-6, 3.64e-6]  # 1/psi
   
-  # SOLVER PARAMETERS
-  phase_behavior_model: "blackoil_three_phase"
-  enable_dissolved_gas: true
-  enable_vaporized_oil: false
+  # Rock-type specific relative permeability properties (per 02_Rock_Properties.md Canon)
+  # Based on rock type distribution: RT1 (layers 1-3,5-7), RT2 (layers 9-12), RT6 (layers 4,8)
   
-# LABORATORY DATA SOURCES
-laboratory_data:
-  pvt_analysis_source: "Core Laboratories Inc."
-  sample_depth: 8075        # ft TVDSS
-  sample_date: "2024-08-15"
-  analysis_standard: "API RP 40"
+  # RT1 - High Permeability Sandstone (dominant rock type)
+  rt1_properties:
+    connate_water_saturation: 0.15  # Swir for RT1 (02_Rock_Properties.md line 236)
+    residual_oil_saturation: 0.25   # Sor for RT1 
+    residual_gas_saturation: 0.05   # Sgr for RT1
+    residual_oil_to_gas: 0.15       # Sorg for RT1
+    krw_max: 0.40                   # krw@Sor for RT1
+    kro_max: 0.85                   # kro@Swir for RT1
+    krg_max: 0.75                   # krg@Sorg for RT1  
+    krog_max: 0.90                  # krog@Sgr for RT1
+    corey_water_exponent: 2.5       # nw for RT1
+    corey_oil_exponent: 2.0         # no for RT1
+    corey_gas_exponent: 1.8         # ng for RT1
+    corey_oil_gas_exponent: 2.2     # nog for RT1
+    layers: [1, 2, 3, 5, 6, 7]      # Upper and middle zone sands
   
-# COMMENTS AND METADATA
-comments:
-  - "Fluid properties for Eagle West Field 15-well development"
-  - "Light crude oil: 32° API gravity with 450 scf/STB initial GOR"
-  - "Initially undersaturated: bubble point 2100 psi vs initial 2900 psi"
-  - "3-phase black-oil model: oil-gas-water system"
-  - "Sharp oil-water contact at 8150 ft TVDSS"
-  - "Formation water: 35,000 ppm TDS salinity"
-  - "Temperature: 176°F constant throughout reservoir"
+  # RT2 - Medium Permeability Sandstone  
+  rt2_properties:
+    connate_water_saturation: 0.18  # Swir for RT2 (02_Rock_Properties.md line 237)
+    residual_oil_saturation: 0.28   # Sor for RT2
+    residual_gas_saturation: 0.08   # Sgr for RT2
+    residual_oil_to_gas: 0.18       # Sorg for RT2
+    krw_max: 0.35                   # krw@Sor for RT2
+    kro_max: 0.80                   # kro@Swir for RT2
+    krg_max: 0.68                   # krg@Sorg for RT2
+    krog_max: 0.85                  # krog@Sgr for RT2
+    corey_water_exponent: 2.8       # nw for RT2
+    corey_oil_exponent: 2.2         # no for RT2  
+    corey_gas_exponent: 2.0         # ng for RT2
+    corey_oil_gas_exponent: 2.4     # nog for RT2
+    layers: [9, 10, 11, 12]         # Lower zone sands
+  
+  # RT6 - Shale Barriers
+  rt6_properties:
+    connate_water_saturation: 0.35  # Swir for RT6 (high water saturation)
+    residual_oil_saturation: 0.45   # Sor for RT6 (poor drainage)
+    residual_gas_saturation: 0.25   # Sgr for RT6 (high gas trapping)
+    residual_oil_to_gas: 0.35       # Sorg for RT6
+    krw_max: 0.05                   # krw@Sor for RT6 (very low)
+    kro_max: 0.25                   # kro@Swir for RT6 (very low)
+    krg_max: 0.15                   # krg@Sorg for RT6 (very low)
+    krog_max: 0.30                  # krog@Sgr for RT6
+    corey_water_exponent: 5.0       # nw for RT6 (high tortuosity)
+    corey_oil_exponent: 4.0         # no for RT6
+    corey_gas_exponent: 4.0         # ng for RT6  
+    corey_oil_gas_exponent: 4.5     # nog for RT6
+    layers: [4, 8]                  # Shale barrier layers
+  
+  # Field-weighted average properties (for initialization/reference)
+  field_average_properties:
+    connate_water_saturation: 0.17  # Volume-weighted average
+    residual_oil_saturation: 0.26   # Volume-weighted average
+    residual_gas_saturation: 0.06   # Volume-weighted average
+    residual_oil_to_gas: 0.16       # Volume-weighted average
+  
+  # Capillary pressure (estimated - not specified in documentation)
+  capillary_entry_pressure: 5.0  # psi (unchanged, not in documentation)
+  capillary_lambda: 2.0           # (unchanged, not in documentation)

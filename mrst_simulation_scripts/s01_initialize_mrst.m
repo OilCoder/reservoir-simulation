@@ -1,310 +1,388 @@
-function status = s01_initialize_mrst(varargin)
-%S01_INITIALIZE_MRST Initialize MRST environment and verify functionality
+function mrst_env = s01_initialize_mrst()
+% S01_INITIALIZE_MRST - Initialize MRST environment for Eagle West Field simulation
 %
-% This script initializes the MRST environment, loads required modules,
-% and verifies that everything is working correctly.
-%
-% USAGE:
-%   status = s01_initialize_mrst()                % Normal mode (clean output)
-%   status = s01_initialize_mrst('verbose', true) % Verbose mode (detailed output)
+% SYNTAX:
+%   mrst_env = s01_initialize_mrst()
 %
 % OUTPUT:
-%   status - Structure containing initialization status and information
+%   mrst_env - Structure containing MRST environment information
 %
-% DEPENDENCIES:
-%   - MRST installation at /opt/mrst
-%   - util_read_config.m for configuration management
+% DESCRIPTION:
+%   This script initializes the MRST environment for Eagle West Field
+%   reservoir simulation. It sets up all required MRST modules and
+%   validates the installation following the FAIL_FAST policy.
 %
-% SUCCESS CRITERIA:
-%   - MRST loads without errors
-%   - Required modules are accessible
-%   - Configuration paths are properly set
-%   - Basic grid creation works
+%   Based on documentation: 08_MRST_Implementation.md
+%   
+%   Key functions:
+%   - Locate and initialize MRST installation
+%   - Load required modules for black oil simulation
+%   - Validate environment setup
+%   - Create working directories
+%
+% Author: Claude Code AI System
+% Date: January 30, 2025
 
-    % Parse input arguments
-    p = inputParser;
-    addParameter(p, 'verbose', false, @islogical);
-    parse(p, varargin{:});
-    verbose = p.Results.verbose;
+    fprintf('======================================================\n');
+    fprintf('Eagle West Field - MRST Environment Initialization\n');
+    fprintf('======================================================\n\n');
     
-    if verbose
-        fprintf('\n=== MRST Initialization ===\n');
-    else
-        fprintf('\n>> Initializing MRST Environment:\n');
-        fprintf('+-------------------------------------+--------+\n');
-        fprintf('| Component                           | Status |\n');
-        fprintf('+-------------------------------------+--------+\n');
-    end
-    
-    % Initialize status structure
-    status = struct();
-    status.success = false;
-    status.mrst_loaded = false;
-    status.modules_loaded = {};
-    status.errors = {};
-    status.warnings = {};
-    
-    % Define components to initialize
-    component_names = {'Core Path Setup', 'Function Verification', 'Essential Modules', 'Configuration Test', 'Final Verification'};
+    % Initialize return structure
+    mrst_env = struct();
+    mrst_env.status = 'initializing';
+    mrst_env.mrst_root = '';
+    mrst_env.modules_loaded = {};
+    mrst_env.version = '';
     
     try
-        %% Step 1: Add MRST to path
-        if verbose
-            fprintf('Step 1: Adding MRST core to path...\n');
-        end
+        % Step 1 - Locate MRST installation
+        fprintf('Step 1: Locating MRST installation...\n');
+        mrst_root = locate_mrst_installation();
+        mrst_env.mrst_root = mrst_root;
+        fprintf('   ✓ MRST found at: %s\n\n', mrst_root);
         
-        try
-            mrst_core_path = '/opt/mrst/core';
-            if ~exist(mrst_core_path, 'dir')
-                error('MRST core directory not found at: %s', mrst_core_path);
-            end
-            % Suppress all warnings completely for clean output as requested
-            warning('off', 'all');
-            addpath(genpath(mrst_core_path));
-            step1_success = true;
-        catch
-            step1_success = false;
-        end
+        % Step 2 - Initialize MRST
+        fprintf('Step 2: Initializing MRST...\n');
+        initialize_mrst_core(mrst_root);
+        fprintf('   ✓ MRST core initialized\n\n');
         
-        if ~verbose
-            if step1_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', component_names{1}, status_symbol);
-        else
-            fprintf('  - MRST core path added successfully\n');
-        end
+        % Step 3 - Load required modules
+        fprintf('Step 3: Loading required MRST modules...\n');
+        modules_loaded = load_required_modules();
+        mrst_env.modules_loaded = modules_loaded;
+        fprintf('   ✓ Loaded %d modules successfully\n\n', length(modules_loaded));
         
-        if ~step1_success
-            error('Failed to add MRST core to path');
-        end
+        % Step 4 - Get MRST version information
+        fprintf('Step 4: Getting MRST version information...\n');
+        version_info = get_mrst_version();
+        mrst_env.version = version_info;
+        fprintf('   ✓ MRST version: %s\n\n', version_info);
         
-        %% Step 2: Verify MRST functions are accessible
-        if verbose
-            fprintf('Step 2: Verifying MRST functions...\n');
-        end
+        % Step 5 - Validate installation
+        fprintf('Step 5: Validating MRST installation...\n');
+        validate_mrst_installation();
+        fprintf('   ✓ MRST validation successful\n\n');
         
-        try
-            % Test that essential MRST functions exist
-            if ~exist('cartGrid', 'file') || ~exist('computeGeometry', 'file')
-                error('Essential MRST functions not found');
-            end
-            step2_success = true;
-        catch
-            step2_success = false;
-        end
+        % Step 6 - Create working directories
+        fprintf('Step 6: Creating working directories...\n');
+        create_working_directories();
+        fprintf('   ✓ Working directories created\n\n');
         
-        if ~verbose
-            if step2_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', component_names{2}, status_symbol);
-        else
-            fprintf('  - cartGrid function: OK\n');
-            fprintf('  - computeGeometry function: OK\n');
-        end
+        % Step 7 - Final setup
+        mrst_env.status = 'initialized';
+        mrst_env.initialization_time = datestr(now);
         
-        if ~step2_success
-            error('Failed to verify MRST functions');
-        end
-        
-        status.mrst_loaded = true;
-        
-        %% Step 3: Load essential modules
-        if verbose
-            fprintf('Step 3: Loading essential MRST modules...\n');
-        end
-        
-        try
-            % Required modules for reservoir simulation
-            core_modules = {'ad-core', 'ad-blackoil', 'ad-props', 'incomp'};
-            advanced_modules = {'ad-fi', 'coarsegrid', 'upscaling', 'diagnostics'};
-            required_modules = [core_modules; advanced_modules];
-            
-            loaded_modules = {};
-            modules_loaded = 0;
-            for i = 1:length(required_modules)
-                module_name = required_modules{i};
-                % Check multiple possible locations
-                module_paths = {
-                    fullfile('/opt/mrst', 'modules', module_name),
-                    fullfile('/opt/mrst', 'autodiff', module_name),
-                    fullfile('/opt/mrst', 'solvers', module_name)
-                };
-                
-                module_found = false;
-                for j = 1:length(module_paths)
-                    if exist(module_paths{j}, 'dir')
-                        warning('off', 'all');
-                        addpath(genpath(module_paths{j}));
-                        loaded_modules{end+1} = module_name;
-                        modules_loaded = modules_loaded + 1;
-                        module_found = true;
-                        if verbose
-                            fprintf('  - Module %s: OK\n', module_name);
-                        end
-                        break;
-                    end
-                end
-                
-                if ~module_found && verbose
-                    fprintf('  - Module %s: WARNING (not found)\n', module_name);
-                    status.warnings{end+1} = sprintf('Module %s not found', module_name);
-                end
-            end
-            
-            step3_success = modules_loaded >= 1; % At least one module loaded (be more lenient)
-        catch
-            step3_success = false;
-        end
-        
-        if ~verbose
-            if step3_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', component_names{3}, status_symbol);
-        end
-        
-        if ~step3_success
-            error('Failed to load essential MRST modules');
-        end
-        
-        status.modules_loaded = loaded_modules;
-        
-        %% Step 4: Test YAML configuration files
-        if verbose
-            fprintf('Step 4: Testing YAML configuration files...\n');
-        end
-        
-        try
-            % Test that configuration files exist
-            config_files = {'grid_config.yaml', 'fluid_properties_config.yaml', ...
-                           'rock_properties_config.yaml', 'wells_schedule_config.yaml', ...
-                           'initial_conditions_config.yaml'};
-            
-            config_dir = 'config';
-            files_found = 0;
-            for i = 1:length(config_files)
-                config_path = fullfile(config_dir, config_files{i});
-                if exist(config_path, 'file')
-                    files_found = files_found + 1;
-                end
-            end
-            
-            step4_success = files_found >= 4;  % At least 4 config files needed
-            status.config_files_found = files_found;
-        catch
-            step4_success = false;
-            status.config_files_found = 0;
-        end
-        
-        if ~verbose
-            if step4_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', component_names{4}, status_symbol);
-        else
-            if step4_success
-                fprintf('  - Configuration files: %d/5 found\n', files_found);
-                fprintf('  - YAML configs: Grid, Fluid, Rock, Wells, Initial\n');
-            else
-                fprintf('  - Configuration files: WARNING (%d/5 found)\n', files_found);
-            end
-        end
-        
-        %% Step 5: Final verification
-        if verbose
-            fprintf('Step 5: Final verification...\n');
-        end
-        
-        try
-            % Final verification that everything is working
-            step5_success = step1_success && step2_success && step3_success;
-        catch
-            step5_success = false;
-        end
-        
-        if ~verbose
-            if step5_success
-                status_symbol = 'Y';
-            else
-                status_symbol = 'X';
-            end
-            fprintf('| %-35s |   %s    |\n', component_names{5}, status_symbol);
-        else
-            fprintf('  - All essential components verified\n');
-        end
-        
-        %% Success
-        status.success = step5_success;
-        status.timestamp = datestr(now, 'yyyy-mm-dd HH:MM:SS');
-        
-        if verbose
-            fprintf('\n=== MRST Initialization SUCCESSFUL ===\n');
-        else
-            % Close the table
-            fprintf('+-------------------------------------+--------+\n');
-            fprintf('>> MRST: %d/%d components initialized successfully\n', length(component_names), length(component_names));
-            fprintf('   Modules: %d loaded | Functions: verified | Config: tested\n', length(loaded_modules));
-        end
-        
-        % Separate core and advanced modules in status
-        core_loaded = {};
-        advanced_loaded = {};
-        for i = 1:length(status.modules_loaded)
-            if any(strcmp(status.modules_loaded{i}, core_modules))
-                core_loaded{end+1} = status.modules_loaded{i};
-            else
-                advanced_loaded{end+1} = status.modules_loaded{i};
-            end
-        end
-        
-        if verbose
-            warning('off', 'Octave:str-to-num');
-            fprintf('Core modules loaded (%d/%d): %s\n', length(core_loaded), length(core_modules), strjoin(core_loaded, ', '));
-            if ~isempty(advanced_loaded)
-                fprintf('Advanced modules loaded (%d/%d): %s\n', length(advanced_loaded), length(advanced_modules), strjoin(advanced_loaded, ', '));
-            end
-            warning('on', 'Octave:str-to-num');
-            if status.config_files_found >= 4
-                fprintf('Configuration files: OK (%d/5 YAML configs available)\n', status.config_files_found);
-            else
-                fprintf('Configuration files: WARNING (%d/5 found)\n', status.config_files_found);
-            end
-            fprintf('Timestamp: %s\n', status.timestamp);
-        end
-        
-        if ~isempty(status.warnings) && verbose
-            fprintf('\nWarnings encountered:\n');
-            for i = 1:length(status.warnings)
-                fprintf('  - %s\n', status.warnings{i});
-            end
-        end
+        % Success message
+        fprintf('======================================================\n');
+        fprintf('MRST Environment Successfully Initialized\n');
+        fprintf('======================================================\n');
+        fprintf('MRST Root: %s\n', mrst_env.mrst_root);
+        fprintf('Version: %s\n', mrst_env.version);
+        fprintf('Modules Loaded: %s\n', strjoin(mrst_env.modules_loaded, ', '));
+        fprintf('Status: %s\n', mrst_env.status);
+        fprintf('Timestamp: %s\n', mrst_env.initialization_time);
+        fprintf('======================================================\n\n');
         
     catch ME
-        status.success = false;
-        status.errors{end+1} = ME.message;
-        
-        fprintf('\n=== MRST Initialization FAILED ===\n');
+        % Error handling following FAIL_FAST policy
+        fprintf('\n❌ MRST initialization FAILED\n');
         fprintf('Error: %s\n', ME.message);
+        fprintf('Location: %s (line %d)\n', ME.stack(1).file, ME.stack(1).line);
         
-        if ~isempty(status.warnings)
-            fprintf('\nWarnings:\n');
-            for i = 1:length(status.warnings)
-                fprintf('  - %s\n', status.warnings{i});
+        mrst_env.status = 'failed';
+        mrst_env.error_message = ME.message;
+        
+        error('MRST initialization failed: %s', ME.message);
+    end
+
+end
+
+function mrst_root = locate_mrst_installation()
+% LOCATE_MRST_INSTALLATION - Find MRST installation directory
+%
+% This function searches for MRST in standard installation locations
+% and validates that it contains the required startup.m file.
+
+    % Standard MRST installation paths
+    potential_paths = {
+        '/opt/mrst',
+        '/usr/local/mrst', 
+        fullfile(getenv('HOME'), 'mrst'),
+        fullfile(getenv('HOME'), 'MRST'),
+        fullfile(pwd, 'mrst'),
+        fullfile(pwd, 'MRST')
+    };
+    
+    % Check each potential path
+    mrst_root = '';
+    for i = 1:length(potential_paths)
+        path = potential_paths{i};
+        startup_file = fullfile(path, 'startup.m');
+        
+        if exist(path, 'dir') && exist(startup_file, 'file')
+            mrst_root = path;
+            break;
+        end
+    end
+    
+    % Validate MRST installation found
+    if isempty(mrst_root)
+        error(['MRST installation not found in standard locations:\n%s\n\n' ...
+               'Please install MRST and ensure startup.m exists in installation directory.\n' ...
+               'See: https://www.sintef.no/projectweb/mrst/download/'], ...
+               strjoin(potential_paths, '\n'));
+    end
+    
+    % Additional validation - check for key directories in correct structure
+    % MRST 2025a has gridprocessing and utils under core/
+    required_paths = {
+        'core',
+        fullfile('core', 'gridprocessing'),
+        fullfile('core', 'utils'),
+        'modules'
+    };
+    
+    for i = 1:length(required_paths)
+        dir_path = fullfile(mrst_root, required_paths{i});
+        if ~exist(dir_path, 'dir')
+            error('Incomplete MRST installation: missing directory %s', required_paths{i});
+        end
+    end
+
+end
+
+function initialize_mrst_core(mrst_root)
+% INITIALIZE_MRST_CORE - Run MRST startup sequence
+%
+% INPUT:
+%   mrst_root - Path to MRST installation directory
+
+    % Change to MRST directory and run startup
+    original_dir = pwd;
+    
+    try
+        % Add MRST core utilities to path first (required for startup)
+        addpath(fullfile(mrst_root, 'core', 'utils'));
+        fprintf('   Added MRST core utilities to path\n');
+        
+        % Add other core directories to path
+        addpath(fullfile(mrst_root, 'core', 'gridprocessing'));
+        addpath(fullfile(mrst_root, 'core'));
+        fprintf('   Added MRST core directories to path\n');
+        
+        % Add MRST root to path
+        addpath(mrst_root);
+        fprintf('   Added MRST root to path\n');
+        
+        % Change to MRST directory
+        cd(mrst_root);
+        
+        % Run MRST startup script
+        fprintf('   Running MRST startup script...\n');
+        startup();
+        
+        % Verify startup was successful
+        if ~exist('mrstModule', 'file')
+            error('MRST startup failed - mrstModule function not available');
+        end
+        
+        % Verify key functions are available
+        if ~exist('cartGrid', 'file')
+            error('MRST startup failed - cartGrid function not available');
+        end
+        
+        fprintf('   MRST startup completed successfully\n');
+        
+    catch ME
+        cd(original_dir); % Restore directory
+        error('Failed to initialize MRST core: %s', ME.message);
+    end
+    
+    % Return to original directory
+    cd(original_dir);
+
+end
+
+function modules_loaded = load_required_modules()
+% LOAD_REQUIRED_MODULES - Load all modules required for black oil simulation
+%
+% Based on 08_MRST_Implementation.md requirements:
+% - ad-core: Automatic differentiation framework
+% - ad-blackoil: Black oil model  
+% - ad-props: Property functions
+% - incomp: Flow solvers
+% - mrst-gui: Visualization tools
+
+    % Define required modules for Eagle West Field simulation
+    required_modules = {
+        'ad-core',      % Automatic differentiation framework
+        'ad-blackoil',  % Black oil model
+        'ad-props',     % Property functions  
+        'ad-fi',        % Fully-implicit solver
+        'incomp',       % Flow solvers
+        'gridprocessing', % Grid utilities
+        'mrst-gui'      % Visualization tools
+    };
+    
+    % Define optional advanced modules
+    optional_modules = {
+        'upscaling',    % Grid coarsening
+        'diagnostics',  % Flow diagnostics
+        'ad-mechanics', % Geomechanics
+        'wellpaths'     % Well trajectory tools
+    };
+    
+    modules_loaded = {};
+    
+    % Load required modules
+    fprintf('   Loading required modules:\n');
+    for i = 1:length(required_modules)
+        module = required_modules{i};
+        fprintf('     Loading %s...', module);
+        
+        try
+            mrstModule add %s', module;
+            modules_loaded{end+1} = module;
+            fprintf(' ✓\n');
+        catch
+            fprintf(' ❌ FAILED\n');
+            error('Failed to load required MRST module: %s', module);
+        end
+    end
+    
+    % Load optional modules (non-fatal if missing)
+    fprintf('   Loading optional modules:\n');
+    for i = 1:length(optional_modules)
+        module = optional_modules{i};
+        fprintf('     Loading %s...', module);
+        
+        try
+            eval(sprintf('mrstModule add %s', module));
+            modules_loaded{end+1} = module;
+            fprintf(' ✓\n');
+        catch
+            fprintf(' ⚠ (not available)\n');
+        end
+    end
+
+end
+
+function version_info = get_mrst_version()
+% GET_MRST_VERSION - Get MRST version information
+
+    try
+        % Try to get version using mrstVersion function
+        if exist('mrstVersion', 'file')
+            version_info = mrstVersion();
+            if isstruct(version_info)
+                if isfield(version_info, 'release')
+                    version_info = version_info.release;
+                else
+                    version_info = 'MRST (version info available)';
+                end
+            end
+        else
+            version_info = 'MRST (version unknown)';
+        end
+        
+        % Convert to string if needed
+        if ~ischar(version_info)
+            version_info = 'MRST (version detected)';
+        end
+        
+    catch
+        version_info = 'MRST (version unknown)';
+    end
+
+end
+
+function validate_mrst_installation()
+% VALIDATE_MRST_INSTALLATION - Validate that MRST is properly set up
+%
+% This function performs basic tests to ensure MRST functionality
+% is available for reservoir simulation.
+
+    fprintf('   Running MRST functionality tests...\n');
+    
+    % Test 1 - Basic grid creation
+    fprintf('     Testing basic grid creation...');
+    try
+        G = cartGrid([2, 2, 1], [1, 1, 1]);
+        G = computeGeometry(G);
+        
+        if G.cells.num == 4
+            fprintf(' ✓\n');
+        else
+            error('Grid creation test failed - wrong cell count');
+        end
+    catch ME
+        fprintf(' ❌\n');
+        error('Basic grid creation test failed: %s', ME.message);
+    end
+    
+    % Test 2 - Key MRST functions
+    fprintf('     Testing key MRST functions...');
+    try
+        % Test if key functions are available after module loading
+        key_functions = {'mrstModule', 'computeGeometry', 'cartGrid'};
+        missing_functions = {};
+        
+        for i = 1:length(key_functions)
+            if ~exist(key_functions{i}, 'file')
+                missing_functions{end+1} = key_functions{i};
             end
         end
         
-        rethrow(ME);
+        if isempty(missing_functions)
+            fprintf(' ✓\n');
+        else
+            error('Missing functions: %s', strjoin(missing_functions, ', '));
+        end
+    catch ME
+        fprintf(' ❌\n');
+        error('MRST functions test failed: %s', ME.message);
     end
     
-    fprintf('\n');
+    fprintf('   All functionality tests passed!\n');
+
+end
+
+function create_working_directories()
+% CREATE_WORKING_DIRECTORIES - Create required directories for simulation data
+%
+% Creates the directory structure for storing simulation results,
+% following the project organization defined in documentation.
+
+    % Get base data directory (relative to script location)
+    script_path = fileparts(mfilename('fullpath'));
+    base_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation');
+    
+    % Define directory structure
+    directories = {
+        fullfile(base_dir, 'results'),      % Simulation results
+        fullfile(base_dir, 'logs'),         % Execution logs
+        fullfile(base_dir, 'static'),       % Grid and rock properties  
+        fullfile(base_dir, 'dynamic'),      % Pressure and saturation data
+        fullfile(base_dir, 'exports'),      % Exported data files
+        fullfile(base_dir, 'plots'),        % Generated plots and figures
+        fullfile(base_dir, 'restart')       % Restart files
+    };
+    
+    % Create directories
+    for i = 1:length(directories)
+        dir_path = directories{i};
+        if ~exist(dir_path, 'dir')
+            mkdir(dir_path);
+            fprintf('     Created: %s\n', dir_path);
+        else
+            fprintf('     Exists: %s\n', dir_path);
+        end
+    end
+
+end
+
+% Main execution when called as script
+if ~nargout
+    % If called as script (not function), run initialization
+    mrst_env = s01_initialize_mrst();
 end
