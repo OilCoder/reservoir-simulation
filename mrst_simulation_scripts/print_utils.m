@@ -90,4 +90,9 @@ function print_error_step_impl(step_num, description, error_msg)
     fprintf('❌ ERROR in Step %d: %s\n', step_num, error_msg);
 end
 
-fprintf('Print utilities loaded successfully\n');
+% Only print loading message once using global flag
+global PRINT_UTILS_LOADED;
+if isempty(PRINT_UTILS_LOADED)
+    PRINT_UTILS_LOADED = true;
+    fprintf('Print utilities loaded successfully\n');
+end

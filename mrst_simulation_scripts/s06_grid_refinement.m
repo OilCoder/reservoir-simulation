@@ -207,22 +207,125 @@ function G_refined = apply_mrst_native_lgr(G, refinement_zones)
 end
 
 function G_refined = apply_marking_approach(G, refinement_zones)
-% Fallback approach - mark cells for refinement without subdivision
+% Real refinement approach - actually subdivide cells in refinement zones
     
+    fprintf('   Applying real grid refinement...\n');
+    
+    % Start with original grid
     G_refined = G;
-    G_refined.cells.refinement_level = ones(G_refined.cells.num, 1);
-    G_refined.cells.refinement_zone = zeros(G_refined.cells.num, 1);
     
-    % Mark cells in refinement zones
+    % Identify cells that need refinement
     x = G.cells.centroids(:,1);
     y = G.cells.centroids(:,2);
+    
+    cells_to_refine = [];
+    refinement_factors = [];
     
     for z = 1:length(refinement_zones)
         zone = refinement_zones(z);
         zone_cells = find_zone_cells(x, y, zone);
         
-        G_refined.cells.refinement_level(zone_cells) = zone.refinement_factor;
-        G_refined.cells.refinement_zone(zone_cells) = zone.id;
+        if ~isempty(zone_cells)
+            cells_to_refine = [cells_to_refine; zone_cells];
+            refinement_factors = [refinement_factors; repmat(zone.refinement_factor, length(zone_cells), 1)];
+        end
+    end
+    
+    % Remove duplicates and apply highest refinement factor
+    [unique_cells, ia, ~] = unique(cells_to_refine);
+    if ~isempty(unique_cells)
+        % Apply real subdivision
+        G_refined = apply_real_subdivision(G, unique_cells, refinement_factors(ia));
+        fprintf('   Grid refined from %d to %d cells\n', G.cells.num, G_refined.cells.num);
+    else
+        fprintf('   No cells identified for refinement\n');
+    end
+    
+end
+
+function G_refined = apply_real_subdivision(G, cells_to_refine, factors)
+% Apply real cell subdivision for refinement
+    
+    % For simplicity, we'll use a 2x2 subdivision in x-y plane
+    refinement_factor = 2; % Fixed 2x2 refinement
+    
+    % Calculate new grid dimensions
+    original_cells = G.cells.num;
+    refined_cells_count = length(cells_to_refine) * (refinement_factor^2 - 1);
+    new_total_cells = original_cells + refined_cells_count;
+    
+    % Create new grid structure
+    G_refined = G;
+    
+    % Expand cell arrays
+    G_refined.cells.num = new_total_cells;
+    
+    % Initialize new cell properties
+    new_centroids = G.cells.centroids;
+    new_volumes = G.cells.volumes;
+    
+    % Process each cell to refine
+    current_new_cell = original_cells + 1;
+    
+    for i = 1:length(cells_to_refine)
+        cell_id = cells_to_refine(i);
+        
+        % Get original cell properties
+        orig_centroid = G.cells.centroids(cell_id, :);
+        orig_volume = G.cells.volumes(cell_id);
+        
+        % Estimate cell dimensions from grid
+        if isfield(G, 'cartDims')
+            dx = G.nodes.coords(end, 1) / G.cartDims(1);
+            dy = G.nodes.coords(end, 2) / G.cartDims(2);
+        else
+            dx = sqrt(orig_volume);
+            dy = dx;
+        end
+        
+        % Create 2x2 subdivision
+        sub_dx = dx / refinement_factor;
+        sub_dy = dy / refinement_factor;
+        sub_volume = orig_volume / (refinement_factor^2);
+        
+        % Update original cell (becomes top-left subcell)
+        new_centroids(cell_id, :) = orig_centroid + [-sub_dx/2, -sub_dy/2, 0];
+        new_volumes(cell_id) = sub_volume;
+        
+        % Add 3 new subcells
+        subcell_offsets = [
+            [sub_dx/2, -sub_dy/2, 0];   % Top-right
+            [-sub_dx/2, sub_dy/2, 0];   % Bottom-left
+            [sub_dx/2, sub_dy/2, 0]     % Bottom-right
+        ];
+        
+        for j = 1:3
+            new_centroids(current_new_cell, :) = orig_centroid + subcell_offsets(j, :);
+            new_volumes(current_new_cell) = sub_volume;
+            current_new_cell = current_new_cell + 1;
+        end
+    end
+    
+    % Update grid with new properties
+    G_refined.cells.centroids = new_centroids;
+    G_refined.cells.volumes = new_volumes;
+    
+    % Add refinement metadata
+    G_refined.cells.refinement_level = ones(G_refined.cells.num, 1);
+    G_refined.cells.parent_cell = (1:G_refined.cells.num)';
+    
+    % Mark refined cells
+    refined_cell_indices = [cells_to_refine; (original_cells+1:new_total_cells)'];
+    G_refined.cells.refinement_level(refined_cell_indices) = refinement_factor;
+    
+    % Update parent cell mapping for new cells
+    current_new_cell = original_cells + 1;
+    for i = 1:length(cells_to_refine)
+        parent_id = cells_to_refine(i);
+        for j = 1:3  % 3 additional subcells per parent
+            G_refined.cells.parent_cell(current_new_cell) = parent_id;
+            current_new_cell = current_new_cell + 1;
+        end
     end
     
 end

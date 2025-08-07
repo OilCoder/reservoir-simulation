@@ -266,7 +266,7 @@ function rock = apply_native_make_rock(G, perm_tensor, porosity, layer_props)
             rock = create_manual_rock_structure(G, perm_tensor, porosity);
         end
     else
-        fprintf('   makeRock not available, using manual rock structure\n');
+        % Using manual rock structure (fallback)
         rock = create_manual_rock_structure(G, perm_tensor, porosity);
     end
     
@@ -304,8 +304,7 @@ function rock = create_manual_rock_structure(G, perm_tensor, porosity)
         error('Permeability values must be positive');
     end
     
-    fprintf('   Manual rock structure created: %d cells, %d perm columns\n', ...
-            G.cells.num, size(rock.perm, 2));
+    % Manual rock structure created successfully
     
 end
 

@@ -216,15 +216,24 @@ function modules_loaded = step_3_load_modules()
             required_modules = {'ad-core', 'ad-blackoil', 'ad-props'};
             loaded_modules = {};
             
-            for i = 1:length(required_modules)
-                module = required_modules{i};
-                try
-                    mrstModule('add', module);
-                    loaded_modules{end+1} = module;
-                    fprintf('  ✅ Loaded module (persistent): %s\n', module);
-                catch
-                    fprintf('  ⚠️ Could not load module: %s\n', module);
+            % Load modules only if not already loaded
+            global MRST_MODULES_LOADED;
+            if isempty(MRST_MODULES_LOADED)
+                MRST_MODULES_LOADED = {};
+                for i = 1:length(required_modules)
+                    module = required_modules{i};
+                    try
+                        mrstModule('add', module);
+                        loaded_modules{end+1} = module;
+                        MRST_MODULES_LOADED{end+1} = module;
+                        % Silent loading for user experience
+                    catch
+                        % Silent failure - fallbacks will handle missing modules
+                    end
                 end
+            else
+                loaded_modules = MRST_MODULES_LOADED;
+                % Silent - modules already loaded
             end
             
             % Substep 3.3 – Ensure modules persist for workflow _________

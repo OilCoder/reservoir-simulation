@@ -9,6 +9,9 @@ function workflow_results = s99_run_workflow(varargin)
 % Author: Claude Code AI System
 % Date: January 30, 2025
 
+    % Load print utilities for consistent table format
+    run('print_utils.m');
+
     % ASCII Art Header
     fprintf('\n');
     fprintf('################################################################\n');
@@ -64,13 +67,8 @@ function workflow_results = s99_run_workflow(varargin)
             print_workflow_header(validation_only, phases_to_run, phases);
         end
         
-        % Start workflow execution with table format
-        fprintf('🚀 Starting workflow execution with table format...\n\n');
-        
-        % Print table header
-        fprintf('════════════════════════════════════════════════════════════════\n');
-        fprintf(' #  │ Phase Description            │ Status │ Time  \n');
-        fprintf('════════════════════════════════════════════════════════════════\n');
+        % Start workflow execution with consistent table format
+        print_step_header('WORKFLOW', 'EAGLE WEST FIELD EXECUTION');
         
         for i = 1:length(phases_to_run)
             phase = phases_to_run{i};
@@ -94,10 +92,8 @@ function workflow_results = s99_run_workflow(varargin)
                 workflow_results.phase_results.(phase.phase_id) = phase_result;
                 workflow_results.success_count = workflow_results.success_count + 1;
                 
-                % Print table row for success
-                desc_formatted = pad_or_truncate(phase.description, 28);
-                time_str = sprintf('%5.1fs', execution_time);
-                fprintf(' %2d │ %-28s │   ✅   │%6s \n', i, desc_formatted, time_str);
+                % Print table row for success using print utilities
+                print_step_result(i, phase.description, 'success', execution_time);
                 
             catch ME
                 % Handle phase failure
@@ -109,13 +105,11 @@ function workflow_results = s99_run_workflow(varargin)
                 workflow_results.failure_count = workflow_results.failure_count + 1;
                 workflow_results.errors{end+1} = sprintf('Phase %s: %s', phase.phase_id, ME.message);
                 
-                % Print table row for failure
-                desc_formatted = pad_or_truncate(phase.description, 28);
-                time_str = sprintf('%5.1fs', execution_time);
-                fprintf(' %2d │ %-28s │   ❌   │%6s \n', i, desc_formatted, time_str);
+                % Print table row for failure using print utilities  
+                print_step_result(i, phase.description, 'error', execution_time);
                 
                 if phase.critical
-                    fprintf('════════════════════════════════════════════════════════════════\n\n');
+                    print_error_step(i, phase.description, ME.message);
                     error('Critical phase %s failed: %s', phase.phase_id, ME.message);
                 else
                     workflow_results.warnings{end+1} = sprintf('Phase %s failed but workflow continued', phase.phase_id);
@@ -123,8 +117,10 @@ function workflow_results = s99_run_workflow(varargin)
             end
         end
         
-        % Close table
-        fprintf('════════════════════════════════════════════════════════════════\n\n');
+        % Close table with footer
+        total_time = (now - datenum(workflow_results.start_time)) * 24 * 60 * 60; % Convert to seconds
+        status_msg = sprintf('Workflow Completed: %d/%d phases successful', workflow_results.success_count, length(phases_to_run));
+        print_step_footer('WORKFLOW', status_msg, total_time);
         
         % Calculate final results
         workflow_results.end_time = datestr(now);
