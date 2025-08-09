@@ -200,7 +200,7 @@ function pvtw_table = create_pvtw_table(fluid_params)
     bwref = bw_values(1);
     cw = cw_values(1);
     muwref = fluid_params.water_viscosity;
-    cvw = 0.0;  % Water viscosibility (usually negligible)
+    cvw = fluid_params.water_properties.water_viscosibility;  % Water viscosibility from YAML (usually negligible)
     
     % PVTW table: [Pref Bwref Cw muwref Cvw]
     pvtw_table = [pref, bwref, cw, muwref, cvw];
@@ -224,7 +224,7 @@ function pvtg_table = create_pvtg_table(fluid_params)
     
     for i = 1:n_points
         pvtg_table(i, 1) = pressures(i);      % Pressure (psi)
-        pvtg_table(i, 2) = 0.0;               % Rv (STB/Mscf) - dry gas
+        pvtg_table(i, 2) = fluid_params.gas_properties.rv_dry_gas;  % Rv (STB/Mscf) - dry gas from YAML
         pvtg_table(i, 3) = bg_values(i);      % Bg (rb/Mscf)
         pvtg_table(i, 4) = visc_values(i);    % mug (cP)
     end
@@ -261,9 +261,11 @@ function swof_table = create_swof_table(fluid_params)
     krw = krw_max * sw_norm.^nw;
     kro = kro_max * so_norm.^no;
     
-    % Simple capillary pressure model
-    pcow = 5.0 ./ sw;  % Simplified model
-    pcow = min(pcow, 50.0);  % Cap at 50 psi
+    % Simple capillary pressure model (placeholder - replaced in s11)
+    pc_entry = avg_props.capillary_pressure_entry;  % Entry pressure from YAML
+    pc_max = avg_props.capillary_pressure_max;      % Maximum Pc from YAML
+    pcow = pc_entry ./ sw;  % Simplified model
+    pcow = min(pcow, pc_max);  % Cap at max Pc
     
     % Create SWOF table
     swof_table = [sw, krw, kro, pcow];
@@ -497,24 +499,6 @@ function export_native_fluid_data(fluid, fluid_params, deck)
     fprintf('     Native fluid data saved to: %s\n', fluid_file);
     fprintf('     Deck summary saved to: %s\n', deck_file);
 
-end
-
-function fluid_config = load_fluid_config()
-% Load fluid configuration from YAML - NO HARDCODING POLICY
-    try
-        % Policy Compliance: Load ALL parameters from YAML config
-        fluid_config = read_yaml_config('config/fluid_properties_config.yaml');
-        
-        % Validate required fields exist
-        if ~isfield(fluid_config, 'fluid_properties')
-            error('Missing required field in fluid_properties_config.yaml: fluid_properties');
-        end
-        
-        fprintf('Fluid configuration loaded from YAML\n');
-        
-    catch ME
-        error('Failed to load fluid configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
-    end
 end
 
 function fluid_params = create_default_fluid_params()

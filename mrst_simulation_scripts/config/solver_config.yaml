@@ -1,0 +1,89 @@
+# Eagle West Field - Solver Configuration
+# MRST Simulation Execution Settings
+# Phase 8: Simulation Execution & Quality Control
+
+solver_configuration:
+  # ----------------------------------------
+  # Solver Settings
+  # ----------------------------------------
+  solver_type: 'ad-fi'  # Fully-implicit black oil solver
+  max_iterations: 25
+  tolerance_cnv: 1.0e-6  # Convergence tolerance
+  tolerance_mb: 1.0e-7   # Material balance tolerance
+  line_search: true
+  use_cpr: true  # CPR preconditioning
+  
+  # ----------------------------------------
+  # Timestep Control
+  # ----------------------------------------
+  timestep_control:
+    initial_timestep_days: 1
+    min_timestep_days: 0.1
+    max_timestep_days: 365
+    timestep_growth_factor: 1.25
+    timestep_cut_factor: 0.5
+    max_timestep_cuts: 8
+    adaptive_control: true
+    
+  # ----------------------------------------
+  # Simulation Schedule
+  # ----------------------------------------
+  simulation_schedule:
+    total_duration_days: 3650  # 10 years
+    
+    # History period (monthly timesteps)
+    history_period:
+      duration_days: 1095  # First 3 years
+      timestep_days: 30
+      description: 'Monthly timesteps for detailed history'
+      
+    # Forecast period (quarterly to yearly)
+    forecast_period:
+      duration_days: 2555  # Remaining 7 years
+      timestep_schedule:
+        - period_days: 1460  # Years 4-7
+          timestep_days: 90  # Quarterly
+          description: 'Quarterly timesteps for forecast'
+        - period_days: 1095  # Years 8-10
+          timestep_days: 180  # Semi-annual
+          description: 'Semi-annual timesteps for long-term'
+          
+  # ----------------------------------------
+  # Progress Monitoring
+  # ----------------------------------------
+  progress_monitoring:
+    checkpoint_frequency_steps: 50
+    progress_report_frequency_steps: 10
+    save_intermediate_results: true
+    convergence_tracking: true
+    
+  # ----------------------------------------
+  # Quality Control
+  # ----------------------------------------
+  quality_control:
+    material_balance_tolerance: 0.01  # 1% error maximum
+    pressure_range_check: true
+    saturation_range_check: true
+    grid_quality_check: true
+    well_performance_check: true
+    
+    # Grid quality thresholds
+    max_aspect_ratio: 10.0
+    min_cell_volume_m3: 1.0
+    max_cell_volume_m3: 100000.0
+    
+    # Physical range checks
+    pressure_limits_pa: [1.0e6, 5.0e7]  # 10-500 bar
+    oil_saturation_limits: [0.0, 1.0]
+    water_saturation_limits: [0.0, 1.0]
+    gas_saturation_limits: [0.0, 1.0]
+    
+  # ----------------------------------------
+  # Output Control
+  # ----------------------------------------
+  output_control:
+    save_states: true
+    save_wellsols: true
+    save_reports: true
+    export_diagnostics: true
+    create_plots: false  # Disable automatic plotting for performance

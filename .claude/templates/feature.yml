@@ -1,0 +1,31 @@
+template_type: feature
+description: Template for adding new features or capabilities
+
+prompts:
+  - "What module/class should be extended?"
+  - "What new capability are you adding?"
+  - "Any performance or compatibility constraints?"
+  - "Should this integrate with existing features?"
+
+acceptance_criteria:
+  - "New functionality works as specified"
+  - "All existing tests still pass"
+  - "No performance regression"
+  - "Code follows project conventions"
+  - "Feature is properly documented"
+
+scope_limits:
+  max_files: 5
+  max_lines: 300
+  preferred_approach: "extend_existing"  # vs "create_new"
+
+validation:
+  required_tests: true
+  documentation: true
+  backwards_compatible: true
+
+typical_patterns:
+  - "Add new method to existing class"
+  - "Create new module with clear interface"
+  - "Extend configuration options"
+  - "Add new command/endpoint"

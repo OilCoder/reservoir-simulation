@@ -1,5 +1,5 @@
 {
-  "description": "Configuration for the 3-Agent System (CODER, TESTER, DEBUGGER) with MCP integration",
+  "description": "Optimized Single-Agent System with Router for Maximum Prompt Efficiency",
   
   "hooks": {
     "userPromptSubmit": {
@@ -35,58 +35,52 @@
   },
   
   "agents": {
-    "description": "Configuration for the 3 specialized agents",
+    "description": "Optimized single-agent configuration with minimal overhead",
     "coder": {
-      "description": "Production code writer for src/ and mrst_simulation_scripts/",
-      "folders": ["src/", "mrst_simulation_scripts/"],
-      "rules": [0, 1, 2, 5, 6, 8],
-      "mcp_servers": ["filesystem", "memory", "obsidian", "sequential-thinking", "todo"],
+      "description": "Primary agent for all code tasks",
+      "folders": ["src/", "mrst_simulation_scripts/", "tests/", "debug/"],
+      "rules": [0, 10],
+      "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
-        "mcp__memory__*", 
-        "mcp__obsidian__*",
-        "mcp__sequential-thinking__*",
-        "mcp__todo__*",
-        "Read", "Write", "Edit", "MultiEdit", "Grep", "Glob"
+        "Read", "Write", "Edit", "MultiEdit", "Grep", "Glob", "Bash"
       ]
     },
     "tester": {
-      "description": "Test creator for tests/ directory",
+      "description": "Test specialist (on-demand only)",
       "folders": ["tests/"],
-      "rules": [0, 3, 5],
-      "mcp_servers": ["filesystem", "memory", "ref", "todo"],
+      "rules": [0, 3],
+      "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
-        "mcp__memory__*",
-        "mcp__ref__*", 
-        "mcp__todo__*",
         "Read", "Write", "Bash"
       ]
     },
     "debugger": {
-      "description": "Debug script creator for debug/ directory",
+      "description": "Debug specialist (on-demand only)",
       "folders": ["debug/"],
-      "rules": [0, 4, 5],
-      "mcp_servers": ["filesystem", "memory", "sequential-thinking", "obsidian"],
+      "rules": [0, 4],
+      "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
-        "mcp__memory__*",
-        "mcp__sequential-thinking__*",
-        "mcp__obsidian__*",
         "Read", "Write", "Bash"
       ]
     }
   },
   
   "workflow": {
-    "description": "Workflow configuration for automatic agent selection",
+    "description": "Router-based single agent workflow for maximum efficiency",
     "auto_activation": {
       "coder_keywords": ["create", "implement", "write", "edit", "add", "build", "develop", "function", "class", "module", "script", "code", "algorithm"],
       "tester_keywords": ["test", "testing", "pytest", "unittest", "validation", "verify", "check", "assert", "coverage", "edge case"],
       "debugger_keywords": ["debug", "fix", "error", "bug", "issue", "problem", "investigate", "analyze", "trace", "diagnose", "troubleshoot", "broken"]
     },
-    "default_agents": ["coder", "tester"],
-    "parallel_execution": true
+    "default_agents": ["coder"],
+    "parallel_execution": false,
+    "budget_management": {
+      "conservative_threshold": 25,
+      "disable_secondary_agents": true
+    }
   },
   
   "project": {

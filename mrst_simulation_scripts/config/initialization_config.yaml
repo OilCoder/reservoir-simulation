@@ -1,0 +1,198 @@
+# Initialization Configuration for Eagle West Field MRST Simulation
+# Source: 07_Initialization.md (CANON)
+# Date: 2025-08-07
+
+initialization:
+  # Equilibration Method (CANON from 07_Initialization.md)
+  equilibration_method:
+    method: "gravity_capillary_equilibrium"
+    approach: "analytical_height_function"
+    datum_depth_ft_tvdss: 8000.0        # Pressure reference depth
+    reference_phase: "oil"               # Primary phase for initialization
+    
+  # Initial Reservoir Conditions (CANON)
+  initial_conditions:
+    initial_pressure_psi: 2900.0         # At datum depth (8000 ft TVDSS)
+    reservoir_temperature_f: 176.0       # Constant temperature
+    bubble_point_pressure_psi: 2100.0    # From fluid properties
+    
+  # Pressure Gradients (CANON from 07_Initialization.md)
+  pressure_gradients:
+    oil_gradient_psi_ft: 0.350          # Oil phase gradient
+    water_gradient_psi_ft: 0.433        # Water phase gradient  
+    gas_gradient_psi_ft: 0.076          # Gas phase gradient
+    
+    # Formation Water Properties
+    formation_water_salinity_ppm: 35000  # TDS in formation brine
+    formation_water_density_sg: 1.025    # Specific gravity
+    
+  # Fluid Contacts (CANON)
+  fluid_contacts:
+    # Oil-Water Contact
+    oil_water_contact:
+      depth_ft_tvdss: 8150.0            # Primary OWC depth
+      uncertainty_ft: 10.0              # ±10 ft uncertainty
+      contact_type: "sharp_with_transition"
+      
+    # Gas-Oil Contact  
+    gas_oil_contact:
+      present_at_initial: false         # No initial gas cap
+      bubble_point_controlled: true
+      bubble_point_pressure_psi: 2100.0
+      
+    # Transition Zones
+    transition_zones:
+      oil_water_transition:
+        thickness_ft: 50.0              # Transition zone thickness
+        top_ft_tvdss: 8100.0           # Top of transition
+        bottom_ft_tvdss: 8200.0        # Bottom of transition
+        saturation_model: "capillary_pressure_controlled"
+        
+  # Initial Saturation Distribution (CANON)
+  initial_saturations:
+    # Oil Zone (Above OWC)
+    oil_zone:
+      oil_saturation_range: [0.75, 0.85]    # So range
+      water_saturation_range: [0.15, 0.25]  # Sw range (connate water)
+      gas_saturation: 0.00                  # No initial gas
+      pressure_range_psi: [2830, 2900]      # Pressure in oil zone
+      
+    # Transition Zone
+    transition_zone:
+      saturation_method: "capillary_pressure_equilibrium"
+      use_scal_pc_curves: true
+      height_function_integration: true
+      
+    # Aquifer Zone (Below OWC)
+    aquifer_zone:
+      water_saturation: 1.00            # 100% water
+      oil_saturation: 0.00              # No oil
+      gas_saturation: 0.00              # No gas
+      pressure_range_psi: [2900, 2995]  # Pressure in aquifer
+      
+  # Compartment-Specific Initialization (CANON)
+  compartmentalization:
+    # Northern Compartment
+    northern_compartment:
+      area_acres: 980.0
+      pressure_datum_psi: 2900.0        # Reference pressure
+      pressure_variation_psi: 5.0       # ±5 psi from datum
+      owc_depth_ft_tvdss: 8145.0       # Compartment-specific OWC
+      
+    # Southern Compartment  
+    southern_compartment:
+      area_acres: 1870.0
+      pressure_datum_psi: 2895.0        # 5 psi lower (fault effect)
+      pressure_variation_psi: 8.0       # ±8 psi from datum
+      owc_depth_ft_tvdss: 8155.0       # Compartment-specific OWC
+      
+    # Inter-compartment Communication
+    communication_factor: 0.15          # Limited by Fault E
+    pressure_equilibration_time: 180.0  # Days for pressure communication
+    
+    # Additional compartment pressure variations (geological analysis)
+    additional_variations:
+      eastern_fault_block_psi: 3.0      # Eastern compartment pressure adjustment
+      western_fault_block_psi: -3.0     # Western compartment pressure adjustment
+    
+  # Aquifer System (CANON from 07_Initialization.md)
+  aquifer_configuration:
+    aquifer_type: "analytical_peripheral"
+    aquifer_model: "carter_tracy"
+    
+    # Aquifer Properties
+    aquifer_properties:
+      aquifer_radius_ft: 8500.0         # Aquifer extent
+      aquifer_thickness_ft: 50.0        # Aquifer interval thickness
+      aquifer_porosity: 0.23            # Aquifer porosity
+      aquifer_permeability_md: 100.0    # Aquifer permeability
+      aquifer_compressibility_1_psi: 6.5e-6  # Aquifer + water compressibility
+      
+    # Aquifer Strength
+    aquifer_strength: "moderate"        # Support classification
+    dimensionless_productivity_index: 15.0
+    
+    # Carter-Tracy Model Constants (petroleum engineering standards)
+    carter_tracy_constants:
+      carter_tracy_constant: 1.119      # Empirical constant from petroleum engineering literature
+      van_everdingen_hurst_constant: 0.0002637  # Time constant from van Everdingen & Hurst (1949)
+    
+  # Height Functions and Pc Integration (CANON)
+  height_function_parameters:
+    # Oil-Water Height Function
+    oil_water_height_function:
+      reference_depth_ft: 8150.0        # OWC reference
+      use_brooks_corey_pc: true
+      integrate_by_rock_type: true
+      
+    # Gas-Oil Height Function (for future gas evolution)
+    gas_oil_height_function:
+      reference_pressure_psi: 2100.0    # Bubble point reference
+      use_brooks_corey_pc: true
+      integrate_by_rock_type: true
+      
+  # Initialization Quality Control
+  quality_control:
+    # Material Balance Validation
+    material_balance_tolerance: 0.0001  # 0.01% error tolerance
+    
+    # Pressure Validation
+    pressure_gradient_tolerance: 0.01   # ±1% gradient tolerance
+    hydrostatic_equilibrium_check: true
+    
+    # Saturation Validation
+    saturation_sum_tolerance: 0.001     # Sw + So + Sg = 1.0 ± 0.001
+    negative_saturation_check: true
+    saturation_endpoint_validation: true
+    
+    # Capillary Pressure Validation
+    pc_curve_continuity_check: true
+    height_function_monotonicity: true
+    
+  # MRST Implementation Parameters
+  mrst_initialization:
+    initialization_method: "initEclipseState"
+    equilibration_regions: 2            # Northern and southern compartments
+    
+    # Solver Settings
+    solver_settings:
+      max_newton_iterations: 50
+      convergence_tolerance: 1.0e-8
+      relaxation_factor: 0.8
+      
+    # Grid-Based Assignment
+    cell_assignment_method: "depth_based"
+    layer_assignment_method: "structural_consistent"
+    
+  # Initial State Validation
+  validation_parameters:
+    # Field-Level Checks
+    total_hydrocarbon_pore_volume_check: true
+    initial_oil_in_place_estimate: 125.0  # MMstb (from volumetrics)
+    initial_water_in_place_estimate: 35.0 # MMstb
+    
+    # Well-Level Checks
+    well_initial_pressure_validation: true
+    well_productivity_index_check: true
+    
+    # Physical Consistency
+    phase_behavior_consistency: true
+    pressure_temperature_consistency: true
+    
+  # Uncertainty Parameters
+  uncertainty_analysis:
+    # OWC Uncertainty
+    owc_uncertainty_ft: 10.0            # ±10 ft
+    owc_uncertainty_impact_reserves: 0.08  # ±8% reserves impact
+    
+    # Pressure Uncertainty
+    initial_pressure_uncertainty_psi: 25.0  # ±25 psi
+    
+    # Aquifer Uncertainty
+    aquifer_strength_multiplier: [0.5, 2.0]  # Range for uncertainty
+    
+  # Reference Standards
+  technical_standards:
+    industry_standard: "SPE_reservoir_initialization"
+    data_sources: ["Formation_pressure_tests", "MDT_measurements", "RFT_data"]
+    validation_method: "Material_balance_closure"

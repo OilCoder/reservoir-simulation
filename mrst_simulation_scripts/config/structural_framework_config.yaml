@@ -1,32 +1,171 @@
 # Structural Framework Configuration for Eagle West Field MRST Simulation
-# Based on: 01_Field_Description.md - Structural geology
-# Date: January 30, 2025
+# Source: 01_Structural_Geology.md (CANON)
+# Compatible with s04_structural_framework.m requirements
+# Date: 2025-08-07
 
 structural_framework:
-  # Anticline structure properties (from field documentation)
+  # Anticline Structure Definition (CANON from 01_Structural_Geology.md Section 2.1)
   anticline:
-    structural_relief: 340.0    # ft (total structural closure)
-    crest_depth: 7900.0        # ft TVDSS (top of structure)
-    axis_trend: 15.0           # degrees (N15°E trending anticline)
+    structure_type: "faulted_anticline"
+    closure_type: "four_way_dip_closure"
+    structural_relief: 340.0            # ft (crest to spill point)
+    closure_area: 2600.0                # acres at spill point
     
-  # Layer framework
-  layering:
-    layer_thickness: 8.33      # ft per layer (100ft/12layers)
-    total_thickness: 100.0     # ft total reservoir thickness
+    # Structural Depths (CANON)
+    structural_crest: 7900.0            # ft TVDSS (northern compartment)
+    crest_depth: 7900.0                 # ft TVDSS (for s04 compatibility)
+    secondary_high: 7920.0              # ft TVDSS (southern compartment)
+    spill_point: 8240.0                 # ft TVDSS (southeastern nose)
     
-  # Compartmentalization
-  compartments:
-    - name: "Northern"
-      description: "Northern structural compartment"
-    - name: "Southern" 
-      description: "Southern structural compartment"
+    # Regional Dip Patterns (CANON) - Flattened for YAML parser compatibility
+    dip_northern_flank: [2.5, 4.2]     # degrees southward
+    dip_eastern_flank: [4.8, 6.1]      # degrees westward (steepest)  
+    dip_southern_flank: [3.1, 4.7]     # degrees northward
+    dip_western_flank: [2.8, 3.9]      # degrees eastward
       
-  # Field geometry
-  field_dimensions:
-    length: 3200.0             # ft (N-S extent)
-    width: 3200.0              # ft (E-W extent)
+    # Grid Orientation and Anticline Axis
+    grid_orientation: 15.0              # degrees N15°E (fault-aligned)
+    axis_trend: 15.0                    # degrees N15°E (anticline axis trend)
     
-  # Dip information
-  structural_dip:
-    maximum_dip: 8.0           # degrees (maximum flank dip)
-    minimum_dip: 2.0           # degrees (crest dip)
+  # Layer Architecture (CANON)
+  layering:
+    gross_thickness: 100.0              # ft (average across field)
+    layer_thickness: 8.3                # ft average per layer (100/12 layers)
+    thickness_variation: [85, 120]      # ft range (structural control)
+    net_pay: 65.0                       # ft cumulative (65% net-to-gross)
+    
+    # Layer Definitions (12 layers)
+    layer_structure:
+      layer_1:
+        top_depth: 7900.0               # ft TVDSS (at crest)
+        thickness: 8.3                  # ft average
+        description: "Upper flow unit 1"
+        
+      layer_2:
+        top_depth: 7908.3               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Upper flow unit 2"
+        
+      layer_3:
+        top_depth: 7916.6               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Upper flow unit 3"
+        
+      layer_4:
+        top_depth: 7924.9               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Upper shale barrier"
+        
+      layer_5:
+        top_depth: 7933.2               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Middle flow unit 1"
+        
+      layer_6:
+        top_depth: 7941.5               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Middle flow unit 2"
+        
+      layer_7:
+        top_depth: 7949.8               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Middle flow unit 3"
+        
+      layer_8:
+        top_depth: 7958.1               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Middle shale barrier"
+        
+      layer_9:
+        top_depth: 7966.4               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Lower flow unit 1"
+        
+      layer_10:
+        top_depth: 7974.7               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Lower flow unit 2"
+        
+      layer_11:
+        top_depth: 7983.0               # ft TVDSS
+        thickness: 8.3                  # ft average
+        description: "Lower flow unit 3"
+        
+      layer_12:
+        top_depth: 7991.3               # ft TVDSS
+        thickness: 8.7                  # ft (slightly thicker base)
+        description: "Lower flow unit 4"
+        
+  # Compartmentalization Analysis (CANON from 01_Structural_Geology.md Section 2.3)
+  compartments:
+    number_of_compartments: 2
+    
+    northern_compartment:
+      area: 980.0                       # acres
+      bounded_by: ["Fault_A", "Fault_E", "Fault_B_partial", "Fault_D_partial"]
+      structural_high: 7900.0           # ft TVDSS
+      average_dip: 3.2                  # degrees SE
+      
+    southern_compartment:
+      area: 1870.0                      # acres
+      bounded_by: ["Fault_C", "Fault_E", "Fault_B_partial", "Fault_D_partial"]
+      structural_high: 7920.0           # ft TVDSS
+      average_dip: 2.8                  # degrees NE
+      
+    # Inter-compartment Communication
+    communication_factor: 0.15          # Fault E partial sealing
+    pressure_difference: 10.0           # psi typical difference
+    
+  # Structural Features for Grid Construction
+  structural_features:
+    # Structural Terraces
+    terraces:
+      western_terrace:
+        location: "western_flank"
+        area: 320.0                     # acres
+        depth_range: [8050, 8120]       # ft TVDSS
+        
+      southern_terrace:
+        location: "southern_flank"
+        area: 280.0                     # acres
+        depth_range: [8080, 8150]       # ft TVDSS
+        
+    # Structural Noses
+    noses:
+      southeastern_nose:
+        location: "spill_point"
+        depth: 8240.0                   # ft TVDSS
+        plunge: 4.5                     # degrees SE
+        
+      southwestern_nose:
+        location: "secondary_spill"
+        depth: 8260.0                   # ft TVDSS
+        plunge: 3.8                     # degrees SW
+        
+  # Grid Construction Parameters
+  grid_parameters:
+    structural_contour_interval: 20.0   # ft
+    minimum_layer_thickness: 6.0       # ft
+    maximum_layer_thickness: 12.0      # ft
+    grid_conformance: "structure_following"
+    boundary_handling: "structural_limits"
+    
+  # Structural Uncertainty
+  uncertainty:
+    structural_depth_uncertainty:
+      at_well_control: 10.0             # ft ±
+      between_wells: 25.0               # ft ±
+      
+    compartmentalization_uncertainty:
+      additional_compartments_probability: 0.15
+      fault_sealing_uncertainty: 0.20   # ± factor
+      
+    spill_point_uncertainty: 15.0      # ft ±
+    
+  # Quality Control
+  validation:
+    seismic_data_year: 2019
+    well_control_count: 12
+    structural_tops_validated: true
+    fault_cuts_confirmed: true
+    pressure_gradient_consistent: true

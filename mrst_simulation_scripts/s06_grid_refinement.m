@@ -514,7 +514,7 @@ function config = load_refinement_config()
 % Load refinement configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        full_config = read_yaml_config('config/grid_config.yaml');
+        full_config = read_yaml_config('config/grid_config.yaml', 'silent', true);
         
         % Check if refinement section exists
         if ~isfield(full_config, 'refinement')

@@ -1,0 +1,174 @@
+# SCAL Properties Configuration for Eagle West Field MRST Simulation
+# Source: 04_SCAL_Properties.md (CANON)
+# Compatible with s10_relative_permeability.m and s11_capillary_pressure.m
+# Date: 2025-08-07
+
+scal_properties:
+  # Multi-lithology SCAL data from canonical documentation
+  # Source: 04_SCAL_Properties.md Section 1.1-1.2
+  
+  # Oil-Water Relative Permeability Parameters by Lithology (CANON)
+  sandstone_ow:
+    # From 04_SCAL_Properties.md Table: Sandstone Parameters
+    connate_water_saturation: 0.22      # Swc (fraction)
+    residual_oil_saturation: 0.25       # Sorw (fraction)
+    oil_relperm_max: 0.85               # kro_max at Swc
+    water_relperm_max: 0.35             # krw_max at Sor
+    oil_corey_exponent: 2.8             # no (Corey)
+    water_corey_exponent: 1.9           # nw (Corey)
+    rock_type: "sandstone"
+    layers: [1, 2, 3, 5, 6, 7, 9, 10, 11, 12]  # All sandstone layers
+    
+  shale_ow:
+    # From 04_SCAL_Properties.md Table: Shale Parameters  
+    connate_water_saturation: 0.45      # Swc (fraction)
+    residual_oil_saturation: 0.35       # Sorw (fraction)
+    oil_relperm_max: 0.65               # kro_max at Swc
+    water_relperm_max: 0.15             # krw_max at Sor
+    oil_corey_exponent: 1.8             # no (Corey)
+    water_corey_exponent: 3.2           # nw (Corey)
+    rock_type: "shale"
+    layers: [4, 8]                      # Shale barrier layers
+    
+  limestone_ow:
+    # From 04_SCAL_Properties.md Table: Limestone Parameters
+    connate_water_saturation: 0.18      # Swc (fraction)
+    residual_oil_saturation: 0.28       # Sorw (fraction)
+    oil_relperm_max: 0.92               # kro_max at Swc
+    water_relperm_max: 0.42             # krw_max at Sor
+    oil_corey_exponent: 3.2             # no (Corey)
+    water_corey_exponent: 2.1           # nw (Corey)
+    rock_type: "limestone"
+    layers: []                          # No limestone layers in current model
+    
+  # Gas-Oil Relative Permeability Parameters by Lithology (CANON)
+  sandstone_go:
+    # From 04_SCAL_Properties.md Table: Gas-Oil Sandstone Parameters
+    critical_gas_saturation: 0.05       # Sgc (fraction)
+    residual_oil_to_gas: 0.18           # Sorg (fraction)
+    gas_relperm_max: 0.75               # krg_max at Sor
+    oil_gas_relperm_max: 0.82           # krog_max at Sgc
+    gas_corey_exponent: 1.6             # ng (Corey)
+    oil_gas_corey_exponent: 2.2         # nog (Corey)
+    rock_type: "sandstone"
+    layers: [1, 2, 3, 5, 6, 7, 9, 10, 11, 12]
+    
+  shale_go:
+    # From 04_SCAL_Properties.md Table: Gas-Oil Shale Parameters
+    critical_gas_saturation: 0.08       # Sgc (fraction)
+    residual_oil_to_gas: 0.25           # Sorg (fraction)
+    gas_relperm_max: 0.45               # krg_max at Sor
+    oil_gas_relperm_max: 0.58           # krog_max at Sgc
+    gas_corey_exponent: 1.2             # ng (Corey)
+    oil_gas_corey_exponent: 1.8         # nog (Corey)
+    rock_type: "shale"
+    layers: [4, 8]
+    
+  limestone_go:
+    # From 04_SCAL_Properties.md Table: Gas-Oil Limestone Parameters
+    critical_gas_saturation: 0.04       # Sgc (fraction)
+    residual_oil_to_gas: 0.15           # Sorg (fraction)
+    gas_relperm_max: 0.85               # krg_max at Sor
+    oil_gas_relperm_max: 0.88           # krog_max at Sgc
+    gas_corey_exponent: 1.8             # ng (Corey)
+    oil_gas_corey_exponent: 2.8         # nog (Corey)
+    rock_type: "limestone"
+    layers: []
+    
+  # Capillary Pressure Parameters by Lithology (CANON)
+  # From 04_SCAL_Properties.md Section 2
+  sandstone_pc:
+    entry_pressure_ow: 2.5              # psi (Oil-Water)
+    entry_pressure_go: 0.8              # psi (Gas-Oil)
+    brooks_corey_lambda: 2.1            # λ parameter
+    maximum_pc_ow: 15.0                 # psi
+    maximum_pc_go: 8.0                  # psi
+    transition_zone_height: 45.0        # ft
+    rock_type: "sandstone"
+    layers: [1, 2, 3, 5, 6, 7, 9, 10, 11, 12]
+    
+  shale_pc:
+    entry_pressure_ow: 8.5              # psi (Oil-Water)
+    entry_pressure_go: 2.2              # psi (Gas-Oil)
+    brooks_corey_lambda: 1.6            # λ parameter
+    maximum_pc_ow: 45.0                 # psi
+    maximum_pc_go: 25.0                 # psi
+    transition_zone_height: 125.0       # ft
+    rock_type: "shale"
+    layers: [4, 8]
+    
+  limestone_pc:
+    entry_pressure_ow: 1.8              # psi (Oil-Water)
+    entry_pressure_go: 0.6              # psi (Gas-Oil)
+    brooks_corey_lambda: 2.4            # λ parameter
+    maximum_pc_ow: 12.0                 # psi
+    maximum_pc_go: 6.0                  # psi
+    transition_zone_height: 65.0        # ft
+    rock_type: "limestone"
+    layers: []
+    
+  # Three-Phase Modeling Parameters (CANON)
+  # From 04_SCAL_Properties.md Section 3
+  three_phase_model:
+    method: "stone_ii"                   # Stone II model
+    stone_eta: 2.0                      # Stone II eta parameter
+    hysteresis_model: "land"            # Land's model
+    land_coefficient: 2.4               # Land's C parameter
+    
+  # Wettability Parameters by Lithology (CANON)
+  # From 04_SCAL_Properties.md Section 4
+  wettability:
+    sandstone:
+      contact_angle: 25.0               # degrees (water-wet)
+      amott_harvey_oil: 0.15            # Io (oil index)
+      amott_harvey_water: 0.75          # Iw (water index)
+      wettability_index: -0.60          # USBM index
+      description: "strongly water-wet"
+      
+    shale:
+      contact_angle: 57.0               # degrees (intermediate)
+      amott_harvey_oil: 0.45            # Io (oil index)
+      amott_harvey_water: 0.35          # Iw (water index)
+      wettability_index: 0.10           # USBM index
+      description: "intermediate wettability"
+      
+    limestone:
+      contact_angle: 15.0               # degrees (water-wet)
+      amott_harvey_oil: 0.08            # Io (oil index)
+      amott_harvey_water: 0.82          # Iw (water index)
+      wettability_index: -0.74          # USBM index
+      description: "strongly water-wet"
+      
+  # Upscaling Parameters (CANON)
+  # From 04_SCAL_Properties.md Section 6.4
+  upscaling:
+    relperm_method: "power_law"         # Power law upscaling
+    power_law_exponent: 0.33            # n = 0.33 for viscous flow
+    pc_method: "leverett"               # Leverett J-function
+    height_function_integration: true   # Height function method
+    
+  # Validation Parameters (CANON)
+  validation:
+    confidence_level: 0.95              # 95% confidence
+    measurement_precision: 0.02         # ±0.02 for kr
+    spatial_coverage: "comprehensive"   # Coverage assessment
+    data_quality: "high"                # Quality rating
+    
+  # MRST Implementation Notes
+  mrst_implementation:
+    three_phase_model: "ad-blackoil"    # MRST module
+    relperm_function: "coreyPhaseRelpermAD" # MRST function
+    pc_function: "brooksCoreyCapPressureAD" # MRST function
+    saturation_solver: "implicit"       # Implicit saturation
+    
+  # Field-Weighted Average Properties (for reference and validation)
+  field_average_properties:
+    connate_water_saturation: 0.24      # Volume-weighted average (considering shale)
+    residual_oil_saturation: 0.27       # Volume-weighted average
+    residual_gas_saturation: 0.06       # Volume-weighted average
+    residual_oil_to_gas: 0.19           # Volume-weighted average
+    
+    # Effective properties for single-phase modeling
+    effective_krw_max: 0.32             # Field effective
+    effective_kro_max: 0.82             # Field effective
+    effective_krg_max: 0.71             # Field effective

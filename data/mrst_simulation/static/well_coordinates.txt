@@ -1,0 +1,16 @@
+Well_Name,Type,Well_Type,Phase,X_ft,Y_ft,Grid_I,Grid_J,TVD_ft,MD_ft
+EW-001,Producer,vertical,1,2750.0,1750.0,15,10,8200.0,8200.0
+EW-002,Producer,vertical,2,3570.0,2010.0,25,15,8180.0,8180.0
+EW-003,Producer,horizontal,3,3240.0,2840.0,20,25,8160.0,10660.0
+EW-004,Producer,vertical,3,2400.0,3220.0,12,32,8220.0,8220.0
+EW-005,Producer,horizontal,4,4050.0,2470.0,30,20,8140.0,11140.0
+EW-006,Producer,vertical,4,1890.0,2340.0,8,18,8240.0,8240.0
+EW-007,Producer,multi_lateral,4,2970.0,1480.0,18,8,8200.0,12200.0
+EW-008,Producer,horizontal,5,4460.0,1880.0,35,12,8170.0,10970.0
+EW-009,Producer,vertical,5,3400.0,3530.0,22,35,8190.0,8190.0
+EW-010,Producer,horizontal,6,3810.0,3070.0,28,28,8155.0,11355.0
+IW-001,Injector,vertical,2,750.0,1750.0,5,10,8300.0,8300.0
+IW-002,Injector,vertical,3,4460.0,3530.0,35,35,8250.0,8250.0
+IW-003,Injector,horizontal,4,2080.0,3220.0,10,30,8280.0,10280.0
+IW-004,Injector,vertical,5,4130.0,1480.0,32,8,8320.0,8320.0
+IW-005,Injector,vertical,6,2750.0,3830.0,15,38,8340.0,8340.0

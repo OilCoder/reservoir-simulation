@@ -1,0 +1,39 @@
+Eagle West Field - Well Placement Summary
+Generated: 09-Aug-2025 05:12:25
+=========================================
+
+FIELD OVERVIEW:
+  Total Wells: 0
+  Producers: 10
+  Injectors: 5
+  Development Phases: 6
+
+PRODUCER WELLS:
+Well     Type         Phase      Grid_I,J     TVD_ft   Target_STB
+----------------------------------------------------------------------
+EW-001   vertical     1          [15,10]     8200     1500      
+EW-002   vertical     2          [25,15]     8180     1800      
+EW-003   horizontal   3          [20,25]     8160     2200      
+EW-004   vertical     3          [12,32]     8220     1600      
+EW-005   horizontal   4          [30,20]     8140     2500      
+EW-006   vertical     4          [ 8,18]     8240     1400      
+EW-007   multi_lateral 4          [18, 8]     8200     2800      
+EW-008   horizontal   5          [35,12]     8170     2300      
+EW-009   vertical     5          [22,35]     8190     1700      
+EW-010   horizontal   6          [28,28]     8155     2600      
+
+INJECTOR WELLS:
+Well     Type         Phase      Grid_I,J     TVD_ft   Target_BBL
+----------------------------------------------------------------------
+IW-001   vertical     2          [ 5,10]     8300     5100      
+IW-002   vertical     3          [35,35]     8250     4400      
+IW-003   horizontal   4          [10,30]     8280     4700      
+IW-004   vertical     5          [32, 8]     8320     4300      
+IW-005   vertical     6          [15,38]     8340     4000      
+
+VALIDATION RESULTS:
+  Status: success
+  Vertical Wells: 9
+  Horizontal Wells: 5
+  Multi-lateral Wells: 1
+  Warnings: 2

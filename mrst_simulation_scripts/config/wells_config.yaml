@@ -1,276 +1,433 @@
 # Wells Configuration for Eagle West Field MRST Simulation
-# Simplified format for Python-MRST workflow
-# Based on: 05_Wells_Completions.md + 06_Production_History.md
-# Date: January 30, 2025
+# Source: 05_Wells_Completions.md, 06_Production_History.md (CANON)
+# Date: 2025-08-07
 
-# FIELD DEVELOPMENT SUMMARY
-field_development:
-  total_wells: 15             # 10 producers + 5 injectors
-  development_phases: 6       # 6 phases over 10 years (3650 days)
-  peak_production_target: 18500 # STB/day field target
-
-# WELL LOCATIONS (per 05_Wells_Completions.md)
-wells:
-  # PRODUCER WELLS (EW-001 to EW-010)
-  producers:
-    - name: "EW-001"
-      grid_location: [15, 10]   # Grid (i,j) for 40x40 grid
-      start_day: 180            # Phase 1
+wells_system:
+  # Field Development Overview (CANON)
+  total_wells: 15                      # 10 producers + 5 injectors
+  producers: 10
+  injectors: 5
+  development_phases: 6
+  development_duration_days: 3650      # 10 years
+  peak_production_target: 18500        # STB/day
+  
+  # Development Phases Schedule (CANON)
+  development_phases:
+    phase_1:
+      timeline_days: [1, 365]          # Days 1-365
+      duration_years: 1
+      wells_added: ["EW-001"]
+      total_active_wells: 1
+      wells_p_i: "1/0"                 # Producers/Injectors
+      target_oil_rate_stb_day: 2500
+      expected_oil_rate_stb_day: 2350
+      water_cut_percent: 22
+      gor_scf_stb: 750
+      
+    phase_2:
+      timeline_days: [366, 730]        # Days 366-730
+      duration_years: 1
+      wells_added: ["IW-001", "EW-002"]
+      total_active_wells: 3
+      wells_p_i: "2/1"
+      target_oil_rate_stb_day: 5200
+      expected_oil_rate_stb_day: 5100
+      water_cut_percent: 28
+      gor_scf_stb: 800
+      injection_rate_bwpd: 5100
+      vrr_target: 1.1
+      
+    phase_3:
+      timeline_days: [731, 1095]       # Days 731-1095
+      duration_years: 1
+      wells_added: ["EW-003", "EW-004", "IW-002"]
+      total_active_wells: 6
+      wells_p_i: "4/2"
+      target_oil_rate_stb_day: 8500
+      expected_oil_rate_stb_day: 8300
+      water_cut_percent: 32
+      gor_scf_stb: 850
+      injection_rate_bwpd: 9500
+      vrr_target: 1.12
+      
+    phase_4:
+      timeline_days: [1096, 1825]      # Days 1096-1825
+      duration_years: 2
+      wells_added: ["EW-005", "EW-006", "EW-007", "IW-003"]
+      total_active_wells: 10
+      wells_p_i: "7/3"
+      target_oil_rate_stb_day: 12500
+      expected_oil_rate_stb_day: 12200
+      water_cut_percent: 38
+      gor_scf_stb: 900
+      injection_rate_bwpd: 14200
+      vrr_target: 1.14
+      
+    phase_5:
+      timeline_days: [1826, 2920]      # Days 1826-2920
+      duration_years: 3
+      wells_added: ["EW-008", "EW-009", "IW-004"]
+      total_active_wells: 13
+      wells_p_i: "9/4"
+      target_oil_rate_stb_day: 16200
+      expected_oil_rate_stb_day: 15800
+      water_cut_percent: 45
+      gor_scf_stb: 950
+      injection_rate_bwpd: 18500
+      vrr_target: 1.16
+      
+    phase_6:
+      timeline_days: [2921, 3650]      # Days 2921-3650
+      duration_years: 2
+      wells_added: ["EW-010", "IW-005"]
+      total_active_wells: 15
+      wells_p_i: "10/5"
+      target_oil_rate_stb_day: 18500
+      expected_oil_rate_stb_day: 18200
+      water_cut_percent: 52
+      gor_scf_stb: 1000
+      injection_rate_bwpd: 21500
+      vrr_target: 1.18
+      
+  # Producer Wells Specifications (CANON)
+  producer_wells:
+    EW-001:
       well_type: "vertical"
-      target: "structural_crest"
-    
-    - name: "EW-002" 
-      grid_location: [12, 6]
-      start_day: 550            # Phase 2
+      phase: 1
+      drill_date_day: 180
+      grid_location: [15, 10, 3]       # [I, J, K_top]
+      surface_coords: [2750, 1750]     # ft from origin
+      total_depth_tvd_ft: 8200
+      target_oil_rate_stb_day: 1500
+      min_bhp_psi: 1500
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 150
+      esp_hp: 200
+      completion_layers: [1, 2, 3, 5, 6, 7]
+      wellbore_radius_ft: 0.328        # 6-inch wellbore (0.1 m)
+      skin_factor: 4.5
+      
+    EW-002:
       well_type: "vertical"
-      target: "upper_sand_high"
-    
-    - name: "EW-003"
-      grid_location: [18, 14]
-      start_day: 850            # Phase 3
+      phase: 2
+      drill_date_day: 550
+      grid_location: [25, 15, 2]
+      surface_coords: [3570, 2010]
+      total_depth_tvd_ft: 8180
+      target_oil_rate_stb_day: 1800
+      min_bhp_psi: 1450
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 175
+      esp_hp: 250
+      completion_layers: [1, 2, 3, 5, 6, 7]
+      wellbore_radius_ft: 0.328
+      skin_factor: 3.8
+      
+    EW-003:
       well_type: "horizontal"
-      target: "east_flank_lateral"
-    
-    - name: "EW-004"
-      grid_location: [8, 8]
-      start_day: 1000           # Phase 3
+      phase: 3
+      drill_date_day: 820
+      grid_location: [20, 25, 6]
+      surface_coords: [3240, 2840]
+      total_depth_tvd_ft: 8160
+      horizontal_length_ft: 2500
+      target_oil_rate_stb_day: 2200
+      min_bhp_psi: 1400
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 200
+      esp_hp: 300
+      completion_layers: [5, 6, 7]     # Middle zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.2                # Negative skin for horizontal
+      
+    EW-004:
       well_type: "vertical"
-      target: "west_flank"
-    
-    - name: "EW-005"
-      grid_location: [16, 12]
-      start_day: 1200           # Phase 4
+      phase: 3
+      drill_date_day: 900
+      grid_location: [12, 32, 3]
+      surface_coords: [2400, 3220]
+      total_depth_tvd_ft: 8220
+      target_oil_rate_stb_day: 1600
+      min_bhp_psi: 1520
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 140
+      esp_hp: 180
+      completion_layers: [1, 2, 3, 9, 10, 11]
+      wellbore_radius_ft: 0.328
+      skin_factor: 4.2
+      
+    EW-005:
       well_type: "horizontal"
-      target: "central_lateral"
-    
-    - name: "EW-006"
-      grid_location: [11, 15]
-      start_day: 1400           # Phase 4
-      well_type: "multilateral"
-      target: "north_complex"
-    
-    - name: "EW-007"
-      grid_location: [38, 8]
-      start_day: 1950           # Phase 5
+      phase: 4
+      drill_date_day: 1200
+      grid_location: [30, 20, 2]
+      surface_coords: [4050, 2470]
+      total_depth_tvd_ft: 8140
+      horizontal_length_ft: 3000
+      target_oil_rate_stb_day: 2500
+      min_bhp_psi: 1350
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 220
+      esp_hp: 350
+      completion_layers: [1, 2, 3]     # Upper zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.1
+      
+    EW-006:
+      well_type: "vertical"
+      phase: 4
+      drill_date_day: 1350
+      grid_location: [8, 18, 4]
+      surface_coords: [1890, 2340]
+      total_depth_tvd_ft: 8240
+      target_oil_rate_stb_day: 1400
+      min_bhp_psi: 1480
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-4000"
+      esp_stages: 120
+      esp_hp: 150
+      completion_layers: [5, 6, 7, 9, 10]
+      wellbore_radius_ft: 0.328
+      skin_factor: 5.1
+      
+    EW-007:
+      well_type: "multi_lateral"
+      phase: 4
+      drill_date_day: 1500
+      grid_location: [18, 8, 3]
+      surface_coords: [2970, 1480]
+      total_depth_tvd_ft: 8200
+      lateral_1_length_ft: 1800
+      lateral_2_length_ft: 2200
+      target_oil_rate_stb_day: 2800
+      min_bhp_psi: 1380
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 250
+      esp_hp: 400
+      completion_layers: [1, 2, 3, 5, 6, 7]  # Multi-zone
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.8
+      
+    EW-008:
       well_type: "horizontal"
-      target: "southeast_lateral"
-    
-    - name: "EW-008"
-      grid_location: [6, 12]
-      start_day: 2100           # Phase 5
+      phase: 5
+      drill_date_day: 2000
+      grid_location: [35, 12, 6]
+      surface_coords: [4460, 1880]
+      total_depth_tvd_ft: 8170
+      horizontal_length_ft: 2800
+      target_oil_rate_stb_day: 2300
+      min_bhp_psi: 1420
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 190
+      esp_hp: 280
+      completion_layers: [5, 6, 7]
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.5
+      
+    EW-009:
       well_type: "vertical"
-      target: "southwest_flank"
-    
-    - name: "EW-009"
-      grid_location: [19, 18]
-      start_day: 2300           # Phase 5
+      phase: 5
+      drill_date_day: 2200
+      grid_location: [22, 35, 4]
+      surface_coords: [3400, 3530]
+      total_depth_tvd_ft: 8190
+      target_oil_rate_stb_day: 1700
+      min_bhp_psi: 1550
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 160
+      esp_hp: 220
+      completion_layers: [1, 2, 3, 9, 10, 11, 12]
+      wellbore_radius_ft: 0.328
+      skin_factor: 3.9
+      
+    EW-010:
       well_type: "horizontal"
-      target: "northeast_lateral"
-    
-    - name: "EW-010"
-      grid_location: [14, 16]
-      start_day: 2800           # Phase 6
-      well_type: "multilateral"
-      target: "north_central_complex"
-
-  # INJECTOR WELLS (IW-001 to IW-005)
-  injectors:
-    - name: "IW-001"
-      grid_location: [5, 10]
-      start_day: 450            # Phase 2
+      phase: 6
+      drill_date_day: 3100
+      grid_location: [28, 28, 5]
+      surface_coords: [3810, 3070]
+      total_depth_tvd_ft: 8155
+      horizontal_length_ft: 3200
+      target_oil_rate_stb_day: 2600
+      min_bhp_psi: 1380
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 230
+      esp_hp: 380
+      completion_layers: [5, 6, 7]
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.3
+      
+  # Injector Wells Specifications (CANON)
+  injector_wells:
+    IW-001:
       well_type: "vertical"
-      target: "down_dip_support"
-    
-    - name: "IW-002"
-      grid_location: [10, 18]
-      start_day: 950            # Phase 3
+      phase: 2
+      drill_date_day: 450
+      grid_location: [5, 10, 6]
+      surface_coords: [750, 1750]
+      total_depth_tvd_ft: 8300
+      target_injection_rate_bbl_day: 5100
+      max_bhp_psi: 3200
+      completion_layers: [5, 6, 7, 10, 11, 12]  # Middle and lower zones
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.2
+      injection_fluid: "formation_water"
+      
+    IW-002:
       well_type: "vertical"
-      target: "north_flank_support"
-    
-    - name: "IW-003"
-      grid_location: [20, 5]
-      start_day: 1300           # Phase 4
+      phase: 3
+      drill_date_day: 1000
+      grid_location: [35, 35, 7]
+      surface_coords: [4460, 3530]
+      total_depth_tvd_ft: 8250
+      target_injection_rate_bbl_day: 4400
+      max_bhp_psi: 3300
+      completion_layers: [9, 10, 11, 12]  # Lower zone focus
+      wellbore_radius_ft: 0.328
+      skin_factor: 0.8
+      injection_fluid: "formation_water"
+      
+    IW-003:
       well_type: "horizontal"
-      target: "southeast_support"
-    
-    - name: "IW-004"
-      grid_location: [38, 12]
-      start_day: 1600           # Phase 4
+      phase: 4
+      drill_date_day: 1600
+      grid_location: [10, 30, 8]
+      surface_coords: [2080, 3220]
+      total_depth_tvd_ft: 8280
+      horizontal_length_ft: 2000
+      target_injection_rate_bbl_day: 4700
+      max_bhp_psi: 3100
+      completion_layers: [9, 10, 11, 12]  # Lower zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.5
+      injection_fluid: "formation_water"
+      
+    IW-004:
       well_type: "vertical"
-      target: "east_flank_support"
+      phase: 5
+      drill_date_day: 2300
+      grid_location: [32, 8, 9]
+      surface_coords: [4130, 1480]
+      total_depth_tvd_ft: 8320
+      target_injection_rate_bbl_day: 4300
+      max_bhp_psi: 3400
+      completion_layers: [10, 11, 12]  # Bottom layers
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.0
+      injection_fluid: "formation_water"
+      
+    IW-005:
+      well_type: "vertical"
+      phase: 6
+      drill_date_day: 3200
+      grid_location: [15, 38, 10]
+      surface_coords: [2750, 3830]
+      total_depth_tvd_ft: 8340
+      target_injection_rate_bbl_day: 4000
+      max_bhp_psi: 3600
+      completion_layers: [9, 10, 11, 12]  # Lower zone injection
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.5
+      injection_fluid: "formation_water"
+      
+  # Well Completion Parameters (CANON)
+  completion_parameters:
+    # Wellbore Properties
+    wellbore_radius_m: 0.1               # 6-inch wellbore (0.328 ft)
+    wellbore_skin_range: [-2.5, 5.1]     # Range across all wells
+    casing_size_inch: 7.0                # Standard casing size
+    tubing_size_inch: 3.5                # Standard tubing size
     
-    - name: "IW-005"
-      grid_location: [7, 20]
-      start_day: 3200           # Phase 6
-      well_type: "multilateral"
-      target: "northwest_complex"
-
-# DEVELOPMENT PHASES (per 06_Production_History.md)
-development_phases:
-  - phase: 1
-    duration: 365             # days (1-365)
-    active_wells: ["EW-001"]
-    strategy: "natural_depletion"
-  
-  - phase: 2
-    duration: 730             # days (366-1095)  
-    active_wells: ["EW-001", "EW-002", "IW-001"]
-    strategy: "pressure_support"
-  
-  - phase: 3
-    duration: 1095            # days (1096-2190)
-    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "IW-001", "IW-002"]
-    strategy: "infill_development"
-  
-  - phase: 4
-    duration: 730             # days (2191-2920)
-    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "IW-001", "IW-002", "IW-003", "IW-004"]
-    strategy: "pattern_waterflood"
-  
-  - phase: 5
-    duration: 365             # days (2921-3285)
-    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "IW-001", "IW-002", "IW-003"]
-    strategy: "field_expansion"
-  
-  - phase: 6
-    duration: 365             # days (3286-3650)
-    active_wells: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "EW-010", "IW-001", "IW-002", "IW-003", "IW-004", "IW-005"]
-    strategy: "optimization"
-
-# PRODUCTION SCHEDULE (per 06_Production_History.md)
-production_schedule:
-  # Phase 1: Natural Depletion (Days 1-365)
-  phase_1:
-    duration: 365
-    total_oil_rate: 1500      # STB/day (per documentation Section 6.4)
-    total_water_rate: 500     # STB/day  
-    total_gas_rate: 1200      # Mscf/day
-    wells_producing: ["EW-001"]
-    rates_per_well:
-      "EW-001": 1500         # STB/day oil rate
-    injection_rate: 0         # BWPD - Natural depletion
-    voidage_replacement: 0    # N/A
-
-  # Phase 2: Pressure Support (Days 366-1095)  
-  phase_2:
-    duration: 730
-    total_oil_rate: 3200      # STB/day (per documentation Section 6.4)
-    total_water_rate: 2600    # STB/day
-    total_gas_rate: 2560      # Mscf/day
-    wells_producing: ["EW-001", "EW-002"]
-    rates_per_well:
-      "EW-001": 1600         # STB/day oil rate
-      "EW-002": 1600         # STB/day oil rate
-    injection_rate: 15000     # BWPD total (per documentation Section 6.4)
-    wells_injecting: ["IW-001"]
-    injection_per_well:
-      "IW-001": 15000        # BWPD
-    voidage_replacement: 0.95  # 0.95:1 VRR (per documentation)
-
-  # Phase 3: Infill Development (Days 1096-2190)
-  phase_3:
-    duration: 1095
-    total_oil_rate: 6800      # STB/day (per documentation Section 6.4)
-    total_water_rate: 7200    # STB/day
-    total_gas_rate: 5440      # Mscf/day
-    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004"]
-    rates_per_well:
-      "EW-001": 1700         # STB/day oil rate
-      "EW-002": 1700         # STB/day oil rate  
-      "EW-003": 1700         # STB/day oil rate
-      "EW-004": 1700         # STB/day oil rate
-    injection_rate: 28000     # BWPD total (per documentation Section 6.4)
-    wells_injecting: ["IW-001", "IW-002"]
-    injection_per_well:
-      "IW-001": 14000        # BWPD
-      "IW-002": 14000        # BWPD
-    voidage_replacement: 1.05  # 1.05:1 VRR (per documentation)
-
-  # Phase 4: Pattern Waterflood (Days 2191-2920)
-  phase_4:
-    duration: 730
-    total_oil_rate: 11500     # STB/day (per documentation Section 6.4)
-    total_water_rate: 16500   # STB/day
-    total_gas_rate: 9200      # Mscf/day
-    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006"]
-    rates_per_well:
-      "EW-001": 1917         # STB/day oil rate
-      "EW-002": 1917         # STB/day oil rate
-      "EW-003": 1917         # STB/day oil rate
-      "EW-004": 1917         # STB/day oil rate
-      "EW-005": 1917         # STB/day oil rate
-      "EW-006": 1917         # STB/day oil rate
-    injection_rate: 69000     # BWPD total (per documentation Section 6.4)
-    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004"]
-    injection_per_well:
-      "IW-001": 17250        # BWPD
-      "IW-002": 17250        # BWPD
-      "IW-003": 17250        # BWPD
-      "IW-004": 17250        # BWPD
-    voidage_replacement: 1.15 # 1.15:1 VRR (per documentation)
-
-  # Phase 5: Field Expansion (Days 2921-3285)
-  phase_5:
-    duration: 365
-    total_oil_rate: 16200     # STB/day (per documentation Section 6.4)
-    total_water_rate: 25800   # STB/day
-    total_gas_rate: 12960     # Mscf/day
-    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009"]
-    rates_per_well:
-      "EW-001": 1800         # STB/day oil rate
-      "EW-002": 1800         # STB/day oil rate
-      "EW-003": 1800         # STB/day oil rate
-      "EW-004": 1800         # STB/day oil rate
-      "EW-005": 1800         # STB/day oil rate
-      "EW-006": 1800         # STB/day oil rate
-      "EW-007": 1800         # STB/day oil rate
-      "EW-008": 1800         # STB/day oil rate
-      "EW-009": 1800         # STB/day oil rate
-    injection_rate: 66000     # BWPD total (per documentation Section 6.4)
-    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004"]
-    injection_per_well:
-      "IW-001": 16500        # BWPD
-      "IW-002": 16500        # BWPD
-      "IW-003": 16500        # BWPD
-      "IW-004": 16500        # BWPD
-    voidage_replacement: 1.10 # 1.10:1 VRR (per documentation)
-
-  # Phase 6: Optimization (Days 3286-3650)
-  phase_6:
-    duration: 365
-    total_oil_rate: 18500     # STB/day (per documentation Section 6.4)
-    total_water_rate: 33500   # STB/day
-    total_gas_rate: 14800     # Mscf/day
-    wells_producing: ["EW-001", "EW-002", "EW-003", "EW-004", "EW-005", "EW-006", "EW-007", "EW-008", "EW-009", "EW-010"]
-    rates_per_well:
-      "EW-001": 1850         # STB/day oil rate
-      "EW-002": 1850         # STB/day oil rate
-      "EW-003": 1850         # STB/day oil rate
-      "EW-004": 1850         # STB/day oil rate
-      "EW-005": 1850         # STB/day oil rate
-      "EW-006": 1850         # STB/day oil rate
-      "EW-007": 1850         # STB/day oil rate
-      "EW-008": 1850         # STB/day oil rate
-      "EW-009": 1850         # STB/day oil rate
-      "EW-010": 1850         # STB/day oil rate
-    injection_rate: 95000     # BWPD total (per documentation Section 6.4)
-    wells_injecting: ["IW-001", "IW-002", "IW-003", "IW-004", "IW-005"]
-    injection_per_well:
-      "IW-001": 19000        # BWPD
-      "IW-002": 19000        # BWPD
-      "IW-003": 19000        # BWPD
-      "IW-004": 19000        # BWPD
-      "IW-005": 19000        # BWPD
-    voidage_replacement: 1.20 # 1.20:1 VRR (per documentation)
-
-# WELL CONSTRAINTS (simplified)
-constraints:
-  producers:
-    min_bhp: 1500             # psi minimum bottom hole pressure
-    max_water_cut: 0.95       # 95% maximum water cut
-    min_oil_rate: 50          # STB/day economic limit
-  
-  injectors:
-    max_bhp: 3600             # psi maximum bottom hole pressure
-    max_injection_rate: 35000 # STB/day maximum rate
-    min_injection_rate: 500   # STB/day minimum rate
+    # Completion Design
+    completion_type: "open_hole_gravel_pack"
+    perforation_density: 12.0            # shots per foot
+    perforation_diameter_inch: 0.43      # Standard perforations
+    gravel_pack_permeability_darcy: 5.0  # High perm gravel pack
+    
+    # Sand Control
+    sand_control_method: "gravel_pack_with_screen"
+    screen_type: "premium_wire_wrap"
+    screen_slot_size_inch: 0.008
+    
+  # Production Controls (CANON)
+  production_controls:
+    # Producer Constraints
+    producer_constraints:
+      oil_rate_control: "target_with_bhp_limit"
+      min_bhp_range_psi: [1350, 1650]    # Varies by well
+      water_cut_limit: 0.95               # 95% maximum
+      gor_limit_scf_stb: 3000            # Economic limit
+      
+    # Injector Constraints  
+    injector_constraints:
+      injection_rate_control: "target_with_bhp_limit"
+      max_bhp_range_psi: [3100, 3600]    # Varies by well
+      injection_fluid_type: "formation_water"
+      injection_temperature_f: 90.0       # Surface injection temperature
+      
+    # Field-Level Controls
+    field_controls:
+      voidage_replacement_ratio: [1.1, 1.18]  # By phase
+      field_oil_rate_target: 18500       # STB/day peak
+      field_injection_rate_target: 21500 # BWPD peak
+      
+  # Artificial Lift Systems (CANON)
+  artificial_lift:
+    esp_systems:
+      pump_types:
+        GC-2500: {capacity_bpd: 10000, hp: 100, stages_range: [80, 120]}
+        GC-4000: {capacity_bpd: 15000, hp: 150, stages_range: [100, 140]}
+        GC-6000: {capacity_bpd: 18000, hp: 200, stages_range: [120, 180]}
+        GC-8000: {capacity_bpd: 22000, hp: 250, stages_range: [150, 220]}
+        GC-10000: {capacity_bpd: 28000, hp: 300, stages_range: [180, 250]}
+        
+    # ESP Cable and Control
+    esp_cable:
+      insulation_type: "EPDM"
+      temperature_rating_f: 350
+      gauge_options: ["#2_AWG", "#4_AWG", "#6_AWG"]
+      
+    # Variable Speed Drive
+    vsd_control:
+      frequency_range_hz: [30, 65]
+      efficiency_curve: "manufacturer_standard"
+      power_factor: 0.85
+      
+  # MRST Implementation Parameters
+  mrst_well_model:
+    well_model_type: "SimpleWell"
+    connection_model: "standard"
+    wellbore_flow_model: "simple"
+    well_index_calculation: "Peaceman"
+    
+    # Well Controls Implementation
+    control_switching: true
+    rate_bhp_switching: true
+    constraint_handling: "penalty_method"
+    
+  # Quality Control and Validation
+  validation:
+    well_location_accuracy: 50.0        # ft horizontal accuracy
+    completion_depth_accuracy: 5.0      # ft vertical accuracy
+    rate_target_tolerance: 0.05         # ±5% rate tolerance
+    bhp_measurement_accuracy: 10.0      # psi measurement accuracy

@@ -1,0 +1,31 @@
+template_type: refactor
+description: Template for code refactoring without changing functionality
+
+prompts:
+  - "What code needs refactoring?"
+  - "What's the goal (readability, performance, maintainability)?"
+  - "Any architectural patterns to follow?"
+
+acceptance_criteria:
+  - "All tests pass without modification"
+  - "Functionality remains identical"
+  - "Code is cleaner/more maintainable"
+  - "Performance maintained or improved"
+  - "No breaking changes to public APIs"
+
+scope_limits:
+  max_files: 8
+  max_lines: 500
+  preferred_approach: "incremental"  # vs "big_bang"
+
+validation:
+  required_tests: false  # Existing tests should suffice
+  behavior_unchanged: true
+  performance_check: true
+
+typical_patterns:
+  - "Extract method/function"
+  - "Replace magic numbers with constants"
+  - "Consolidate duplicate code"
+  - "Simplify complex conditionals"
+  - "Improve naming consistency"

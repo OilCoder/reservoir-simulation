@@ -1,124 +1,187 @@
 # Rock Properties Configuration for Eagle West Field MRST Simulation
-# Simplified format for Python-MRST workflow
-# Date: January 30, 2025
+# Source: 02_Rock_Properties.md (CANON)
+# Compatible with s07_define_rock_types.m requirements
+# Date: 2025-08-07
 
 rock_properties:
-  # Layer-by-layer properties for 12 layers (realistic distribution)
-  # Based on: 02_Rock_Properties.md + 08_MRST_Implementation.md
-  # Upper Zone (Layers 1-3: Sand, Layer 4: Shale barrier)
-  # Middle Zone (Layers 5-7: Sand, Layer 8: Shale barrier)  
-  # Lower Zone (Layers 9-12: Sand with decreasing quality)
+  # Layer-by-Layer Properties (CANON from 02_Rock_Properties.md)
+  # 12 layers representing major flow units and barriers
   
+  # Porosity by Layer (fraction)
   porosity_layers: [0.200, 0.195, 0.190, 0.050, 0.235, 0.230, 0.225, 0.050, 0.150, 0.145, 0.140, 0.135]
   
+  # Horizontal Permeability by Layer (mD)
   permeability_layers: [90, 85, 80, 0.01, 175, 170, 160, 0.01, 30, 25, 22, 20]
   
-  # Vertical-horizontal permeability ratios by layer
+  # Vertical-Horizontal Permeability Ratios
   kv_kh_ratios: [0.5, 0.5, 0.5, 0.1, 0.5, 0.5, 0.5, 0.1, 0.5, 0.5, 0.5, 0.5]
   
-  # Lithology by layer (for reference)
+  # Lithology Classification by Layer
   lithology_layers: ["sandstone", "sandstone", "sandstone", "shale", "sandstone", "sandstone", "sandstone", "shale", "sandstone", "sandstone", "sandstone", "sandstone"]
   
-  # Dynamic Rock Properties Models (per 02_Rock_Properties.md Section 4)
-  
-  # Basic rock compressibility by lithology type (matrix compressibility)
-  matrix_compressibility:
-    sandstone: 2.1e-6  # 1/psi (grain bulk modulus based)
-    shale: 3.5e-6      # 1/psi (clay minerals based)
-    limestone: 1.8e-6  # 1/psi (calcite based)
-  
-  # Pore volume compressibility by rock type (pressure-dependent)
-  pore_compressibility:
-    reference_pressure: 2000.0  # psi
-    rock_types:
-      RT1_high_perm_sandstone:
-        compressibility: 3.5e-6  # 1/psi at reference pressure
-        pressure_exponent: -0.12
-        layers: [1, 2, 3, 5, 6, 7]  # Upper and middle zone sands
-      RT2_medium_perm_sandstone: 
-        compressibility: 4.2e-6  # 1/psi at reference pressure
-        pressure_exponent: -0.15
-        layers: [9, 10, 11, 12]  # Lower zone sands
-      RT6_shale_barrier:
-        compressibility: 12.5e-6  # 1/psi at reference pressure
-        pressure_exponent: -0.35
-        layers: [4, 8]  # Shale barrier layers
-  
-  # Stress-dependent permeability model: k(P) = k0 * exp(-gamma * (P - P0))
-  # Canon values from 02_Rock_Properties.md Section 4.3 (lines 382-389)
-  stress_sensitivity:
-    reference_pressure: 2000.0  # psi P0
-    rock_types:
-      RT1_high_perm_sandstone:
-        stress_coefficient: 6.2e-5  # gamma (1/psi) - Canon line 384
-        reversibility_factor: 0.85  # 85% reversible - Canon line 384
-        critical_stress: 3500.0  # psi (plastic deformation threshold) - Canon line 384
-        layers: [1, 2, 3, 5, 6, 7]  # Upper & middle zone high quality sands
-        permeability_range: [160, 175]  # mD range for RT1 layers
-      RT2_medium_perm_sandstone:
-        stress_coefficient: 8.5e-5  # gamma (1/psi) - Canon line 385
-        reversibility_factor: 0.75  # 75% reversible - Canon line 385
-        critical_stress: 3000.0  # psi - Canon line 385
-        layers: [9, 10, 11, 12]  # Lower zone medium quality sands
-        permeability_range: [20, 30]   # mD range for RT2 layers  
-      RT6_shale_barrier:
-        stress_coefficient: 35.0e-5  # gamma (1/psi) - Canon line 389 (highly stress sensitive)
-        reversibility_factor: 0.15  # 15% reversible - Canon line 389
-        critical_stress: 1500.0  # psi (low threshold) - Canon line 389
-        layers: [4, 8]  # Shale barrier layers only
-        permeability_range: [0.01, 0.01]  # mD - essentially impermeable
-  
-  # Porosity stress sensitivity (compaction model)
-  porosity_compaction:
-    rock_types:
-      RT1_high_perm_sandstone:
-        compaction_coefficient: 2.8e-6  # 1/psi
-        plastic_threshold: 4500.0  # psi (permanent deformation)
-        layers: [1, 2, 3, 5, 6, 7]
-      RT2_medium_perm_sandstone:
-        compaction_coefficient: 3.2e-6  # 1/psi
-        plastic_threshold: 4000.0  # psi
-        layers: [9, 10, 11, 12]
-      RT6_shale_barrier:
-        compaction_coefficient: 8.5e-6  # 1/psi
-        plastic_threshold: 2000.0  # psi (low threshold)
-        layers: [4, 8]
-  
-  # Biot poroelastic parameters for coupled flow-geomechanics
-  poroelastic_parameters:
-    rock_types:
-      RT1_high_perm_sandstone:
-        biot_coefficient: 0.72  # alpha (0.66-0.78 range)
-        biot_coefficient_std: 0.06
-        undrained_bulk_modulus: 2.8  # GPa
-        skempton_b_parameter: 0.85
-        layers: [1, 2, 3, 5, 6, 7]
-      RT2_medium_perm_sandstone:
-        biot_coefficient: 0.75  # alpha (0.67-0.83 range)
-        biot_coefficient_std: 0.08
-        undrained_bulk_modulus: 2.5  # GPa
-        skempton_b_parameter: 0.82
-        layers: [9, 10, 11, 12]
-      RT6_shale_barrier:
-        biot_coefficient: 0.88  # alpha (0.73-1.03 range)
-        biot_coefficient_std: 0.15
-        undrained_bulk_modulus: 3.2  # GPa
-        skempton_b_parameter: 0.95
-        layers: [4, 8]
-  
-  # Elastic properties by lithology (for geomechanical coupling)
-  elastic_properties:
-    sandstone:
-      youngs_modulus_range: [2.5, 5.2]  # GPa
-      poissons_ratio_range: [0.18, 0.28]
-      youngs_porosity_correlation: [6.8, -0.15]  # E = 6.8 - 0.15*phi
-      bulk_modulus_range: [1.8, 3.2]  # GPa
-      shear_modulus_range: [1.2, 2.1]  # GPa
-      depth_gradient: [0.15, 0.25]  # GPa/1000ft
-    shale:
-      youngs_modulus_range: [1.5, 8.5]  # GPa
-      poissons_ratio_range: [0.25, 0.35]
-      youngs_porosity_correlation: [12.0, -1.2]  # E = 12 - 1.2*phi
-      bulk_modulus_range: [0.8, 5.5]  # GPa
-      shear_modulus_range: [0.6, 3.2]  # GPa
-      depth_gradient: [0.3, 0.6]  # GPa/1000ft
+  # Rock Type Classification (CANON from 02_Rock_Properties.md Section 2.1)
+  rock_type_definitions:
+    RT1_high_perm_sandstone:
+      description: "High permeability sandstone"
+      porosity_range: [0.25, 0.32]
+      permeability_range_md: [300, 850]
+      kv_kh_ratio: 0.5
+      layers: [5, 6, 7]  # Middle zone high quality
+      reservoir_quality_index: 3.5  # μm
+      flow_zone_indicator: [8, 15]  # μm range
+      
+    RT2_medium_perm_sandstone:
+      description: "Medium permeability sandstone"
+      porosity_range: [0.20, 0.25]
+      permeability_range_md: [100, 300]
+      kv_kh_ratio: 0.5
+      layers: [1, 2, 3]  # Upper zone
+      reservoir_quality_index: 2.5  # μm
+      flow_zone_indicator: [5, 8]   # μm range
+      
+    RT3_low_perm_sandstone:
+      description: "Low permeability sandstone"
+      porosity_range: [0.15, 0.20]
+      permeability_range_md: [25, 100]
+      kv_kh_ratio: 0.5
+      layers: [9, 10, 11, 12]  # Lower zone
+      reservoir_quality_index: 1.5  # μm
+      flow_zone_indicator: [3, 5]   # μm range
+      
+    RT4_tight_sandstone:
+      description: "Tight cemented sandstone"
+      porosity_range: [0.10, 0.15]
+      permeability_range_md: [5, 25]
+      kv_kh_ratio: 0.25
+      layers: []  # Not present in current model
+      reservoir_quality_index: 0.8  # μm
+      flow_zone_indicator: [1.5, 3] # μm range
+      
+    RT5_vuggy_limestone:
+      description: "Limestone with secondary porosity"
+      porosity_range: [0.15, 0.28]
+      permeability_range_md: [50, 300]
+      kv_kh_ratio: 0.5
+      layers: []  # Not present in current model
+      reservoir_quality_index: 2.0  # μm
+      flow_zone_indicator: [4, 10]  # μm range
+      
+    RT6_shale_barrier:
+      description: "Shale barriers and flow baffles"
+      porosity_range: [0.02, 0.08]
+      permeability_range_md: [0.001, 0.1]
+      kv_kh_ratio: 0.1
+      layers: [4, 8]  # Barrier layers
+      reservoir_quality_index: 0.1  # μm
+      flow_zone_indicator: [0.1, 1.0]  # μm range
+      
+  # Porosity-Permeability Correlations (CANON from 02_Rock_Properties.md)
+  porosity_permeability_correlations:
+    RT1_high_perm:
+      correlation: "k = 0.0314 * phi^2.1"
+      r_squared: 0.82
+      applicable_range_porosity: [25, 32]  # %
+      
+    RT2_medium_perm:
+      correlation: "k = 0.0156 * phi^2.5"
+      r_squared: 0.78
+      applicable_range_porosity: [20, 25]  # %
+      
+    RT3_low_perm:
+      correlation: "k = 0.0089 * phi^3.2"
+      r_squared: 0.75
+      applicable_range_porosity: [15, 20]  # %
+      
+    RT6_shale:
+      correlation: "k = 0.0001 * phi^6.0"
+      r_squared: 0.45
+      applicable_range_porosity: [2, 8]    # %
+      
+  # Layer Architecture and Connectivity (CANON)
+  layer_architecture:
+    upper_zone:
+      layers: [1, 2, 3]
+      description: "High quality sandstones"
+      avg_net_to_gross: 0.85
+      lateral_continuity: [500, 1200]  # m range
+      
+    shale_barrier_1:
+      layers: [4]
+      description: "Upper shale barrier"
+      thickness_range: [2, 4]  # ft
+      lateral_continuity: [800, 2000]  # m
+      sealing_capacity: "high"
+      
+    middle_zone:
+      layers: [5, 6, 7]
+      description: "Highest quality sandstones"
+      avg_net_to_gross: 0.90
+      lateral_continuity: [800, 1500]  # m range
+      
+    shale_barrier_2:
+      layers: [8]
+      description: "Middle shale barrier"
+      thickness_range: [1, 3]  # ft
+      lateral_continuity: [600, 1800]  # m
+      sealing_capacity: "moderate"
+      
+    lower_zone:
+      layers: [9, 10, 11, 12]
+      description: "Medium quality sandstones"
+      avg_net_to_gross: 0.70
+      lateral_continuity: [400, 1000]  # m range
+      
+  # Heterogeneity Parameters (for s09_spatial_heterogeneity.m)
+  heterogeneity:
+    spatial_correlation:
+      major_direction_range: 1500.0    # ft (along depositional strike)
+      minor_direction_range: 800.0     # ft (perpendicular to strike)
+      vertical_range: 15.0             # ft (vertical correlation)
+      
+    variogram_parameters:
+      nugget_effect: 0.05              # Measurement noise
+      sill_variance: 0.15              # Total variance
+      variogram_type: "exponential"    # Model type
+      
+    statistical_distributions:
+      porosity_distribution: "normal"
+      porosity_coefficient_variation: 0.12
+      permeability_distribution: "lognormal"
+      permeability_coefficient_variation: 0.85
+      
+  # Rock type classification thresholds (for s07)
+  rock_type_classification:
+    rt1_high_perm_threshold: 80         # mD - minimum permeability for RT1 (high quality)
+    rt2_medium_perm_threshold: 20       # mD - minimum permeability for RT2 (medium quality)
+    # Below rt2_threshold = RT6 (barriers/tight)
+    
+  # Heterogeneity parameters for s09 (spatial variation factors)
+  heterogeneity_parameters:
+    porosity_variation_factor: 0.05     # ±5% variation factor for porosity
+    permeability_variation_factor: 0.1  # ±10% variation factor for permeability
+    minimum_porosity: 0.01              # Minimum allowed porosity (1%)
+    maximum_porosity: 0.35              # Maximum allowed porosity (35%)
+      
+  # Rock Compressibility and Geomechanics (CANON)
+  geomechanical_properties:
+    matrix_compressibility:
+      sandstone: 2.1e-6              # 1/psi (grain bulk modulus based)
+      shale: 3.5e-6                  # 1/psi (clay minerals based)
+      limestone: 1.8e-6              # 1/psi (calcite based)
+      
+    pore_compressibility:
+      reference_pressure: 2000.0     # psi
+      RT1_compressibility: 3.5e-6    # 1/psi
+      RT2_compressibility: 4.2e-6    # 1/psi
+      RT6_compressibility: 12.5e-6   # 1/psi
+      
+  # Validation and Quality Control
+  validation:
+    data_source: "Core_analysis_and_logs"
+    porosity_measurement_precision: 0.01  # ±1% porosity unit
+    permeability_measurement_precision: 0.15  # ±15% relative
+    spatial_coverage: "comprehensive"
+    quality_flags:
+      high_confidence_layers: [1, 2, 3, 5, 6, 7]
+      medium_confidence_layers: [9, 10, 11, 12]
+      barrier_validation: "pressure_test_confirmed"

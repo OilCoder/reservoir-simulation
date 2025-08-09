@@ -1,71 +1,115 @@
-# Fault Configuration for Eagle West Field MRST Simulation
-# Based on: 04_Faults.md - Fault network geometry
-# Date: January 30, 2025
+# Fault System Configuration for Eagle West Field MRST Simulation
+# Source: 01_Structural_Geology.md (CANON)
+# Compatible with s05_add_faults.m requirements
+# Date: 2025-08-07
 
 fault_system:
-  # Major faults (from 04_Faults.md)
+  # Major Fault System (CANON from 01_Structural_Geology.md Section 2.2)
   faults:
-    - name: "Fault_A"
-      type: "sealing"
-      is_sealing: true
-      strike: 45          # degrees
-      dip: 75            # degrees
-      length: 2500       # ft
-      transmissibility_multiplier: 0.001  # Very low trans (sealing)
-      position_offset_x: 400   # ft from min x
-      position_offset_y: 600   # ft from center y
-      
-    - name: "Fault_B"
-      type: "partially_sealing"
-      is_sealing: false
-      strike: 50         # degrees
-      dip: 70           # degrees
-      length: 2000      # ft
-      transmissibility_multiplier: 0.05  # Partial flow
-      position_offset_x: -600  # ft from center x
-      position_offset_y: -200  # ft from center y
-      
-    - name: "Fault_C"
-      type: "sealing"
-      is_sealing: true
-      strike: 135        # degrees (NW-SE)
-      dip: 80           # degrees
-      length: 1800      # ft
-      transmissibility_multiplier: 0.002  # Very low trans (sealing)
-      position_offset_x: 300   # ft from center x
-      position_offset_y: -300  # ft from max y
-      
-    - name: "Fault_D"
-      type: "partially_sealing"
-      is_sealing: false
-      strike: 40         # degrees
-      dip: 65           # degrees
-      length: 2200      # ft
-      transmissibility_multiplier: 0.1  # Some flow allowed
-      position_offset_x: 600   # ft from min x
-      position_offset_y: -700  # ft from center y
-      
-    - name: "Fault_E"
-      type: "sealing"
-      is_sealing: true
-      strike: 30         # degrees
-      dip: 78           # degrees
-      length: 1600      # ft
-      transmissibility_multiplier: 0.001  # Very low trans (sealing)
-      position_offset_x: -800  # ft from max x
-      position_offset_y: 400   # ft from min y
-      
-  # Fault zone properties
-  fault_zone:
-    damage_zone_width: 50    # ft (typical damage zone)
-    core_zone_width: 10      # ft (fault core)
+    # Named structure compatible with YAML parser (similar to wells)
     
-  # Compartmentalization effect
-  compartments:
-    northern:
-      bounded_by: ["Fault_A", "Fault_C"]
-      pressure_communication: "limited"
+    Fault_A:
+      # Fault A - Northern Boundary (CANON Section 2.2)
+      name: "Fault_A"
+      type: "normal_with_reverse_component"
+      is_sealing: true
+      strike: 65.0                      # degrees (N65°E)
+      dip: 70.0                         # degrees SE
+      length: 16896.0                   # ft (3.2 miles * 5280)
+      transmissibility_multiplier: 0.005
+      position_offset_x: 0.0            # ft from bounds origin
+      position_offset_y: 1475.0         # ft north offset
+      throw_average: 150.0              # ft (120-180 range)
+      sealing_character: "sealing"
+      shale_gouge_ratio: 0.25           # >20% indicates sealing
       
-    southern:
-      bounded_by: ["Fault_D", "Fault_E"]
-      pressure_communication: "moderate"
+    Fault_B:
+      # Fault B - Eastern Boundary (CANON Section 2.2)
+      name: "Fault_B"
+      type: "normal"
+      is_sealing: false
+      strike: 20.0                      # degrees (N20°E)
+      dip: 65.0                         # degrees NW
+      length: 14784.0                   # ft (2.8 miles * 5280)
+      transmissibility_multiplier: 0.05
+      position_offset_x: 1640.0         # ft east offset
+      position_offset_y: 0.0            # ft from center
+      throw_average: 110.0              # ft (80-140 range)
+      sealing_character: "partially_sealing"
+      shale_gouge_ratio: 0.15           # Marginal sealing
+      
+    Fault_C:
+      # Fault C - Southern Boundary (CANON Section 2.2)
+      name: "Fault_C"
+      type: "normal"
+      is_sealing: true
+      strike: 285.0                     # degrees (N75°W = 360-75 = 285)
+      dip: 62.0                         # degrees NE
+      length: 11088.0                   # ft (2.1 miles * 5280)
+      transmissibility_multiplier: 0.01
+      position_offset_x: 0.0            # ft from center
+      position_offset_y: -1475.0        # ft south offset
+      throw_average: 127.5              # ft (95-160 range)
+      sealing_character: "variable_sealing"
+      shale_gouge_ratio: 0.20           # Central portion sealing
+      
+    # Fault D - Western Boundary (CANON Section 2.2)
+    - name: "Fault_D"
+      type: "normal_growth_fault"
+      is_sealing: true
+      strike: 345.0                     # degrees (N15°W = 360-15 = 345)
+      dip: 68.0                         # degrees NE
+      length: 13200.0                   # ft (2.5 miles * 5280)
+      transmissibility_multiplier: 0.005
+      position_offset_x: -1640.0        # ft west offset
+      position_offset_y: 0.0            # ft from center
+      throw_average: 155.0              # ft (110-200 range)
+      sealing_character: "sealing"
+      shale_gouge_ratio: 0.30           # Good sealing capacity
+      
+    # Fault E - Internal Compartment (CANON Section 2.2)
+    - name: "Fault_E"
+      type: "normal_internal"
+      is_sealing: false
+      strike: 45.0                      # degrees (N45°E)
+      dip: 72.0                         # degrees SE
+      length: 8448.0                    # ft (1.6 miles * 5280)
+      transmissibility_multiplier: 0.3
+      position_offset_x: 410.0          # ft east offset (internal)
+      position_offset_y: 370.0          # ft north offset
+      throw_average: 60.0               # ft (40-80 range)
+      sealing_character: "partially_sealing"
+      shale_gouge_ratio: 0.12           # Creates compartmentalization
+      
+  # System Properties
+  fault_system_properties:
+    total_faults: 5
+    compartments_created: 2             # Northern and Southern
+    dominant_fault_trend: "NE-SW"       # Regional extensional system
+    fault_age: "syn_depositional"       # Growth faults active during deposition
+    
+    # Grid Impact Parameters
+    grid_refinement_buffer: 300.0       # ft around major faults
+    minimum_cell_size_near_fault: 25.0  # ft (for accurate transmissibility)
+    
+    # Fault geometry parameters (for s05 random generation)
+    displacement_base: 20.0             # Base displacement value (ft)
+    displacement_variation: 10.0        # Variation range (+/-) (ft)  
+    width_base: 5.0                     # Base width value (ft)
+    width_variation: 3.0                # Variation range (+/-) (ft)
+    
+    # Validation Parameters
+    seismic_validation: true
+    well_control_validation: true
+    pressure_data_support: true
+    fault_seal_analysis_complete: true
+
+# Historical Context (CANON Documentation)
+documentation_source:
+  primary_document: "01_Structural_Geology.md"
+  section_reference: "Section 2.2 - Major Fault Systems"
+  validation_data:
+    - seismic_interpretation_2019
+    - well_log_correlations
+    - pressure_transient_analysis
+    - production_history_matching

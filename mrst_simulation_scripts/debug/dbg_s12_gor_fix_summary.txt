@@ -1,0 +1,59 @@
+=== S12 INITIAL_GOR ERROR: DEBUGGER ANALYSIS RESULTS ===
+Date: 2025-08-08
+Status: ROOT CAUSE IDENTIFIED - READY FOR CODER FIX
+
+ERROR DETAILS:
+- Error Message: "structure has no member 'initial_gor'"
+- Location: s12_pvt_tables.m line 762
+- Function: export_comprehensive_pvt_summary
+- Context: Export/summary generation phase (Step 4)
+
+ROOT CAUSE ANALYSIS:
+✓ YAML Configuration: Contains 'solution_gor' field with value 450 scf/STB
+✓ Line 537 Assignment: oil_props.initial_gor = pvt_config.solution_gor; works correctly  
+✓ Structure Creation: fluid.oil_properties = oil_props; works correctly
+✗ Line 762 Access: Missing defensive field validation in export function
+
+EXACT PROBLEM:
+Line 762: fprintf(fid, '  Initial GOR: %.0f scf/STB\n', fluid.oil_properties.initial_gor);
+This line lacks defensive validation, unlike api_gravity (lines 757-761).
+
+EXACT SOLUTION NEEDED:
+Replace line 762 with defensive validation pattern:
+
+CURRENT (BROKEN):
+    fprintf(fid, '  Initial GOR: %.0f scf/STB\n', fluid.oil_properties.initial_gor);
+
+FIXED (DEFENSIVE):
+    if isfield(fluid.oil_properties, 'initial_gor')
+        fprintf(fid, '  Initial GOR: %.0f scf/STB\n', fluid.oil_properties.initial_gor);
+    else
+        fprintf(fid, '  Initial GOR: Not available\n');
+    end
+
+COMPARISON WITH WORKING PATTERN:
+The api_gravity field already uses this defensive pattern (lines 757-761):
+    if isfield(fluid.oil_properties, 'api_gravity')
+        fprintf(fid, '  API Gravity: %.1f°\n', fluid.oil_properties.api_gravity);
+    else
+        fprintf(fid, '  API Gravity: Not available\n');
+    end
+
+INVESTIGATION CONFIDENCE: VERY HIGH
+- Same error pattern as the api_gravity issue that was already fixed
+- Identical defensive validation solution needed
+- YAML configuration is correct
+- Assignment logic is correct
+- Only the export function lacks validation
+
+ACTION FOR CODER:
+1. Apply defensive validation pattern to line 762 in s12_pvt_tables.m
+2. Use exact same pattern as api_gravity (lines 757-761)
+3. Test the fix by running s12_pvt_tables.m
+
+FILE LOCATIONS:
+- Main file: /workspaces/claudeclean/mrst_simulation_scripts/s12_pvt_tables.m
+- Line to fix: 762
+- Debug files: /workspaces/claudeclean/mrst_simulation_scripts/debug/dbg_s12_*.m
+
+=== END DEBUGGER ANALYSIS ===

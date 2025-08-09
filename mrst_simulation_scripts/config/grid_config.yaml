@@ -1,39 +1,90 @@
 # Grid Configuration for Eagle West Field MRST Simulation
-# Simplified format for Python-MRST workflow
-# Date: January 30, 2025
+# Source: 00_Overview.md, 01_Structural_Geology.md (CANON)
+# Compatible with s02_create_grid.m and s06_grid_refinement.m requirements
+# Date: 2025-08-07
+
+# Refinement Configuration (Top-level for s06_grid_refinement.m)
+refinement:
+  # Well Area Refinement (CANON from 01_Structural_Geology.md Section 3.3)
+  well_refinement:
+    enable: true
+    radius: 250.0                    # ft radius around wellbores
+    factor: 2                        # refinement factor (2x2 subdivision)
+    refined_cell_size_x: 20.0        # ft (refined cell E-W)
+    refined_cell_size_y: 18.0        # ft (refined cell N-S)  
+    refined_layer_thickness: 4.0     # ft (refined vertical)
+    transition_smooth: true
+    
+  # Fault Area Refinement (CANON from 01_Structural_Geology.md Section 3.3)
+  fault_refinement:
+    enable: true
+    buffer: 300.0                     # ft buffer around faults
+    factor: 2                        # refinement factor (2x2 subdivision)
+    refined_cell_size_x: 25.0        # ft (refined cell E-W)
+    refined_cell_size_y: 25.0        # ft (refined cell N-S)
+    refined_layer_thickness: 4.0     # ft (refined vertical)
+    major_faults_only: true
+    
+  # High Permeability Streak Refinement
+  streak_refinement:
+    enable: false                     # Optional refinement
+    permeability_threshold: 500.0    # mD threshold
+    refined_cell_size: 15.0          # ft
 
 grid:
-  # Basic grid dimensions (40x40x12 per documentation)
-  nx: 40
-  ny: 40
-  nz: 12
+  # Basic Grid Dimensions (CANON from 01_Structural_Geology.md Section 3.1)
+  nx: 40                               # I-direction cells
+  ny: 40                               # J-direction cells  
+  nz: 12                               # K-direction cells (layers)
   
-  # Cell sizes (per MRST_Implementation.md)
-  cell_size_x: 82.0  # ft
-  cell_size_y: 74.0  # ft
+  # Cell Sizes (CANON)
+  cell_size_x: 82.0                    # ft (E-W direction)
+  cell_size_y: 74.0                    # ft (N-S direction)
   
-  # Layer thicknesses (12 layers, 8.3 ft each per documentation)
-  layer_thicknesses: [8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3]
+  # Layer Thicknesses (CANON - 12 layers, total 100 ft)
+  layer_thicknesses: [8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.7]  # ft per layer
   
-  # Grid origin
-  origin_x: 0.0
-  origin_y: 0.0
-  origin_z: 8000.0  # ft TVDSS
+  # Field Extent (CANON from 01_Structural_Geology.md)
+  field_extent_x: 3280.0               # ft (E-W total field extent)
+  field_extent_y: 2950.0               # ft (N-S total field extent)
+  total_thickness: 100.0               # ft (total reservoir thickness)
   
-# Refinement configuration (Policy 1 compliance)
-refinement:
-  # Well refinement parameters
-  well_refinement:
-    radius: 250.0  # ft - refinement radius around wells
-    factor: 2      # refinement factor (2x2 subdivision)
+  # Grid Origin and Orientation (CANON)
+  origin_utm_x: 745280.0               # UTM Zone 15N Easting (m)
+  origin_utm_y: 3258470.0              # UTM Zone 15N Northing (m)
+  grid_orientation: 15.0               # degrees N15°E (aligned with fault trend)
+  
+  # Depth Reference (CANON)
+  datum_depth_tvdss: 8000.0            # ft TVDSS (pressure datum)
+  top_structure_tvdss: 7900.0          # ft TVDSS (structural crest)
+  base_structure_tvdss: 8240.0         # ft TVDSS (spill point)
+  
+  # Grid Quality Control
+  total_cells: 19200                   # Total grid cells (40×40×12)
+  target_active_cells: 18000           # Expected active cells
+  max_aspect_ratio: 10.0               # Maximum cell aspect ratio
+  
+  # Grid Quality Parameters
+      
+  # Grid Validation Parameters
+  validation:
+    min_cell_volume: 1000.0            # ft³ minimum cell volume
+    max_cell_volume: 100000.0          # ft³ maximum cell volume
+    min_layer_thickness: 2.0           # ft minimum layer thickness
+    max_layer_thickness: 20.0          # ft maximum layer thickness
+    check_orthogonality: true
+    orthogonality_tolerance: 0.1       # radians
     
-  # Fault refinement parameters
-  fault_refinement:
-    buffer: 300.0  # ft - buffer zone around faults
-    factor: 2      # refinement factor for fault zones
-    apply_to_sealing_only: true  # only refine sealing faults
+  # MRST Grid Implementation
+  mrst_grid:
+    grid_type: "cartesian_tensor"      # MRST grid type
+    geometry_compute: "automatic"      # Automatic geometry computation
+    fault_processing: "explicit"       # Explicit fault representation
+    boundary_conditions: "no_flow"     # Default boundary conditions
+    grid_coarsening: false             # No initial coarsening
     
-  # General refinement thresholds
-  refinement_thresholds:
-    max_coverage_percentage: 75.0  # max 75% cells refined (complex field)
-    min_coverage_percentage: 5.0   # min 5% cells refined
+  # Physical Constants
+  physical:
+    gravity_vector: [0, 0, 9.81]       # m/s² (standard gravity)
+    reference_pressure: 101325.0       # Pa (1 atm reference)
+    reference_temperature: 288.15      # K (15°C reference)

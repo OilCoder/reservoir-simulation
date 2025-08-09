@@ -204,7 +204,7 @@ function grid_config = create_default_grid_config()
     
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        grid_config = read_yaml_config('config/grid_config.yaml');
+        grid_config = read_yaml_config('config/grid_config.yaml', 'silent', true);
         
         % Validate required fields exist
         required_fields = {'grid'};

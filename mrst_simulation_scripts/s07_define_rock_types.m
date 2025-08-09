@@ -97,6 +97,9 @@ function rock_params = create_default_rock_config()
         config = read_yaml_config('config/rock_properties_config.yaml');
         rock_params = config.rock_properties;
         
+        % Store the full config for later use to avoid re-reading
+        rock_params.full_config = config;
+        
         % Validate required fields exist
         required_fields = {'porosity_layers', 'permeability_layers', 'kv_kh_ratios'};
         for i = 1:length(required_fields)
@@ -154,12 +157,17 @@ function layer_mapping = determine_layer_mapping(rock_params)
     n_layers = length(rock_params.porosity_layers);
     layer_mapping = cell(n_layers, 1);
     
-    % Classify based on permeability values
+    % Use cached config to avoid re-reading file - Policy compliance
+    config = rock_params.full_config;
+    rt_classification = config.rock_properties.rock_type_classification;
+    rt1_threshold = rt_classification.rt1_high_perm_threshold;  % From YAML
+    rt2_threshold = rt_classification.rt2_medium_perm_threshold; % From YAML
+    
     for i = 1:n_layers
         perm = rock_params.permeability_layers(i);
-        if perm >= 80
+        if perm >= rt1_threshold
             layer_mapping{i} = 'RT1';
-        elseif perm >= 20
+        elseif perm >= rt2_threshold
             layer_mapping{i} = 'RT2';
         else
             layer_mapping{i} = 'RT6';
@@ -180,7 +188,7 @@ function layer_properties = step_3_assign_properties(rock_params, rock_types, G)
     validate_layer_arrays(porosity_layers, permeability_layers, kv_kh_ratios);
     
     % Substep 3.3 – Create properties structure ____________________
-    layer_properties = create_properties_structure(porosity_layers, permeability_layers, kv_kh_ratios);
+    layer_properties = create_properties_structure(porosity_layers, permeability_layers, kv_kh_ratios, rock_params.full_config);
     layer_properties.rock_type_mapping = rock_types.layer_mapping;
     
 end
@@ -193,7 +201,7 @@ function validate_layer_arrays(porosity, permeability, kv_kh)
     end
 end
 
-function props = create_properties_structure(porosity, permeability, kv_kh)
+function props = create_properties_structure(porosity, permeability, kv_kh, cached_config)
 % Create layer properties structure for makeRock
     
     n_layers = length(porosity);
@@ -209,19 +217,24 @@ function props = create_properties_structure(porosity, permeability, kv_kh)
     props.permeability_md = num2cell(permeability);  % Keep in mD for MRST native use
     
     % Classify rock types based on permeability
-    props.rock_types = classify_rock_types(permeability, n_layers);
+    props.rock_types = classify_rock_types(permeability, n_layers, cached_config);
     
 end
 
-function rock_types = classify_rock_types(permeability, n_layers)
+function rock_types = classify_rock_types(permeability, n_layers, cached_config)
 % Classify rock types based on permeability values
     
     rock_types = cell(n_layers, 1);
     
+    % Use cached config to avoid re-reading file - Policy compliance
+    rt_classification = cached_config.rock_properties.rock_type_classification;
+    rt1_threshold = rt_classification.rt1_high_perm_threshold;  % From YAML
+    rt2_threshold = rt_classification.rt2_medium_perm_threshold; % From YAML
+    
     for i = 1:n_layers
-        if permeability(i) >= 80
+        if permeability(i) >= rt1_threshold
             rock_types{i} = 'RT1';  % High permeability
-        elseif permeability(i) >= 20
+        elseif permeability(i) >= rt2_threshold
             rock_types{i} = 'RT2';  % Medium permeability
         else
             rock_types{i} = 'RT6';  % Low permeability / barriers

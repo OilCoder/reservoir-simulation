@@ -145,7 +145,7 @@ function config = load_structural_config()
 % Load structural configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        full_config = read_yaml_config('config/structural_framework_config.yaml');
+        full_config = read_yaml_config('config/structural_framework_config.yaml', 'silent', true);
         config = full_config.structural_framework;
         
         % Validate required fields exist

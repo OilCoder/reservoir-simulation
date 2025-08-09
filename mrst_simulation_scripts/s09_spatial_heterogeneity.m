@@ -84,13 +84,21 @@ function rock = apply_spatial_variability(rock, G)
     % Add small random variations to porosity and permeability
     % within reasonable bounds to simulate heterogeneity
     
-    % Porosity variations (±5% relative)
-    poro_variation = 0.05 * rock.poro .* (2 * rand(length(rock.poro), 1) - 1);
-    rock.poro = max(0.01, min(0.40, rock.poro + poro_variation));
+    % Load heterogeneity parameters from YAML - Policy compliance
+    rock_config = read_yaml_config('config/rock_properties_config.yaml', 'silent', true);
+    het_params = rock_config.rock_properties.heterogeneity_parameters;
+    poro_var_factor = het_params.porosity_variation_factor;      % From YAML
+    perm_var_factor = het_params.permeability_variation_factor;  % From YAML
+    min_porosity = het_params.minimum_porosity;                  % From YAML
+    max_porosity = het_params.maximum_porosity;                  % From YAML
     
-    % Permeability variations (±10% relative)
+    % Porosity variations using YAML parameters
+    poro_variation = poro_var_factor * rock.poro .* (2 * rand(length(rock.poro), 1) - 1);
+    rock.poro = max(min_porosity, min(max_porosity, rock.poro + poro_variation));
+    
+    % Permeability variations using YAML parameters
     for i = 1:size(rock.perm, 2)
-        perm_variation = 0.1 * rock.perm(:,i) .* (2 * rand(size(rock.perm, 1), 1) - 1);
+        perm_variation = perm_var_factor * rock.perm(:,i) .* (2 * rand(size(rock.perm, 1), 1) - 1);
         rock.perm(:,i) = max(1e-18, rock.perm(:,i) + perm_variation);
     end
     

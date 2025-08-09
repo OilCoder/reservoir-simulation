@@ -1,0 +1,32 @@
+template_type: fix
+description: Template for bug fixes and error corrections
+
+prompts:
+  - "What's the error message or symptom?"
+  - "When does this error occur?"
+  - "What's the expected behavior?"
+  - "Any stack trace available?"
+
+acceptance_criteria:
+  - "Error no longer occurs"
+  - "Root cause is addressed (not just symptoms)"
+  - "Regression test added to prevent recurrence"
+  - "No new failures introduced"
+  - "Related edge cases handled"
+
+scope_limits:
+  max_files: 3
+  max_lines: 150
+  preferred_approach: "minimal_change"
+
+validation:
+  required_tests: true
+  verify_fix: true
+  check_related: true  # Check for similar issues
+
+typical_patterns:
+  - "Null/undefined check missing"
+  - "Race condition"
+  - "Off-by-one error"
+  - "Type mismatch"
+  - "Resource not released"

@@ -83,7 +83,7 @@ function fault_geometries = step_1_define_geometries(G)
     fault_geometries = create_fault_array(field_bounds, fault_config);
     
     % Substep 1.4 – Add fault properties ___________________________
-    fault_geometries = add_fault_properties(fault_geometries);
+    fault_geometries = add_fault_properties(fault_geometries, fault_config);
     
 end
 
@@ -104,35 +104,39 @@ function faults = create_fault_array(bounds, fault_config)
     
     % Load fault definitions from YAML - NO HARDCODING
     yaml_faults = fault_config.faults;
-    n_faults = length(yaml_faults);
+    fault_names = fieldnames(yaml_faults);
+    n_faults = length(fault_names);
     
     % Create all faults from YAML data - Policy compliance
     for i = 1:n_faults
-        faults(i).name = yaml_faults{i}.name;
-        faults(i).type = yaml_faults{i}.type;
-        faults(i).is_sealing = yaml_faults{i}.is_sealing;
-        faults(i).strike = yaml_faults{i}.strike;
-        faults(i).dip = yaml_faults{i}.dip;
-        faults(i).length = yaml_faults{i}.length;
-        faults(i).trans_mult = yaml_faults{i}.transmissibility_multiplier;
+        fault_name = fault_names{i};
+        fault_data = yaml_faults.(fault_name);
+        
+        faults(i).name = fault_data.name;
+        faults(i).type = fault_data.type;
+        faults(i).is_sealing = fault_data.is_sealing;
+        faults(i).strike = fault_data.strike;
+        faults(i).dip = fault_data.dip;
+        faults(i).length = fault_data.length;
+        faults(i).trans_mult = fault_data.transmissibility_multiplier;
         
         % Calculate fault endpoints from YAML position offsets
         switch i
             case 1  % Fault A
-                start_x = bounds.x_min + yaml_faults{i}.position_offset_x;
-                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+                start_x = bounds.x_min + fault_data.position_offset_x;
+                start_y = bounds.center_y + fault_data.position_offset_y;
             case 2  % Fault B
-                start_x = bounds.center_x + yaml_faults{i}.position_offset_x;
-                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+                start_x = bounds.center_x + fault_data.position_offset_x;
+                start_y = bounds.center_y + fault_data.position_offset_y;
             case 3  % Fault C
-                start_x = bounds.center_x + yaml_faults{i}.position_offset_x;
-                start_y = bounds.y_max + yaml_faults{i}.position_offset_y;
+                start_x = bounds.center_x + fault_data.position_offset_x;
+                start_y = bounds.y_max + fault_data.position_offset_y;
             case 4  % Fault D
-                start_x = bounds.x_min + yaml_faults{i}.position_offset_x;
-                start_y = bounds.center_y + yaml_faults{i}.position_offset_y;
+                start_x = bounds.x_min + fault_data.position_offset_x;
+                start_y = bounds.center_y + fault_data.position_offset_y;
             case 5  % Fault E
-                start_x = bounds.x_max + yaml_faults{i}.position_offset_x;
-                start_y = bounds.y_min + yaml_faults{i}.position_offset_y;
+                start_x = bounds.x_max + fault_data.position_offset_x;
+                start_y = bounds.y_min + fault_data.position_offset_y;
         end
         
         [faults(i).x1, faults(i).y1, faults(i).x2, faults(i).y2] = ...
@@ -149,12 +153,19 @@ function [x1, y1, x2, y2] = calculate_fault_endpoints(start_x, start_y, length, 
     y2 = y1 + length * sind(strike);
 end
 
-function faults = add_fault_properties(faults)
+function faults = add_fault_properties(faults, fault_config)
 % Add additional properties to fault array
     for i = 1:length(faults)
+        % Use cached config to avoid re-reading file - Policy compliance
+        geom_params = fault_config.fault_system_properties;
+        base_displacement = geom_params.displacement_base;     % From YAML
+        disp_variation = geom_params.displacement_variation;   % From YAML  
+        base_width = geom_params.width_base;                   % From YAML
+        width_variation = geom_params.width_variation;         % From YAML
+        
         faults(i).id = i;
-        faults(i).displacement = 20 + 10*rand();
-        faults(i).width = 5 + 3*rand();
+        faults(i).displacement = base_displacement + disp_variation*rand();
+        faults(i).width = base_width + width_variation*rand();
     end
 end
 

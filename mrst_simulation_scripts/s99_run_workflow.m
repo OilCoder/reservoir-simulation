@@ -190,6 +190,66 @@ function phases = define_workflow_phases()
     phases{9} = struct('phase_id', 's09', 'script_name', 's09_spatial_heterogeneity', ...
                       'description', 'Spatial Heterogeneity', ...
                       'critical', false, 'estimated_time', 240);
+                      
+    phases{10} = struct('phase_id', 's10', 'script_name', 's10_relative_permeability', ...
+                       'description', 'Relative Permeability', ...
+                       'critical', true, 'estimated_time', 90);
+                       
+    phases{11} = struct('phase_id', 's11', 'script_name', 's11_capillary_pressure', ...
+                       'description', 'Capillary Pressure', ...
+                       'critical', true, 'estimated_time', 75);
+                       
+    phases{12} = struct('phase_id', 's12', 'script_name', 's12_pvt_tables', ...
+                       'description', 'PVT Tables', ...
+                       'critical', true, 'estimated_time', 120);
+                       
+    % Phase 6: Well System Implementation                   
+    phases{13} = struct('phase_id', 's16', 'script_name', 's16_well_placement', ...
+                       'description', 'Well Placement (15 wells)', ...
+                       'critical', true, 'estimated_time', 90);
+                       
+    phases{14} = struct('phase_id', 's17', 'script_name', 's17_well_completions', ...
+                       'description', 'Well Completions', ...
+                       'critical', true, 'estimated_time', 80);
+                       
+    phases{15} = struct('phase_id', 's18', 'script_name', 's18_production_controls', ...
+                       'description', 'Production Controls', ...
+                       'critical', true, 'estimated_time', 70);
+    
+    % Phase 7: Development Schedule Implementation
+    phases{16} = struct('phase_id', 's19', 'script_name', 's19_development_schedule', ...
+                       'description', 'Development Schedule (6 phases)', ...
+                       'critical', true, 'estimated_time', 100);
+                       
+    phases{17} = struct('phase_id', 's20', 'script_name', 's20_production_targets', ...
+                       'description', 'Production Targets', ...
+                       'critical', true, 'estimated_time', 85);
+                       
+    % Phase 8: Simulation Execution & Quality Control
+    phases{18} = struct('phase_id', 's21', 'script_name', 's21_solver_setup', ...
+                       'description', 'Solver Configuration (ad-fi)', ...
+                       'critical', true, 'estimated_time', 60);
+                       
+    phases{19} = struct('phase_id', 's22', 'script_name', 's22_run_simulation', ...
+                       'description', 'Run Simulation (10 years)', ...
+                       'critical', true, 'estimated_time', 600);
+                       
+    phases{20} = struct('phase_id', 's23', 'script_name', 's23_quality_validation', ...
+                       'description', 'Quality Validation', ...
+                       'critical', true, 'estimated_time', 90);
+                       
+    % Phase 9: Results & Reporting
+    phases{21} = struct('phase_id', 's24', 'script_name', 's24_production_analysis', ...
+                       'description', 'Production Analysis & Reporting', ...
+                       'critical', true, 'estimated_time', 180);
+                       
+    phases{22} = struct('phase_id', 's25', 'script_name', 's25_reservoir_analysis', ...
+                       'description', 'Reservoir Performance Analysis', ...
+                       'critical', true, 'estimated_time', 200);
+                       
+    phases{23} = struct('phase_id', 's26', 'script_name', 's26_generate_reports', ...
+                       'description', 'Comprehensive Report Generation', ...
+                       'critical', true, 'estimated_time', 150);
 end
 
 function filtered_phases = filter_phases_fixed(phases, requested_phases)
@@ -284,6 +344,48 @@ function phase_result = execute_phase_fixed(phase, workflow_results)
                 
             case 's09'
                 output_data = s09_spatial_heterogeneity();
+                
+            case 's10'
+                output_data = s10_relative_permeability();
+                
+            case 's11'
+                output_data = s11_capillary_pressure();
+                
+            case 's12'
+                output_data = s12_pvt_tables();
+                
+            case 's16'
+                output_data = s16_well_placement();
+                
+            case 's17'
+                output_data = s17_well_completions();
+                
+            case 's18'
+                output_data = s18_production_controls();
+                
+            case 's19'
+                output_data = s19_development_schedule();
+                
+            case 's20'
+                output_data = s20_production_targets();
+                
+            case 's21'
+                output_data = s21_solver_setup();
+                
+            case 's22'
+                output_data = s22_run_simulation();
+                
+            case 's23'
+                output_data = s23_quality_validation();
+                
+            case 's24'
+                output_data = s24_production_analysis();
+                
+            case 's25'
+                output_data = s25_reservoir_analysis();
+                
+            case 's26'
+                output_data = s26_generate_reports();
                 
             otherwise
                 output_data = struct();
