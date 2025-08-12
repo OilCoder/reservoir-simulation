@@ -1,0 +1,21 @@
+EAGLE WEST FIELD - PVT TABLES SUMMARY
+====================================
+Generated: 12-Aug-2025 05:44:57
+
+OIL PVT (PVTO) SUMMARY:
+  Table entries: 10
+  Pressure range: 0.0 - 0.0 bar
+  Solution GOR range: 50.0 - 50.0 sm3/sm3
+
+WATER PVT (PVTW) SUMMARY:
+  Reference pressure: 0.0 bar
+  Water FVF: 1.0300 rm3/sm3
+  Compressibility: 4.30e-10 1/Pa
+
+GAS PVT (PVTG) SUMMARY:
+  Table entries: 10
+  Pressure range: 0.0 - 0.0 bar
+
+SURFACE CONDITIONS:
+  Pressure: 101325 Pa (1.01 bar)
+  Temperature: 288.1 K (15.0°C)

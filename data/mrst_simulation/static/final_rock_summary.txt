@@ -5,7 +5,7 @@ SIMULATION STATUS: READY
 IMPLEMENTATION: 100% Native MRST
 
 Field Characteristics:
-  Total Cells: 19668
+  Total Cells: 35328
   Grid Dimensions: 40x40x12
   Layers: 12
 

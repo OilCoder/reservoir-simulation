@@ -1,5 +1,5 @@
 function final_rock = s09_spatial_heterogeneity()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S09_SPATIAL_HETEROGENEITY - Spatial heterogeneity (MRST Native)
 % Requires: MRST
 %
@@ -51,7 +51,7 @@ function [rock_enhanced, G] = step_1_load_enhanced_rock()
 
     % Substep 1.1 – Locate enhanced rock file ______________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     enhanced_rock_file = fullfile(data_dir, 'enhanced_rock_with_layers.mat');
     
     if ~exist(enhanced_rock_file, 'file')
@@ -85,7 +85,8 @@ function rock = apply_spatial_variability(rock, G)
     % within reasonable bounds to simulate heterogeneity
     
     % Load heterogeneity parameters from YAML - Policy compliance
-    rock_config = read_yaml_config('config/rock_properties_config.yaml', 'silent', true);
+        addpath('utils');
+    rock_config = read_yaml_config('config/rock_properties_config.yaml', true);
     het_params = rock_config.rock_properties.heterogeneity_parameters;
     poro_var_factor = het_params.porosity_variation_factor;      % From YAML
     perm_var_factor = het_params.permeability_variation_factor;  % From YAML
@@ -234,7 +235,7 @@ end
 function export_rock_file(final_rock, G)
 % Export final rock structure to file
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -247,7 +248,7 @@ end
 function export_summary_report(final_rock, G)
 % Export comprehensive summary report
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     final_summary_file = fullfile(data_dir, 'final_rock_summary.txt');
     fid = fopen(final_summary_file, 'w');

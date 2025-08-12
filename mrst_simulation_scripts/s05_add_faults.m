@@ -1,5 +1,5 @@
 function fault_data = s05_add_faults()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S05_ADD_FAULTS - Add fault system to Eagle West Field
 % Requires: MRST
 %
@@ -58,7 +58,7 @@ function G = step_1_load_structural_data()
 
     % Substep 1.1 – Load structural framework _____________________
     script_path = fileparts(mfilename('fullpath'));
-    structural_file = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static', 'structural_framework.mat');
+    structural_file = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static', 'structural_framework.mat');
     
     if ~exist(structural_file, 'file')
         error('Structural framework not found. Run s04_structural_framework first.');
@@ -401,7 +401,7 @@ function export_fault_files(G, fault_geometries, intersections, trans_mult)
 % Export fault data to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -429,6 +429,7 @@ function config = load_fault_config()
 % Load fault configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
+        addpath('utils');
         full_config = read_yaml_config('config/fault_config.yaml');
         config = full_config.fault_system;
         

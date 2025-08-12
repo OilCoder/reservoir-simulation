@@ -1,5 +1,5 @@
 function refinement_data = s06_grid_refinement()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S06_GRID_REFINEMENT - Apply local grid refinement for Eagle West Field
 % Requires: MRST
 %
@@ -58,7 +58,7 @@ function [G, fault_geometries] = step_1_load_fault_data()
 
     % Substep 1.1 – Load fault system file _______________________
     script_path = fileparts(mfilename('fullpath'));
-    fault_file = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static', 'fault_system.mat');
+    fault_file = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static', 'fault_system.mat');
     
     if ~exist(fault_file, 'file')
         error('Fault system not found. Run s05_add_faults first.');
@@ -473,7 +473,7 @@ function export_refinement_files(G_refined, refinement_zones)
 % Export refined grid to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -514,7 +514,8 @@ function config = load_refinement_config()
 % Load refinement configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        full_config = read_yaml_config('config/grid_config.yaml', 'silent', true);
+        addpath('utils');
+        full_config = read_yaml_config('config/grid_config.yaml', true);
         
         % Check if refinement section exists
         if ~isfield(full_config, 'refinement')

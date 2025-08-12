@@ -18,11 +18,16 @@ function schedule_results = s19_development_schedule()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S19', 'Development Schedule Implementation');
     
     total_start_time = tic;
     schedule_results = initialize_schedule_structure();
+    
+    % Initialize key fields early for export functions
+    schedule_results.total_duration_days = 3650;
+    schedule_results.total_phases = 6;
+    schedule_results.total_wells = 15;
     
     try
         % ----------------------------------------
@@ -106,7 +111,7 @@ function [control_data, config] = step_1_load_control_data()
 % Step 1 - Load production controls and configuration data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     % Substep 1.1 - Load production controls data __________________
     controls_file = fullfile(data_dir, 'production_controls.mat');
@@ -120,9 +125,10 @@ function [control_data, config] = step_1_load_control_data()
     end
     
     % Substep 1.2 - Load wells configuration _______________________
-    config_path = fullfile(fileparts(data_dir), 'mrst_simulation_scripts', 'config', 'wells_config.yaml');
+    config_path = fullfile(script_path, 'config', 'wells_config.yaml');
     if exist(config_path, 'file')
-        config = parse_yaml_file(config_path);
+        addpath('utils');
+        config = read_yaml_config(config_path);
         fprintf('Loaded wells configuration\n');
     else
         error('Wells configuration not found: %s', config_path);
@@ -252,6 +258,10 @@ function well_startup_schedule = step_3_create_well_startup_schedules(developmen
         ws.min_bhp_psi = well_config.min_bhp_psi;
         ws.max_water_cut = well_config.max_water_cut;
         
+        % Initialize injector fields with defaults for consistency
+        ws.target_injection_rate_bbl_day = 0;
+        ws.max_bhp_psi = 0;
+        
         well_startup_schedule = [well_startup_schedule; ws];
         
         fprintf('   %-8s │ %8s │ Drill: Day %3d │ Start: Day %4d │ %4d STB/d\n', ...
@@ -291,6 +301,11 @@ function well_startup_schedule = step_3_create_well_startup_schedules(developmen
         % Set injection parameters
         ws.target_injection_rate_bbl_day = well_config.target_injection_rate_bbl_day;
         ws.max_bhp_psi = well_config.max_bhp_psi;
+        
+        % Initialize producer fields with defaults for consistency
+        ws.target_oil_rate_stb_day = 0;
+        ws.min_bhp_psi = 0;
+        ws.max_water_cut = 0;
         
         well_startup_schedule = [well_startup_schedule; ws];
         
@@ -471,6 +486,11 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
         tm.description = sprintf('Phase %d Start: %s', i, phase.phase_name);
         tm.target_oil_rate = phase.target_oil_rate_stb_day;
         tm.active_wells = phase.total_active_wells;
+        % Initialize other fields for consistency
+        tm.well_name = '';
+        tm.drilling_duration = 0;
+        tm.target_rate = 0;
+        tm.year = tm.day / 365;
         
         timeline_milestones = [timeline_milestones; tm];
         
@@ -482,6 +502,11 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
         tm_end.description = sprintf('Phase %d End: %s', i, phase.phase_name);
         tm_end.target_oil_rate = phase.target_oil_rate_stb_day;
         tm_end.active_wells = phase.total_active_wells;
+        % Initialize other fields for consistency
+        tm_end.well_name = '';
+        tm_end.drilling_duration = 0;
+        tm_end.target_rate = 0;
+        tm_end.year = tm_end.day / 365;
         
         timeline_milestones = [timeline_milestones; tm_end];
     end
@@ -496,6 +521,12 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
         tm_drill.well_name = well.well_name;
         tm_drill.description = sprintf('Start drilling %s (%s)', well.well_name, well.well_configuration);
         tm_drill.drilling_duration = well.drilling_duration_days;
+        % Initialize other fields for consistency
+        tm_drill.phase = 0;
+        tm_drill.target_oil_rate = 0;
+        tm_drill.active_wells = 0;
+        tm_drill.target_rate = 0;
+        tm_drill.year = tm_drill.day / 365;
         
         timeline_milestones = [timeline_milestones; tm_drill];
         
@@ -510,6 +541,12 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
         else
             tm_startup.target_rate = well.target_injection_rate_bbl_day;
         end
+        % Initialize other fields for consistency
+        tm_startup.phase = 0;
+        tm_startup.target_oil_rate = 0;
+        tm_startup.active_wells = 0;
+        tm_startup.drilling_duration = 0;
+        tm_startup.year = tm_startup.day / 365;
         
         timeline_milestones = [timeline_milestones; tm_startup];
     end
@@ -535,6 +572,13 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
         tm_key.day = km.day;
         tm_key.description = km.desc;
         tm_key.year = km.day / 365;
+        % Initialize other fields for consistency
+        tm_key.phase = 0;
+        tm_key.target_oil_rate = 0;
+        tm_key.active_wells = 0;
+        tm_key.well_name = '';
+        tm_key.drilling_duration = 0;
+        tm_key.target_rate = 0;
         
         timeline_milestones = [timeline_milestones; tm_key];
     end
@@ -554,7 +598,7 @@ function export_path = step_6_export_development_schedule(schedule_results)
 % Step 6 - Export development schedule data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -688,140 +732,6 @@ function write_milestones_file(filename, schedule_results)
 
 end
 
-function data = parse_yaml_file(filename)
-% Simple YAML parser for configuration (Octave compatible)
-
-    fid = fopen(filename, 'r');
-    if fid == -1
-        error('Cannot open YAML file: %s', filename);
-    end
-    
-    data = struct();
-    current_section = '';
-    current_well = '';
-    current_phase = '';
-    
-    try
-        while ~feof(fid)
-            line = strtrim(fgetl(fid));
-            
-            % Skip empty lines and comments
-            if isempty(line) || line(1) == '#'
-                continue;
-            end
-            
-            % Parse main sections
-            if ~isempty(strfind(line, 'wells_system:'))
-                current_section = 'wells_system';
-                data.wells_system = struct();
-            elseif ~isempty(strfind(line, 'development_phases:'))
-                current_section = 'development_phases';
-                data.wells_system.development_phases = struct();
-            elseif ~isempty(strfind(line, 'producer_wells:'))
-                current_section = 'producer_wells';
-                data.wells_system.producer_wells = struct();
-            elseif ~isempty(strfind(line, 'injector_wells:'))
-                current_section = 'injector_wells';
-                data.wells_system.injector_wells = struct();
-            elseif line(1) ~= ' ' && ~isempty(strfind(line, ':'))
-                % Top-level key
-                continue;
-            elseif strncmp(line, '    ', 4) && ~isempty(strfind(line, ':')) && isempty(strfind(line, '- '))
-                % Section items
-                colon_pos = strfind(line, ':');
-                key = strtrim(line(1:colon_pos-1));
-                value = strtrim(line(colon_pos+1:end));
-                
-                if strcmp(current_section, 'development_phases')
-                    current_phase = key;
-                    data.wells_system.development_phases.(current_phase) = struct();
-                elseif strcmp(current_section, 'producer_wells') || strcmp(current_section, 'injector_wells')
-                    if ~isempty(strfind(key, '-')) && length(key) > 6  % Well name
-                        current_well = key;
-                        if strcmp(current_section, 'producer_wells')
-                            data.wells_system.producer_wells.(current_well) = struct();
-                        else
-                            data.wells_system.injector_wells.(current_well) = struct();
-                        end
-                    elseif ~isempty(current_well)
-                        parsed_value = parse_yaml_value(value);
-                        if strcmp(current_section, 'producer_wells')
-                            data.wells_system.producer_wells.(current_well).(key) = parsed_value;
-                        else
-                            data.wells_system.injector_wells.(current_well).(key) = parsed_value;
-                        end
-                    end
-                end
-            elseif strncmp(line, '      ', 6) && ~isempty(strfind(line, ':')) && ~isempty(current_phase)
-                % Phase properties
-                colon_pos = strfind(line, ':');
-                key = strtrim(line(1:colon_pos-1));
-                value = strtrim(line(colon_pos+1:end));
-                parsed_value = parse_yaml_value(value);
-                data.wells_system.development_phases.(current_phase).(key) = parsed_value;
-            end
-        end
-        
-        fclose(fid);
-        
-    catch ME
-        fclose(fid);
-        error('Error parsing YAML file: %s', ME.message);
-    end
-
-end
-
-function value = parse_yaml_value(str)
-% Parse YAML value to appropriate MATLAB type
-
-    str = strtrim(str);
-    
-    % Remove quotes
-    if (str(1) == '"' && str(end) == '"') || (str(1) == '''' && str(end) == '''')
-        value = str(2:end-1);
-        return;
-    end
-    
-    % Array notation [1, 2, 3] or ["item1", "item2"]
-    if str(1) == '[' && str(end) == ']'
-        inner = str(2:end-1);
-        if ~isempty(strfind(inner, '"'))
-            % String array
-            parts = strsplit(inner, ',');
-            value = {};
-            for i = 1:length(parts)
-                item = strtrim(parts{i});
-                if (item(1) == '"' && item(end) == '"') || (item(1) == '''' && item(end) == '''')
-                    value{i} = item(2:end-1);
-                else
-                    value{i} = item;
-                end
-            end
-        else
-            % Numeric array
-            parts = strsplit(inner, ',');
-            value = [];
-            for i = 1:length(parts)
-                num = str2double(strtrim(parts{i}));
-                if ~isnan(num)
-                    value(i) = num;
-                end
-            end
-        end
-        return;
-    end
-    
-    % Try to parse as number
-    num_value = str2double(str);
-    if ~isnan(num_value)
-        value = num_value;
-        return;
-    end
-    
-    % String value
-    value = str;
-
-end
 
 % Main execution when called as script
 if ~nargout

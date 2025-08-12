@@ -65,6 +65,17 @@
         "mcp__filesystem__*",
         "Read", "Write", "Bash"
       ]
+    },
+    "doc-writer": {
+      "description": "Documentation specialist for obsidian-vault",
+      "folders": ["obsidian-vault/"],
+      "rules": [0, 7],
+      "mcp_servers": ["filesystem", "obsidian"],
+      "allowed_tools": [
+        "mcp__filesystem__*",
+        "mcp__obsidian__*",
+        "Read", "Write", "Edit", "Grep", "Glob"
+      ]
     }
   },
   
@@ -73,7 +84,8 @@
     "auto_activation": {
       "coder_keywords": ["create", "implement", "write", "edit", "add", "build", "develop", "function", "class", "module", "script", "code", "algorithm"],
       "tester_keywords": ["test", "testing", "pytest", "unittest", "validation", "verify", "check", "assert", "coverage", "edge case"],
-      "debugger_keywords": ["debug", "fix", "error", "bug", "issue", "problem", "investigate", "analyze", "trace", "diagnose", "troubleshoot", "broken"]
+      "debugger_keywords": ["debug", "fix", "error", "bug", "issue", "problem", "investigate", "analyze", "trace", "diagnose", "troubleshoot", "broken"],
+      "doc_writer_keywords": ["document", "documentation", "readme", "guide", "tutorial", "explain", "describe", "writeup", "docstring", "manual", "reference", "wiki"]
     },
     "default_agents": ["coder"],
     "parallel_execution": false,

@@ -42,12 +42,18 @@ def route_prompt(prompt: str, budget_remaining: int = 999) -> Dict:
     if re.search(r'\b(only|just)\s+(debug|debugging)\b', prompt_lower):
         return {"agent": "debugger", "reason": "explicit_debug", "specialized": True}
     
+    if re.search(r'\b(only|just)\s+(document|documentation|docs)\b', prompt_lower):
+        return {"agent": "doc-writer", "reason": "explicit_documentation", "specialized": True}
+    
     # Specialized task detection
     if re.search(r'\b(test|pytest|unittest|coverage|assert)\b', prompt_lower):
         return {"agent": "tester", "reason": "test_keywords", "specialized": True}
     
     if re.search(r'\b(debug|trace|investigate|diagnose|broken|fix.*bug)\b', prompt_lower):
         return {"agent": "debugger", "reason": "debug_keywords", "specialized": True}
+    
+    if re.search(r'\b(document|documentation|readme|guide|tutorial|explain|describe|writeup|docstring|manual|reference|wiki)\b', prompt_lower):
+        return {"agent": "doc-writer", "reason": "documentation_keywords", "specialized": True}
     
     # Default: coder handles everything else
     return {"agent": "coder", "reason": "default", "specialized": False}

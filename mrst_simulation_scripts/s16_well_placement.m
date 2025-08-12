@@ -14,7 +14,7 @@ function wells_results = s16_well_placement()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S16', 'Well System Placement - 15 Wells');
     
     total_start_time = tic;
@@ -99,10 +99,11 @@ function [config, G] = step_1_load_config_and_grid()
     end
     
     % Load YAML using working parser
-    config = read_yaml_config(config_path, 'silent', true);
+        addpath('utils');
+    config = read_yaml_config(config_path);
     
     % Substep 1.2 - Load grid structure _____________________________
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     % Try refined grid first, then base grid
     refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
@@ -409,7 +410,7 @@ function export_path = step_5_export_well_data(wells_results)
 % Step 5 - Export well placement data to static files
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

@@ -1,5 +1,5 @@
 function fluid = s10_relative_permeability()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S10_RELATIVE_PERMEABILITY - Define relative permeability curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
@@ -65,7 +65,7 @@ function [rock, G] = step_1_load_rock_data()
 
     % Substep 1.1 – Locate final rock file ____________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
     
     if ~exist(rock_file, 'file')
@@ -83,7 +83,8 @@ function scal_config = step_1_load_scal_config()
 
     try
         % Load SCAL configuration from YAML - CANON compliance
-        scal_config = read_yaml_config('config/scal_properties_config.yaml', 'silent', true);
+        addpath('utils');
+        scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         fprintf('SCAL configuration loaded successfully\n');
         
         if ~isfield(scal_config, 'scal_properties')
@@ -120,7 +121,8 @@ function fluid = step_2_initialize_fluid_structure()
 
     % Load canonical fluid properties for viscosity
     try
-        fluid_config = read_yaml_config('config/fluid_properties_config.yaml', 'silent', true);
+        addpath('utils');
+        fluid_config = read_yaml_config('config/fluid_properties_config.yaml', true);
         fluid_props = fluid_config.fluid_properties;
         
         % Extract canonical viscosity values (CANON)
@@ -593,7 +595,7 @@ function export_fluid_file(fluid, G, scal_config)
 % Export MRST fluid structure to file
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -609,7 +611,7 @@ function export_scal_summary(fluid, G, scal_config)
 % Export SCAL properties summary
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     
     scal_summary_file = fullfile(data_dir, 'scal_summary.txt');
     fid = fopen(scal_summary_file, 'w');

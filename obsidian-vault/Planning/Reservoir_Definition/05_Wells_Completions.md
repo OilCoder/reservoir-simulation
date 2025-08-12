@@ -64,16 +64,77 @@ The 15-well development plan strategically targets the faulted anticline structu
 - **Horizontal Wells (5 total):** Extended lateral contact in thin pay zones and flank positions
 - **Multi-lateral Wells (3 total):** Complex completions for accessing multiple fault blocks from single surface locations
 
-### 2.2 Phase-Based Production Targets
+### 2.2 Detailed Development Phase Specifications
 
-| Phase | Wells Online | Total Oil Rate (STB/day) | Total Liquid Rate (bbl/day) | Voidage Replacement Ratio |
-|-------|--------------|-------------------------|----------------------------|---------------------------|
-| Phase 1 | 1 Producer | 1,500 | 2,000 | N/A (Natural Depletion) |
-| Phase 2 | 2 Producers + 1 Injector | 3,200 | 5,800 | 0.95 |
-| Phase 3 | 4 Producers + 2 Injectors | 6,800 | 14,000 | 1.05 |
-| Phase 4 | 6 Producers + 4 Injectors | 11,500 | 28,000 | 1.15 |
-| Phase 5 | 9 Producers + 4 Injectors | 16,200 | 42,000 | 1.10 |
-| Phase 6 | 10 Producers + 5 Injectors | 18,500 | 52,000 | 1.20 |
+#### Phase 1 - Initial Production (Days 1-365)
+- **Timeline**: Year 1 (365 days)
+- **Wells Added**: EW-001
+- **Total Active Wells**: 1 (1P/0I)
+- **Target Oil Rate**: 2,500 STB/day
+- **Expected Oil Rate**: 2,350 STB/day  
+- **Water Cut**: 22%
+- **GOR**: 750 scf/STB
+- **Development Strategy**: Natural depletion, establish initial production
+
+#### Phase 2 - Injection Initiation (Days 366-730)
+- **Timeline**: Year 2 (365 days)
+- **Wells Added**: IW-001, EW-002
+- **Total Active Wells**: 3 (2P/1I)
+- **Target Oil Rate**: 5,200 STB/day
+- **Expected Oil Rate**: 5,100 STB/day
+- **Water Cut**: 28%
+- **GOR**: 800 scf/STB
+- **Injection Rate**: 5,100 BWPD
+- **VRR Target**: 1.1
+- **Development Strategy**: Initiate pressure support
+
+#### Phase 3 - Field Expansion (Days 731-1,095)  
+- **Timeline**: Year 3 (365 days)
+- **Wells Added**: EW-003, EW-004, IW-002
+- **Total Active Wells**: 6 (4P/2I)
+- **Target Oil Rate**: 8,500 STB/day
+- **Expected Oil Rate**: 8,300 STB/day
+- **Water Cut**: 32%
+- **GOR**: 850 scf/STB
+- **Injection Rate**: 9,500 BWPD
+- **VRR Target**: 1.12
+- **Development Strategy**: Expand to key fault blocks
+
+#### Phase 4 - Major Development (Days 1,096-1,825)
+- **Timeline**: Years 4-5 (730 days)
+- **Wells Added**: EW-005, EW-006, EW-007, IW-003
+- **Total Active Wells**: 10 (7P/3I)
+- **Target Oil Rate**: 12,500 STB/day
+- **Expected Oil Rate**: 12,200 STB/day
+- **Water Cut**: 38%
+- **GOR**: 900 scf/STB
+- **Injection Rate**: 14,200 BWPD
+- **VRR Target**: 1.14
+- **Development Strategy**: Full field coverage with horizontal wells
+
+#### Phase 5 - Production Optimization (Days 1,826-2,920)
+- **Timeline**: Years 6-8 (1,095 days)
+- **Wells Added**: EW-008, EW-009, IW-004
+- **Total Active Wells**: 13 (9P/4I)
+- **Target Oil Rate**: 16,200 STB/day
+- **Expected Oil Rate**: 15,800 STB/day
+- **Water Cut**: 45%
+- **GOR**: 950 scf/STB
+- **Injection Rate**: 18,500 BWPD
+- **VRR Target**: 1.16
+- **Development Strategy**: Optimize sweep efficiency
+
+#### Phase 6 - Peak Production (Days 2,921-3,650)
+- **Timeline**: Years 9-10 (730 days)
+- **Wells Added**: EW-010, IW-005
+- **Total Active Wells**: 15 (10P/5I)
+- **Target Oil Rate**: 18,500 STB/day
+- **Expected Oil Rate**: 18,200 STB/day
+- **Water Cut**: 52%
+- **GOR**: 1,000 scf/STB
+- **Injection Rate**: 21,500 BWPD
+- **VRR Target**: 1.18
+- **Development Strategy**: Maximum field potential
 
 ## 3. Technical Well Specifications by Type
 
@@ -369,31 +430,73 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Wing Valve: 3⅛" x 5,000 psi
 - Injection Safety: Dual redundant surface safety valves
 
-### 5.2 Artificial Lift Systems Summary
+### 5.2 Comprehensive Artificial Lift Systems
 
-#### ESP Systems by Phase
+#### ESP System Types and Specifications
 
-**Phase 1-2 ESP Installations:**
-- PROD1: Centrilift GC-6000, 200 HP, 18,000 BPD capacity
-- PROD2: Centrilift GC-4000, 150 HP, 15,000 BPD capacity
+| ESP Model | Capacity (BPD) | Horsepower | Stages Range | Applications |
+|-----------|----------------|------------|-------------|--------------|
+| **GC-2500** | 10,000 | 100 | 80-120 | Low-rate vertical wells |
+| **GC-4000** | 15,000 | 150 | 100-140 | Standard vertical wells |
+| **GC-6000** | 18,000 | 200 | 120-180 | High-rate vertical wells |
+| **GC-8000** | 22,000 | 250 | 150-220 | Horizontal wells |
+| **GC-10000** | 28,000 | 300 | 180-250 | High-capacity horizontal wells |
 
-**Phase 3-4 ESP Installations:**
-- PROD3: Centrilift GC-8000, 250 HP, 22,000 BPD capacity (horizontal)
-- PROD4: Centrilift GC-3000, 125 HP, 12,000 BPD capacity
-- PROD5: Centrilift GC-10000, 300 HP, 28,000 BPD capacity (horizontal)
-- PROD6: Dual ESP system, Primary 200 HP + Secondary 150 HP
+#### ESP Installation by Well
 
-**Phase 5-6 ESP Installations:**
-- PROD7: Centrilift GC-7000, 225 HP, 20,000 BPD capacity (horizontal)
-- PROD8: Centrilift GC-2500, 100 HP, 10,000 BPD capacity
-- PROD9: Centrilift GC-9000, 275 HP, 24,000 BPD capacity (horizontal)
-- PROD10: Triple ESP system, 350 HP + 250 HP + 200 HP
+**Producer Wells ESP Configuration:**
 
-**ESP Cable Specifications:**
-- High-temperature EPDM insulation rated to 350°F
-- Armor protection for extended run life
-- Variable gauge: #2 AWG (high HP) to #6 AWG (low HP)
-- Centralized surface control panels with VFD drives
+| Well ID | ESP Type | Stages | HP | Setting Depth (ft) | Cable Size | VFD Range (Hz) |
+|---------|----------|--------|----|--------------------|-------------|----------------|
+| EW-001 | GC-6000 | 150 | 200 | 7,500 | #2 AWG | 30-65 |
+| EW-002 | GC-8000 | 175 | 250 | 7,600 | #2 AWG | 30-65 |
+| EW-003 | GC-8000 | 200 | 300 | 7,400 | #2 AWG | 30-65 |
+| EW-004 | GC-6000 | 140 | 180 | 7,900 | #4 AWG | 30-65 |
+| EW-005 | GC-10000 | 220 | 350 | 7,500 | #2 AWG | 30-65 |
+| EW-006 | GC-8000 | 200 | 300 | 7,600 | #2 AWG | 30-65 |
+| EW-007 | GC-10000 | 250 | 400 | 7,600 | #2 AWG | 30-65 |
+| EW-008 | GC-8000 | 190 | 280 | 7,800 | #2 AWG | 30-65 |
+| EW-009 | GC-6000 | 160 | 220 | 7,400 | #4 AWG | 30-65 |
+| EW-010 | GC-10000 | 230 | 380 | 7,500 | #2 AWG | 30-65 |
+
+#### ESP Cable and Control Systems
+
+**Cable Specifications:**
+- **Insulation Type**: EPDM (Ethylene Propylene Diene Monomer)
+- **Temperature Rating**: 350°F continuous operation
+- **Gauge Options**: #2 AWG (high power), #4 AWG (medium power), #6 AWG (low power)
+- **Armor**: Galvanized steel wire armor for mechanical protection
+- **Length**: Custom length per well depth requirements
+
+**Variable Speed Drive (VSD) Control:**
+- **Frequency Range**: 30-65 Hz standard operating range
+- **Efficiency Curve**: Manufacturer-certified performance curves
+- **Power Factor**: 0.85 minimum at rated load
+- **Control Method**: Digital closed-loop control with downhole feedback
+- **Communication**: SCADA integration for remote monitoring
+- **Safety Features**: Motor protection, over-current, under-voltage protection
+
+**Surface Control Systems:**
+- **Control Panels**: Weatherproof NEMA 4X enclosures
+- **Motor Controllers**: Soft-start/VFD combination units
+- **Protection Systems**: Ground fault, phase loss, motor thermal protection
+- **Monitoring**: Real-time motor parameters (amps, volts, temperature)
+- **Data Logging**: Automatic performance trending and diagnostics
+
+#### ESP Performance and Efficiency
+
+**Operational Parameters:**
+- **Pump Efficiency**: 65-75% at best efficiency point (BEP)
+- **Motor Efficiency**: 85-90% at rated load
+- **System Reliability**: >95% run-time availability target
+- **Service Life**: 3-5 years average between interventions
+- **Maintenance Strategy**: Condition-based monitoring with predictive analytics
+
+**Pump Curves and Operating Windows:**
+- Each ESP sized for 120% of maximum expected liquid rate
+- Operating range maintained between 80-120% of BEP for optimal efficiency
+- Head-capacity curves validated against well productivity index
+- Gas handling capability assessed for evolving GOR conditions
 
 ### 5.3 Injection System Equipment
 

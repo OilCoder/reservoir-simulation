@@ -15,7 +15,7 @@ function completion_results = s17_well_completions()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S17', 'Well Completion Design');
     
     total_start_time = tic;
@@ -102,7 +102,7 @@ function [wells_data, rock_props, G] = step_1_load_wells_and_properties()
 % Step 1 - Load well placement and rock properties data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     % Substep 1.1 - Load well placement data ________________________
     well_file = fullfile(data_dir, 'well_placement.mat');
@@ -658,7 +658,7 @@ function export_path = step_6_export_completion_data(completion_results)
 % Step 6 - Export completion design data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

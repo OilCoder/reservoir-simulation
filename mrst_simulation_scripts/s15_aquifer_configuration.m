@@ -29,11 +29,13 @@ function output_data = s15_aquifer_configuration()
 % Date: January 30, 2025
 
     % Load print utilities for consistent table format
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     
     % Print module header
     print_step_header('S15', 'AQUIFER CONFIGURATION');
     
+    % Start timer
+    start_time = tic;
     output_data = struct();
     
     try
@@ -41,7 +43,8 @@ function output_data = s15_aquifer_configuration()
         fprintf('📋 Loading configuration and previous results...\n');
         
         % Load YAML configurations
-        init_config = read_yaml_config('config/initialization_config.yaml', 'silent', true);
+        addpath('utils');
+        init_config = read_yaml_config('config/initialization_config.yaml', true);
         
         % Load grid with pressure and saturations from s14
         if exist('data/mrst_simulation/static/grid_with_pressure_saturation.mat', 'file')
@@ -290,7 +293,9 @@ function output_data = s15_aquifer_configuration()
         fprintf('📁 Exporting aquifer configuration data...\n');
         
         % Ensure output directory exists
-        output_dir = 'data/mrst_simulation/static';
+        % Use same path construction as other working phases  
+        script_path = fileparts(mfilename('fullpath'));
+        output_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
         if ~exist(output_dir, 'dir')
             mkdir(output_dir);
         end
@@ -317,10 +322,10 @@ function output_data = s15_aquifer_configuration()
         output_data.boundary_condition = aquifer_model.boundary_condition;
         
         % Success message
-        print_step_footer('S15', 'Aquifer configuration completed successfully', toc);
+        print_step_footer('S15', 'Aquifer configuration completed successfully', toc(start_time));
         
     catch ME
-        print_step_footer('S15', sprintf('FAILED: %s', ME.message), toc);
+        print_step_footer('S15', sprintf('FAILED: %s', ME.message), toc(start_time));
         rethrow(ME);
     end
     

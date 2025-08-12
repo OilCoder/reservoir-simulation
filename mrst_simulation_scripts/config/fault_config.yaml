@@ -2,6 +2,7 @@
 # Source: 01_Structural_Geology.md (CANON)
 # Compatible with s05_add_faults.m requirements
 # Date: 2025-08-07
+# Fixed: 2025-08-10 - Converted mixed YAML format to consistent structure format
 
 fault_system:
   # Major Fault System (CANON from 01_Structural_Geology.md Section 2.2)
@@ -54,7 +55,8 @@ fault_system:
       shale_gouge_ratio: 0.20           # Central portion sealing
       
     # Fault D - Western Boundary (CANON Section 2.2)
-    - name: "Fault_D"
+    Fault_D:
+      name: "Fault_D"
       type: "normal_growth_fault"
       is_sealing: true
       strike: 345.0                     # degrees (N15°W = 360-15 = 345)
@@ -68,7 +70,8 @@ fault_system:
       shale_gouge_ratio: 0.30           # Good sealing capacity
       
     # Fault E - Internal Compartment (CANON Section 2.2)
-    - name: "Fault_E"
+    Fault_E:
+      name: "Fault_E"
       type: "normal_internal"
       is_sealing: false
       strike: 45.0                      # degrees (N45°E)

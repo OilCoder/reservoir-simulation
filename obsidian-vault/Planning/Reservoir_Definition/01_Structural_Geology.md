@@ -34,52 +34,72 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 
 ### 2.2 Major Fault Systems
 
-#### Fault A (Northern Boundary)
+#### Fault_A (Northern Boundary)
 - **Orientation**: N65°E, dip 70° SE
-- **Throw**: 120-180 ft (variable along strike)
-- **Length**: 3.2 miles
+- **Strike**: 65.0° (N65°E)
+- **Dip**: 70.0° SE
+- **Throw**: 150.0 ft average (120-180 ft range)
+- **Length**: 16,896 ft (3.2 miles)
 - **Type**: Normal fault with minor reverse component
-- **Sealing Character**: Likely sealing based on shale gouge ratio >20%
+- **Sealing Character**: Sealing (shale gouge ratio 0.25 > 20%)
+- **Position**: North offset 1,475 ft from field center
+- **Transmissibility Multiplier**: 0.005 (highly sealing)
 
-#### Fault B (Eastern Boundary)
+#### Fault_B (Eastern Boundary)  
 - **Orientation**: N20°E, dip 65° NW
-- **Throw**: 80-140 ft
-- **Length**: 2.8 miles
+- **Strike**: 20.0° (N20°E)
+- **Dip**: 65.0° NW
+- **Throw**: 110.0 ft average (80-140 ft range)
+- **Length**: 14,784 ft (2.8 miles)
 - **Type**: Normal fault
-- **Sealing Character**: Partially sealing, potential for across-fault communication
+- **Sealing Character**: Partially sealing (shale gouge ratio 0.15)
+- **Position**: East offset 1,640 ft from field center
+- **Transmissibility Multiplier**: 0.05 (moderately sealing)
 
-#### Fault C (Southern Boundary)
+#### Fault_C (Southern Boundary)
 - **Orientation**: N75°W, dip 62° NE
-- **Throw**: 95-160 ft
-- **Length**: 2.1 miles
+- **Strike**: 285.0° (N75°W = 360-75)
+- **Dip**: 62.0° NE
+- **Throw**: 127.5 ft average (95-160 ft range)
+- **Length**: 11,088 ft (2.1 miles)
 - **Type**: Normal fault
-- **Sealing Character**: Sealing in central portion, possibly leaking at terminations
+- **Sealing Character**: Variable sealing (shale gouge ratio 0.20)
+- **Position**: South offset 1,475 ft from field center
+- **Transmissibility Multiplier**: 0.01 (highly sealing central portion)
 
-#### Fault D (Western Boundary)
+#### Fault_D (Western Boundary)
 - **Orientation**: N15°W, dip 68° NE
-- **Throw**: 110-200 ft
-- **Length**: 2.5 miles
-- **Type**: Normal fault with growth fault characteristics
-- **Sealing Character**: Good sealing capacity throughout
+- **Strike**: 345.0° (N15°W = 360-15)
+- **Dip**: 68.0° NE
+- **Throw**: 155.0 ft average (110-200 ft range)
+- **Length**: 13,200 ft (2.5 miles)
+- **Type**: Normal growth fault
+- **Sealing Character**: Sealing (shale gouge ratio 0.30)
+- **Position**: West offset 1,640 ft from field center
+- **Transmissibility Multiplier**: 0.005 (highly sealing)
 
-#### Fault E (Internal Fault)
+#### Fault_E (Internal Fault)
 - **Orientation**: N45°E, dip 72° SE
-- **Throw**: 40-80 ft
-- **Length**: 1.6 miles
-- **Type**: Normal fault (internal compartmentalization)
-- **Sealing Character**: Partially sealing, creates northern compartment
+- **Strike**: 45.0° (N45°E)
+- **Dip**: 72.0° SE
+- **Throw**: 60.0 ft average (40-80 ft range)
+- **Length**: 8,448 ft (1.6 miles)
+- **Type**: Normal internal fault
+- **Sealing Character**: Partially sealing (shale gouge ratio 0.12)
+- **Position**: Internal compartment boundary (410 ft E, 370 ft N)
+- **Transmissibility Multiplier**: 0.3 (creates compartmentalization)
 
 ### 2.3 Compartmentalization Analysis
 
 #### Northern Compartment
 - **Area**: 980 acres
-- **Bounded by**: Faults A, E, and portions of B and D
+- **Bounded by**: Faults_A, E, and portions of B and D
 - **Structural High**: 7,900 ft TVDSS
 - **Average Dip**: 3.2° SE
 
 #### Southern Compartment
 - **Area**: 1,870 acres
-- **Bounded by**: Faults C, E, and portions of B and D
+- **Bounded by**: Faults_C, E, and portions of B and D
 - **Structural High**: 7,920 ft TVDSS
 - **Average Dip**: 2.8° NE
 
@@ -95,7 +115,7 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 - **Field Extent**: 3280 ft (E-W) × 2950 ft (N-S) [0.62 × 0.56 miles]
 - **Grid Origin**: UTM Zone 15N, Easting: 745,280 m, Northing: 3,258,470 m
 - **Grid Orientation**: N15°E (aligned with dominant fault trend)
-- **Total Grid Cells**: 40 × 40 × 12 (I × J × K) = 19,200 active cells
+- **Total Grid Cells**: 41 × 41 × 12 (I × J × K) = 20,172 active cells
 
 ### 3.2 Cell Size Recommendations
 
@@ -103,7 +123,7 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 - **Standard Cell Size**: 82 ft × 74 ft (25.0 m × 22.6 m)
 - **Near-fault Refinement**: 41 ft × 37 ft within 200 ft of major faults
 - **Well Area Refinement**: 20 ft × 18 ft within 150 ft radius of wellbores
-- **Total Active Cells**: 19,200 (optimized for numerical stability)
+- **Total Active Cells**: 20,172 (optimized for numerical stability)
 
 #### Vertical Grid Resolution
 - **Layer Thickness**: Average 8.3 ft per layer (100 ft gross / 12 layers)
@@ -114,17 +134,37 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 
 ### 3.3 Local Grid Refinement Needs
 
-#### Near-Fault Areas
-- **Refinement Zone**: 300 ft buffer around Faults A, B, C, D
-- **Cell Size**: 25 ft × 25 ft × 4 ft
+#### Near-Fault Areas (Major Faults_A, B, C, D)
+- **Refinement Zone**: 300.0 ft buffer around major faults
+- **Refinement Factor**: 2 (2x2 subdivision)
+- **Refined Cell Size**: 25.0 ft × 25.0 ft (X × Y)
+- **Refined Layer Thickness**: 4.0 ft (vertical)
+- **Minimum Cell Size**: 25.0 ft (for accurate transmissibility)
 - **Purpose**: Accurate fault transmissibility modeling
-- **Implementation**: Local grid refinement (LGR) blocks
+- **Implementation**: Local grid refinement (LGR) blocks with transition smoothing
 
 #### Well Drainage Areas
-- **Refinement Zone**: 250 ft radius around each wellbore
-- **Cell Size**: 12.5 ft × 12.5 ft × 4 ft
+- **Refinement Zone**: 250.0 ft radius around each wellbore
+- **Refinement Factor**: 2 (2x2 subdivision)
+- **Refined Cell Size**: 20.0 ft × 18.0 ft (X × Y)
+- **Refined Layer Thickness**: 4.0 ft (vertical)
 - **Purpose**: Near-wellbore flow modeling and rate allocation
 - **Transition**: Smooth transition to coarser parent grid
+- **All Wells**: Applied to all 15 producer and injector wells
+
+#### High Permeability Streak Refinement (Optional)
+- **Activation**: Optional refinement for permeability streaks
+- **Permeability Threshold**: 500.0 mD threshold
+- **Refined Cell Size**: 15.0 ft (isotropic refinement)
+- **Purpose**: Capture high-flow channels and sweep patterns
+- **Implementation**: Conditional refinement based on property distribution
+
+#### Grid Quality Control Parameters
+- **Maximum Aspect Ratio**: 10.0 (cell dimension ratio limit)
+- **Orthogonality Tolerance**: 0.1 radians
+- **Minimum Cell Volume**: 1,000 ft³
+- **Maximum Cell Volume**: 100,000 ft³
+- **Grid Conformance**: Structure-following grid system
 
 ### 3.4 Handling of Faults in Simulation
 
@@ -135,11 +175,11 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 - **Fault Properties**: Assigned based on fault throw and shale content
 
 #### Fault Transmissibility Multipliers
-- **Fault A**: 0.001-0.01 (highly sealing)
-- **Fault B**: 0.01-0.1 (moderately sealing)
-- **Fault C**: 0.001-0.05 (variable sealing)
-- **Fault D**: 0.001-0.01 (highly sealing)
-- **Fault E**: 0.1-0.5 (partially sealing)
+- **Fault_A**: 0.001-0.01 (highly sealing)
+- **Fault_B**: 0.01-0.1 (moderately sealing)
+- **Fault_C**: 0.001-0.05 (variable sealing)
+- **Fault_D**: 0.001-0.01 (highly sealing)
+- **Fault_E**: 0.1-0.5 (partially sealing)
 
 ## 4. Depth Structure Details
 
@@ -166,13 +206,13 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 ### 4.3 Fault Throw Analysis
 
 #### Fault Throw Distribution
-- **Maximum Throw**: 200 ft (Fault D, central portion)
-- **Minimum Throw**: 40 ft (Fault E, terminations)
+- **Maximum Throw**: 200 ft (Fault_D, central portion)
+- **Minimum Throw**: 40 ft (Fault_E, terminations)
 - **Average Throw**: 125 ft (across all major faults)
 - **Throw Variation**: Systematic along-strike changes
 
 #### Fault Displacement Patterns
-- **Growth Fault Character**: Evidence of syn-depositional movement on Fault D
+- **Growth Fault Character**: Evidence of syn-depositional movement on Fault_D
 - **Displacement Transfer**: Throw transfer between fault segments
 - **Fault Interactions**: Complex interactions at fault intersections
 
@@ -212,7 +252,7 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 
 #### Connectivity Analysis
 - **Intra-compartment**: High connectivity (>80% sand connectivity)
-- **Inter-compartment**: Limited by Fault E (10-30% connectivity)
+- **Inter-compartment**: Limited by Fault_E (10-30% connectivity)
 - **Vertical Flow**: Moderate vertical permeability (Kv/Kh = 0.15-0.25)
 
 ### 5.4 Structural Uncertainty

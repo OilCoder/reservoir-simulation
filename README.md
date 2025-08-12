@@ -1,31 +1,41 @@
-# Geomechanical ML Project with Claude Code Integration
+# Eagle West Field MRST Simulation Project
 
-This project demonstrates a complete integration of Claude Code with strict coding standards for a geomechanical machine learning project using Python and Octave/MRST.
+A comprehensive reservoir simulation project using MRST (MATLAB Reservoir Simulation Toolbox) with Claude Code integration for AI-assisted development and strict coding standards.
 
 ## 🎯 Project Overview
 
-A machine learning pipeline for geomechanical reservoir analysis with:
+A complete MRST-based simulation workflow for the Eagle West Field with:
+- **100% YAML-Documentation coverage** achieved across 9 configuration files
+- **900+ variable inventory** with LLM-optimized organization
+- **Multi-agent architecture** for efficient code generation and task management
+- **MRST simulation workflow** with 25+ integrated scripts
 - **Strict coding standards** enforced automatically
-- **Claude Code integration** for AI-assisted development
 - **Dual language support** (Python & Octave/MRST)
-- **Automated validation** and compliance checking
 
 ## 🏗️ Project Structure
 
 ```
 📦 workspace/
 ├── 🤖 .claude/              # Claude Code configuration
+│   ├── agents/             # Specialized agent definitions (coder, tester, debugger)
 │   ├── commands/            # Custom slash commands
 │   ├── hooks/              # Validation hooks
+│   ├── rules/              # Project coding rules (8 comprehensive rules)
 │   ├── templates/          # Code generation templates
 │   └── settings.json       # Project settings
 ├── 🐍 src/                 # Python source code
-├── 📊 mrst_simulation_scripts/  # Octave/MRST scripts
+├── 📊 mrst_simulation_scripts/  # Octave/MRST scripts (25+ workflow steps)
+│   ├── config/             # YAML configuration files (9 files, 100% documented)
+│   ├── s01_initialize_mrst.m - s25_reservoir_analysis.m
+│   ├── s99_run_workflow.m  # Complete workflow runner
+│   └── tests/              # MRST test files
+├── 📖 obsidian-vault/      # Documentation system
+│   ├── Planning/Reservoir_Definition/  # Technical documentation
+│   └── Spanish/            # Spanish documentation
 ├── 🧪 tests/              # Test files (gitignored)
 ├── 🐛 debug/              # Debug scripts (gitignored)
-├── 📖 docs/               # Documentation
-├── 📋 rules/              # Project coding rules
-└── 🧠 CLAUDE.md           # Main project memory
+├── 📊 data/               # Simulation data and results
+└── 🧠 CLAUDE.md           # Main project memory and instructions
 ```
 
 ## 🚀 Quick Start
@@ -35,23 +45,32 @@ A machine learning pipeline for geomechanical reservoir analysis with:
 # Install Claude Code
 npm install -g @anthropic-ai/claude-code
 
-# Install Python dependencies
+# Install Python dependencies  
 pip install ruff pylint pydocstyle pytest pre-commit
 
-# Install pre-commit hooks
-pre-commit install
+# Install Octave and MRST dependencies
+sudo apt install octave
+# Download MRST from www.sintef.no/mrst
 ```
 
-### 2. Start Claude Code
+### 2. Start MRST Simulation
+```bash
+# Initialize MRST environment
+octave mrst_simulation_scripts/s01_initialize_mrst.m
+
+# Run complete workflow
+octave mrst_simulation_scripts/s99_run_workflow.m
+```
+
+### 3. Start Claude Code
 ```bash
 claude --continue
 ```
 
-### 3. Create Your First Script
-```bash
-# In Claude Code session
-/new-script 01 load data python
-```
+### 4. Use the Variable Inventory for LLM Context
+- **Primary Reference**: `obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`
+- **900+ variables** organized by workflow stages and domains
+- **LLM-optimized structure** for understanding project complexity
 
 ## 🎮 Custom Commands
 
@@ -197,13 +216,31 @@ GitHub Actions automatically:
 
 ## 📚 Documentation
 
-- [Setup Guide](obsidian-vault/English/00_setup_guide.md) - Complete setup instructions
-- [Code Examples](obsidian-vault/English/01_code_generation_examples.md) - Proper code examples
-- [Project Rules](rules/) - Detailed coding standards
+### 🎯 Critical References for LLMs
+- **[VARIABLE_INVENTORY.md](obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md)** - 900+ variables with LLM-optimized structure
+- **[CLAUDE.md](CLAUDE.md)** - Project memory and AI assistant instructions
+- **[12_Technical_Variable_Mapping.md](obsidian-vault/Planning/Reservoir_Definition/12_Technical_Variable_Mapping.md)** - Standardized variable naming
+
+### 📊 MRST Simulation Documentation
+- **[01_Structural_Geology.md](obsidian-vault/Planning/Reservoir_Definition/01_Structural_Geology.md)** - Field structure and grid design (41×41×12 cells)
+- **[05_Wells_Completions.md](obsidian-vault/Planning/Reservoir_Definition/05_Wells_Completions.md)** - 15 wells (10 producers, 5 injectors)
+- **[10_Solver_Configuration.md](obsidian-vault/Planning/Reservoir_Definition/10_Solver_Configuration.md)** - MRST solver setup
+
+### 🔧 Development Standards
+- **[Project Rules](.claude/rules/)** - 8 comprehensive coding rules
+- **[Agent System](CLAUDE.md#agent-system)** - Multi-agent architecture documentation
 
 ## 🤝 Contributing
 
-1. Follow the naming conventions
+### For MRST Development
+1. Check **VARIABLE_INVENTORY.md** for existing variables before creating new ones
+2. Follow Fault_A/Fault_B naming convention (underscore format)
+3. Use EW-XXX/IW-XXX format for well names
+4. Maintain 41×41×12 grid dimensions for consistency
+5. Update YAML configs and documentation simultaneously
+
+### For General Development
+1. Follow the naming conventions in [Project Rules](.claude/rules/)
 2. Use `/validate` before committing
 3. Ensure all hooks pass
 4. Write tests in `tests/` (gitignored)
@@ -211,33 +248,57 @@ GitHub Actions automatically:
 
 ## 🔗 Key Features
 
-### ✨ Automatic Code Generation
-- Templates ensure consistency
-- Validation prevents rule violations
-- Step-by-step guided structure
+### 📊 MRST Simulation Capabilities
+- **Complete Workflow**: 25+ integrated simulation scripts (s01-s25, s99)
+- **100% Documentation Coverage**: All 9 YAML config files fully documented
+- **Eagle West Field Model**: Realistic offshore field with 41×41×12 grid
+- **15-Well Development**: 6-phase development plan with ESP systems
+- **Fault Modeling**: 5 major faults with transmissibility multipliers
+
+### 🧠 LLM-Optimized Organization
+- **Variable Inventory**: 900+ variables organized by workflow stages and domains
+- **Technical Mapping**: Standardized YAML↔MATLAB↔Documentation naming
+- **Context Helpers**: Decision trees and usage patterns for AI assistance
+- **Cross-References**: Variable dependencies and criticality tracking
+
+### ✨ Multi-Agent Architecture
+- **Coder Agent**: Production code for src/ and mrst_simulation_scripts/
+- **Tester Agent**: Comprehensive test coverage in tests/
+- **Debugger Agent**: Problem investigation scripts in debug/
+- **Budget-Aware Routing**: Automatic agent selection based on remaining prompts
 
 ### 🛡️ Quality Assurance
-- Pre-commit hooks block bad code
-- Real-time validation feedback
-- Comprehensive rule checking
+- **8 Comprehensive Rules**: File naming, code style, documentation enforcement
+- **Validation Hooks**: Pre-write, post-write, and pre-commit checking
+- **Fail-Fast Policy**: No defensive programming, immediate error reporting
+- **Naming Standards**: Enforced sNN_verb_noun.ext pattern
 
 ### 🎓 Learning Integration
-- Claude Code learns project patterns
-- Context-aware suggestions
-- Memory system for consistency
-
-### 📈 Productivity Boost
-- Custom slash commands
-- Template-based generation
-- Automated cleanup and validation
-
-### 🤖 Parallel Execution
-- **Git Worktrees**: Complete isolation for feature development
-- **Task Tool**: Concurrent specialized agents (up to 10)
-- **Multi-Agent Review**: Security, performance, style, architecture agents
-- **Parallel Testing**: Cross-environment and cross-version testing
-- **Codebase Exploration**: Concurrent analysis by specialized agents
+- **CLAUDE.md Memory**: Project instructions and context for AI consistency
+- **Template System**: Code generation templates for all file types
+- **Context-Aware**: AI understands project complexity through structured documentation
 
 ---
 
-**Powered by Claude Code** - AI-assisted development with strict quality standards.
+## 📈 Project Status
+
+### ✅ Completed (Latest Session)
+- **100% YAML-Documentation Coverage** - All configuration parameters documented
+- **Variable Inventory Creation** - 900+ variables with LLM optimization
+- **Documentation Inconsistency Fixes** - Grid dimensions, fault naming standardized
+- **Technical Variable Mapping** - Standardized naming across all systems
+
+### 🔄 Current State
+- **Working MRST Workflow** - 23/25 phases operational
+- **Comprehensive Documentation** - Technical specifications complete
+- **AI-Ready Structure** - LLM can navigate and understand project complexity
+
+### 🎯 For New Contributors
+1. **Start with VARIABLE_INVENTORY.md** - Your primary reference for understanding the project
+2. **Follow CLAUDE.md instructions** - Contains project memory and development patterns
+3. **Use the agent system** - Specialized agents for different development tasks
+4. **Maintain documentation consistency** - Update both YAML configs and docs together
+
+---
+
+**Powered by Claude Code** - AI-assisted reservoir simulation with comprehensive documentation and strict quality standards.

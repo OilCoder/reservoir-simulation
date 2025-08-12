@@ -1,5 +1,5 @@
 function structural_data = s04_structural_framework()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S04_STRUCTURAL_FRAMEWORK - Setup structural framework for Eagle West Field
 % Requires: MRST
 %
@@ -52,7 +52,7 @@ function G = step_1_load_grid()
     
     % Substep 1.1 – Load base grid ________________________________
     script_path = fileparts(mfilename('fullpath'));
-    grid_file = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static', 'base_grid.mat');
+    grid_file = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static', 'base_grid.mat');
     
     if ~exist(grid_file, 'file')
         error('Base grid not found. Run s02_create_grid first.');
@@ -130,7 +130,7 @@ function structural_data = step_3_export_framework(G, surfaces, layers)
     
     % Export to file
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -145,7 +145,8 @@ function config = load_structural_config()
 % Load structural configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        full_config = read_yaml_config('config/structural_framework_config.yaml', 'silent', true);
+        addpath('utils');
+        full_config = read_yaml_config('config/structural_framework_config.yaml', true);
         config = full_config.structural_framework;
         
         % Validate required fields exist

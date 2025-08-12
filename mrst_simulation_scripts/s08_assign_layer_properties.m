@@ -1,5 +1,5 @@
 function rock_with_layers = s08_assign_layer_properties()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S08_ASSIGN_LAYER_PROPERTIES - Assign layer properties (MRST Native)
 % Requires: MRST
 %
@@ -50,7 +50,7 @@ function [rock, G, rock_params] = step_1_load_rock_data()
 
     % Substep 1.1 – Locate rock file ______________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     rock_file = fullfile(data_dir, 'native_rock_properties.mat');
     
     if ~exist(rock_file, 'file')
@@ -189,7 +189,7 @@ function export_enhanced_files(rock_enhanced, G, rock_params)
 % Export enhanced rock to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

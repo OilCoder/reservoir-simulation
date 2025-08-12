@@ -8,7 +8,7 @@ function mrst_env = s01_initialize_mrst()
 % Author: Claude Code AI System
 % Date: January 30, 2025
 
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S01', 'Initialize MRST Environment');
     
     total_start_time = tic;

@@ -15,7 +15,7 @@ function control_results = s18_production_controls()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S18', 'Production Controls Setup');
     
     total_start_time = tic;
@@ -102,22 +102,23 @@ function [completion_data, config] = step_1_load_completion_data()
 % Step 1 - Load well completion data and configuration
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     % Substep 1.1 - Load completion data ___________________________
     completion_file = fullfile(data_dir, 'well_completions.mat');
     if exist(completion_file, 'file')
         load(completion_file, 'completion_results');
         completion_data = completion_results;
-        fprintf('Loaded completion data: %d wells\n', completion_data.total_wells);
+        fprintf('Loaded completion data: %d wells\n', completion_data.wells_data.total_wells);
     else
         error('Well completion file not found. Run s17_well_completions.m first.');
     end
     
     % Substep 1.2 - Load wells configuration _______________________
-    config_path = fullfile(fileparts(data_dir), 'mrst_simulation_scripts', 'config', 'wells_config.yaml');
+    config_path = fullfile(script_path, 'config', 'wells_config.yaml');
     if exist(config_path, 'file')
-        config = parse_yaml_file(config_path);
+        addpath('utils');
+        config = read_yaml_config(config_path);
         fprintf('Loaded wells configuration\n');
     else
         error('Wells configuration not found: %s', config_path);
@@ -476,7 +477,7 @@ function export_path = step_6_export_control_data(control_results)
 % Step 6 - Export production controls data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -613,140 +614,6 @@ function write_phase_schedules_file(filename, control_results)
 
 end
 
-function data = parse_yaml_file(filename)
-% Simple YAML parser for configuration (Octave compatible)
-
-    fid = fopen(filename, 'r');
-    if fid == -1
-        error('Cannot open YAML file: %s', filename);
-    end
-    
-    data = struct();
-    current_section = '';
-    current_well = '';
-    current_phase = '';
-    
-    try
-        while ~feof(fid)
-            line = strtrim(fgetl(fid));
-            
-            % Skip empty lines and comments
-            if isempty(line) || line(1) == '#'
-                continue;
-            end
-            
-            % Parse main sections
-            if ~isempty(strfind(line, 'wells_system:'))
-                current_section = 'wells_system';
-                data.wells_system = struct();
-            elseif ~isempty(strfind(line, 'development_phases:'))
-                current_section = 'development_phases';
-                data.wells_system.development_phases = struct();
-            elseif ~isempty(strfind(line, 'producer_wells:'))
-                current_section = 'producer_wells';
-                data.wells_system.producer_wells = struct();
-            elseif ~isempty(strfind(line, 'injector_wells:'))
-                current_section = 'injector_wells';
-                data.wells_system.injector_wells = struct();
-            elseif line(1) ~= ' ' && ~isempty(strfind(line, ':'))
-                % Top-level key
-                continue;
-            elseif strncmp(line, '    ', 4) && ~isempty(strfind(line, ':')) && isempty(strfind(line, '- '))
-                % Section items
-                colon_pos = strfind(line, ':');
-                key = strtrim(line(1:colon_pos-1));
-                value = strtrim(line(colon_pos+1:end));
-                
-                if strcmp(current_section, 'development_phases')
-                    current_phase = key;
-                    data.wells_system.development_phases.(current_phase) = struct();
-                elseif strcmp(current_section, 'producer_wells') || strcmp(current_section, 'injector_wells')
-                    if ~isempty(strfind(key, '-')) && length(key) > 6  % Well name
-                        current_well = key;
-                        if strcmp(current_section, 'producer_wells')
-                            data.wells_system.producer_wells.(current_well) = struct();
-                        else
-                            data.wells_system.injector_wells.(current_well) = struct();
-                        end
-                    elseif ~isempty(current_well)
-                        parsed_value = parse_yaml_value(value);
-                        if strcmp(current_section, 'producer_wells')
-                            data.wells_system.producer_wells.(current_well).(key) = parsed_value;
-                        else
-                            data.wells_system.injector_wells.(current_well).(key) = parsed_value;
-                        end
-                    end
-                end
-            elseif strncmp(line, '      ', 6) && ~isempty(strfind(line, ':')) && ~isempty(current_phase)
-                % Phase properties
-                colon_pos = strfind(line, ':');
-                key = strtrim(line(1:colon_pos-1));
-                value = strtrim(line(colon_pos+1:end));
-                parsed_value = parse_yaml_value(value);
-                data.wells_system.development_phases.(current_phase).(key) = parsed_value;
-            end
-        end
-        
-        fclose(fid);
-        
-    catch ME
-        fclose(fid);
-        error('Error parsing YAML file: %s', ME.message);
-    end
-
-end
-
-function value = parse_yaml_value(str)
-% Parse YAML value to appropriate MATLAB type
-
-    str = strtrim(str);
-    
-    % Remove quotes
-    if (str(1) == '"' && str(end) == '"') || (str(1) == '''' && str(end) == '''')
-        value = str(2:end-1);
-        return;
-    end
-    
-    % Array notation [1, 2, 3] or ["item1", "item2"]
-    if str(1) == '[' && str(end) == ']'
-        inner = str(2:end-1);
-        if ~isempty(strfind(inner, '"'))
-            % String array
-            parts = strsplit(inner, ',');
-            value = {};
-            for i = 1:length(parts)
-                item = strtrim(parts{i});
-                if (item(1) == '"' && item(end) == '"') || (item(1) == '''' && item(end) == '''')
-                    value{i} = item(2:end-1);
-                else
-                    value{i} = item;
-                end
-            end
-        else
-            % Numeric array
-            parts = strsplit(inner, ',');
-            value = [];
-            for i = 1:length(parts)
-                num = str2double(strtrim(parts{i}));
-                if ~isnan(num)
-                    value(i) = num;
-                end
-            end
-        end
-        return;
-    end
-    
-    % Try to parse as number
-    num_value = str2double(str);
-    if ~isnan(num_value)
-        value = num_value;
-        return;
-    end
-    
-    % String value
-    value = str;
-
-end
 
 % Main execution when called as script
 if ~nargout

@@ -1,5 +1,5 @@
 function fluid = s03_define_fluids()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S03_DEFINE_FLUIDS - Define fluid properties using native MRST modules
 % Requires: MRST
 %
@@ -442,7 +442,7 @@ function export_native_fluid_data(fluid, fluid_params, deck)
 
     % Create output directory
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -505,6 +505,7 @@ function fluid_params = create_default_fluid_params()
 % Load fluid parameters from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load from YAML only
+        addpath('utils');
         config = read_yaml_config('config/fluid_properties_config.yaml');
         fluid_params = config.fluid_properties;
         

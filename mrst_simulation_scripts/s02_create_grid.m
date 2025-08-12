@@ -8,7 +8,8 @@ function G = s02_create_grid()
 % Author: Claude Code AI System  
 % Date: January 30, 2025
 
-    run('print_utils.m');
+    addpath('utils');
+    addpath('utils'); run('utils/print_utils.m');
     print_step_header('S02', 'Create Reservoir Grid');
     
     total_start_time = tic;
@@ -188,7 +189,7 @@ end
 function export_grid_data(G, grid_params)
 % Export grid data to files
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -204,7 +205,8 @@ function grid_config = create_default_grid_config()
     
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        grid_config = read_yaml_config('config/grid_config.yaml', 'silent', true);
+        addpath('utils');
+        grid_config = read_yaml_config('config/grid_config.yaml', true);
         
         % Validate required fields exist
         required_fields = {'grid'};

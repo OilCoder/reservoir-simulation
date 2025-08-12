@@ -119,6 +119,28 @@ This applies to oil ($c_o$), gas ($c_g$), and water ($c_w$) compressibilities.
 - **Pseudo-Critical Temperature**: 399°R
 - **Pseudo-Critical Pressure**: 668 psia
 - **Gas Viscosity Correlation**: Lee-Gonzalez-Eakin method
+- **Gas Composition**: Methane-dominated with C2-C6 components
+- **Dry Gas Rv**: 0.0 STB/Mscf (no condensate)
+
+### Extended Gas Property Correlations
+- **Critical Temperature**: 382.0°R
+- **Critical Pressure**: 665.0 psia
+- **Pseudo-Critical Temperature**: 399.0°R
+- **Pseudo-Critical Pressure**: 668.0 psia
+- **Viscosity Correlation**: Lee-Gonzalez-Eakin method
+- **Gas Compressibility Method**: Standing correlation
+
+### Gas Viscosity Temperature Correction
+The gas viscosity values in the table above are corrected for reservoir temperature (176°F) using the Lee-Gonzalez-Eakin correlation:
+
+$$\mu_g = K \exp(X \rho_g^Y)$$
+
+Where:
+- K = 9.4 + 0.02MW at 176°F
+- X = 3.5 + (986/T) + 0.01MW  
+- Y = 2.4 - 0.2X
+- T = 635.67°R (176°F + 459.67)
+- MW = Gas molecular weight ≈ 21.5 lb/lbmole
 
 ---
 
@@ -161,9 +183,55 @@ This applies to oil ($c_o$), gas ($c_g$), and water ($c_w$) compressibilities.
 - **Formation Compatibility**: Compatible
 - **Viscosity at Injection**: 1.0 cp
 
+### Additional Water Properties
+- **Water Viscosity**: 0.385 cp at reservoir conditions
+- **Water Viscosibility**: 0.0 (viscosity compressibility - negligible)
+- **Water Density**: 1025.0 kg/m³ (SG 1.025)
+
 ---
 
-## 4. Three-Phase Saturation Endpoints
+## 4. Field Average Properties
+
+### Field Average Saturation Properties
+These properties represent field-wide averages considering all rock types and their distribution:
+
+| Property | Value | Description |
+|----------|-------|-------------|
+| **Connate Water Saturation** | 0.20 | Field average Swc |
+| **Residual Oil Saturation** | 0.25 | Field average Sor |
+| **Residual Gas Saturation** | 0.05 | Field average Sgr |
+| **Residual Oil to Gas** | 0.18 | Residual oil saturation to gas (Sorg) |
+
+### Simplified Capillary Pressure Properties
+For simplified modeling and initialization:
+
+| Property | Value | Units | Purpose |
+|----------|-------|-------|---------|
+| **Entry Pressure** | 5.0 | psi | Entry pressure for simplified model |
+| **Maximum Pc** | 50.0 | psi | Maximum capillary pressure cap |
+
+### RT1 Properties - Dominant Rock Type (High-Quality Sandstone)
+RT1 represents the dominant reservoir rock type with the highest flow capacity:
+
+#### Oil-Water Relative Permeability Parameters
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| **krw_max** | 0.35 | Water relative permeability at Sor |
+| **kro_max** | 0.85 | Oil relative permeability at Swc |
+| **Corey Water Exponent (nw)** | 1.9 | Water Corey exponent |
+| **Corey Oil Exponent (no)** | 2.8 | Oil Corey exponent |
+
+#### Gas-Oil Relative Permeability Parameters
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| **krg_max** | 0.75 | Gas relative permeability at Sor |
+| **krog_max** | 0.82 | Oil relative permeability at Sgc |
+| **Corey Gas Exponent (ng)** | 1.6 | Gas Corey exponent |
+| **Corey Oil-Gas Exponent (nog)** | 2.2 | Oil Corey exponent for gas-oil |
+
+---
+
+## 5. Three-Phase Saturation Endpoints
 
 ### Critical Saturations
 - **Connate Water Saturation (Swc)**: 0.20

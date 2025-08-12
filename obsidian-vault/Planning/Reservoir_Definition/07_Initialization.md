@@ -334,6 +334,96 @@ Where:
 - **Initialization Convergence**: Equilibration algorithm convergence achieved
 - **Boundary Conditions**: Proper specification at model boundaries
 
+---
+
+## 8. Aquifer System Configuration
+
+### Analytical Peripheral Aquifer Model
+
+The Eagle West Field is supported by a peripheral aquifer system modeled using the Carter-Tracy analytical approach for pressure support analysis.
+
+#### Aquifer Model Selection
+- **Aquifer Type**: Analytical peripheral aquifer
+- **Model**: Carter-Tracy method
+- **Configuration**: Infinite-acting radial aquifer
+- **Support Classification**: Moderate strength
+
+#### Aquifer Properties
+
+| Property | Value | Units | Description |
+|----------|-------|-------|-------------|
+| **Aquifer Radius** | 8,500.0 | ft | Aquifer extent from field center |
+| **Aquifer Thickness** | 50.0 | ft | Aquifer interval thickness |
+| **Aquifer Porosity** | 0.23 | fraction | Aquifer porosity |
+| **Aquifer Permeability** | 100.0 | mD | Aquifer permeability |
+| **Total Compressibility** | 6.5e-6 | 1/psi | Aquifer + water compressibility |
+
+#### Carter-Tracy Model Constants
+
+The Carter-Tracy aquifer model uses established petroleum engineering constants:
+
+| Parameter | Value | Units | Source |
+|-----------|-------|-------|---------|
+| **Carter-Tracy Constant** | 1.119 | dimensionless | Empirical constant from petroleum engineering literature |
+| **Van Everdingen-Hurst Constant** | 0.0002637 | time⁻¹ | Time constant from van Everdingen & Hurst (1949) |
+| **Dimensionless Productivity Index** | 15.0 | dimensionless | Based on aquifer geometry and properties |
+
+#### Aquifer Strength Assessment
+- **Aquifer Support**: Moderate strength
+- **Water Influx Response**: Pressure-dependent
+- **Drive Mechanism**: Combination of solution gas drive and water influx
+- **Pressure Maintenance**: Partial pressure support during depletion
+
+### Compartment Pressure Variations
+
+#### Fault-Controlled Pressure Distribution
+
+Due to fault compartmentalization, initial pressures vary across the field:
+
+| Compartment | Pressure Adjustment | Rationale |
+|-------------|-------------------|-----------|
+| **Northern Compartment** | +0 psi (datum) | Reference compartment |
+| **Southern Compartment** | -5 psi | Fault E partial sealing effect |
+| **Eastern Fault Block** | +3.0 psi | Structural isolation |
+| **Western Fault Block** | -3.0 psi | Aquifer communication |
+
+#### Pressure Communication Parameters
+- **Communication Factor**: 0.15 (across Fault E)
+- **Equilibration Time**: 180.0 days for pressure communication
+- **Pressure Difference Range**: ±10 psi between compartments
+
+### MRST Implementation Parameters
+
+#### Solver Settings for Initialization
+- **Maximum Newton Iterations**: 50
+- **Convergence Tolerance**: 1.0e-8
+- **Relaxation Factor**: 0.8
+- **Initialization Method**: initEclipseState
+- **Equilibration Regions**: 2 (Northern and Southern compartments)
+
+#### Cell Assignment Method
+- **Method**: Depth-based assignment
+- **Layer Assignment**: Structural consistent
+- **Region Definition**: Based on fault compartmentalization
+
+---
+
+## 9. Uncertainty Analysis
+
+### OWC Uncertainty Assessment
+
+| Parameter | Base Case | Uncertainty Range | Impact on Reserves |
+|-----------|-----------|------------------|-------------------|
+| **OWC Depth** | 8,150 ft TVDSS | ±10.0 ft | ±8% reserves impact |
+| **Initial Pressure** | 2,900 psi | ±25.0 psi | ±3% reserves impact |
+| **Aquifer Strength** | Moderate | 0.5-2.0× multiplier | ±15% recovery factor |
+
+### Uncertainty Validation
+- **Monte Carlo Runs**: 100 realizations recommended
+- **P10/P50/P90**: Probability distribution assessment
+- **Sensitivity Analysis**: Single parameter variations
+- **Risk Assessment**: Combined uncertainty impact
+
 ## Summary
 
 This technical initialization specification provides a comprehensive framework for reservoir engineering initialization without implementation code. Key technical specifications include:

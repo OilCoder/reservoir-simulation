@@ -1,5 +1,5 @@
 function rock = s07_define_rock_types()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S07_DEFINE_ROCK_TYPES - Define rock types using MRST native makeRock()
 % Requires: MRST
 %
@@ -58,7 +58,7 @@ function G = step_1_load_grid()
 
     % Substep 1.1 – Locate grid files ______________________________ 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
     base_grid_file = fullfile(data_dir, 'base_grid.mat');
@@ -94,6 +94,7 @@ function rock_params = create_default_rock_config()
     
     try
         % Policy Compliance: Load ALL parameters from YAML config
+        addpath('utils');
         config = read_yaml_config('config/rock_properties_config.yaml');
         rock_params = config.rock_properties;
         
@@ -402,7 +403,7 @@ function export_rock_files(rock, G, rock_params, layer_properties)
 % Export rock data to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

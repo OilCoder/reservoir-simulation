@@ -1,5 +1,5 @@
 function fluid_with_pc = s11_capillary_pressure()
-    run('print_utils.m');
+    addpath('utils'); run('utils/print_utils.m');
 % S11_CAPILLARY_PRESSURE - Define capillary pressure curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
@@ -59,7 +59,7 @@ function [fluid, G] = step_1_load_fluid_data()
 
     % Substep 1.1 – Locate fluid file __________________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
     
     if ~exist(fluid_file, 'file')
@@ -76,7 +76,8 @@ function scal_config = step_1_load_scal_config()
 
     try
         % Load SCAL configuration from YAML - CANON compliance
-        scal_config = read_yaml_config('config/scal_properties_config.yaml', 'silent', true);
+        addpath('utils');
+        scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         scal_config = scal_config.scal_properties;
         
         fprintf('SCAL configuration reloaded from CANON documentation\\n');
@@ -367,7 +368,7 @@ function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
 % Export enhanced fluid structure to file
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -383,7 +384,7 @@ function export_pc_summary(fluid_with_pc, G, scal_config)
 % Export capillary pressure summary
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'static');
+    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
     
     pc_summary_file = fullfile(data_dir, 'capillary_pressure_summary.txt');
     fid = fopen(pc_summary_file, 'w');
