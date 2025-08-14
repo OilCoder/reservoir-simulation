@@ -1,6 +1,14 @@
 function fluid_complete = s12_pvt_tables()
 % S12_PVT_TABLES - Define PVT tables for black oil simulation
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S12', 'Define PVT Tables (MRST Native)');
     
     total_start_time = tic;
@@ -10,11 +18,20 @@ function fluid_complete = s12_pvt_tables()
         step_start = tic;
         addpath('utils/pvt_processing');
         
-        fluid_file = '/workspaces/claudeclean/data/simulation_data/static/fluid/fluid_with_capillary_pressure.mat';
-        grid_file = '/workspaces/claudeclean/data/simulation_data/static/grid/refined_grid.mat';
+        data_dir = get_data_path('static');
+        fluid_file = fullfile(data_dir, 'fluid', 'fluid_with_capillary_pressure.mat');
+        grid_file = fullfile(data_dir, 'refined_grid.mat');
         
-        if ~exist(fluid_file, 'file'), error('Run S11 first.'); end
-        if ~exist(grid_file, 'file'), error('Run S06 first.'); end
+        if ~exist(fluid_file, 'file')
+            error(['Missing canonical fluid file: fluid_with_capillary_pressure.mat\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
+                   'S11 must generate fluid_with_capillary_pressure.mat file.']);
+        end
+        if ~exist(grid_file, 'file')
+            error(['Missing canonical grid file: refined_grid.mat\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
+                   'S06 must generate refined_grid.mat file.']);
+        end
         
         fluid_data = load(fluid_file); fluid_with_pc = fluid_data.fluid_with_pc;
         grid_data = load(grid_file); 

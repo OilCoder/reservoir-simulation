@@ -49,7 +49,7 @@ function print_step_result_impl(step_num, description, status, time_sec)
         case 'error' 
             status_icon = '   ❌   ';
         case 'warning'
-            status_icon = '   ⚠️   ';
+            status_icon = '   ⚠️    ';
         otherwise
             status_icon = '   ❓   ';
     end
@@ -88,6 +88,28 @@ function print_error_step_impl(step_num, description, error_msg)
     fprintf('   %d  │ %-28s │   ❌   │    ---    \n', step_num, desc_formatted);
     fprintf('════════════════════════════════════════════════════════════════\n');
     fprintf('❌ ERROR in Step %d: %s\n', step_num, error_msg);
+end
+
+% Define get_data_path function in workspace
+if ~exist('get_data_path', 'var')
+    get_data_path = @(subfolder) get_data_path_impl(subfolder);
+end
+
+% Implementation function for get_data_path
+function data_path = get_data_path_impl(subfolder)
+    script_dir = fileparts(mfilename('fullpath'));
+    script_dir = fileparts(script_dir); % Go up one level from utils/
+    
+    if nargin < 1 || isempty(subfolder)
+        data_path = fullfile(script_dir, 'data', 'mrst_simulation');
+    else
+        data_path = fullfile(script_dir, 'data', 'mrst_simulation', subfolder);
+    end
+    
+    % Create directory if it doesn't exist
+    if ~exist(data_path, 'dir')
+        mkdir(data_path);
+    end
 end
 
 % Only print loading message once using global flag

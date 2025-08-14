@@ -199,13 +199,46 @@ s01 Initialize → s07 Rock → s17 Wells → s22 Simulation → s24 Analysis
 - **MRST Standard**: `G.cells.num`, `G.cartDims`, `G.nodes.coords`
 - **Processing**: `dx`, `dy`, `dz`, `cell_volumes`
 
-#### Grid Refinement
-- **Configuration**: `well_refinement`, `fault_refinement`, `refinement_factor`
+#### Grid Refinement (TIERED STRATEGY - CANONICAL)
+- **Configuration**: `tiered_strategy`, `well_tiers`, `fault_tiers`, `tier_parameters`
 - **Processing**: `refined_cells`, `refinement_factors`, `refinement_zones`
+- **Tier Classification**: `critical_tier`, `standard_tier`, `marginal_tier` (wells)
+- **Tier Classification**: `major_tier`, `minor_tier` (faults)
+- **Optimization**: `tier_radius`, `tier_buffer`, `tier_priority`, `coverage_target`
 
 #### Geometry
 - **Structural**: `axis_data`, `surfaces`, `layers`, `structural_data`
 - **Faults**: `fault_faces`, `fault_zones`, `trans_multipliers`
+
+---
+
+### **GRID REFINEMENT OPTIMIZATION (CANONICAL)**
+*Variables related to the tiered refinement strategy and computational optimization*
+
+#### Tiered Strategy Configuration
+- **Configuration**: `tiered_strategy.enable`, `apply_tier_based_refinement` - Strategy control
+- **Well Tiers**: `critical.wells`, `standard.wells`, `marginal.wells` - Well classification
+- **Fault Tiers**: `major.faults`, `minor.faults` - Fault classification
+- **Tier Parameters**: `radius`, `buffer`, `factor`, `priority` - Refinement specifics
+
+#### Optimization Variables
+- **Coverage Targets**: `coverage_target` (25%), `well_coverage` (15%), `fault_coverage` (10%)
+- **Mathematical Parameters**: `optimal_well_radius` (165ft), `optimal_fault_buffer` (156ft)
+- **Performance Metrics**: `cell_reduction` (61.5%), `memory_savings` (65%), `time_savings` (50-60%)
+- **Quality Control**: `tier_validation`, `coverage_verification`, `grid_integrity`
+
+#### Tier-Specific Variables
+- **Critical Wells**: `critical_radius` (350ft), `critical_factor` (3x3), `critical_priority` (1)
+- **Standard Wells**: `standard_radius` (250ft), `standard_factor` (2x2), `standard_priority` (2)
+- **Marginal Wells**: `marginal_radius` (150ft), `marginal_factor` (2x2), `marginal_priority` (3)
+- **Major Faults**: `major_buffer` (400ft), `major_factor` (3x3), `major_priority` (1)
+- **Minor Faults**: `minor_buffer` (200ft), `minor_factor` (2x2), `minor_priority` (2)
+
+#### Implementation Variables
+- **Zone Creation**: `create_tiered_well_refinement_zones`, `create_tiered_fault_refinement_zones`
+- **Tier Assignment**: `determine_well_tier`, `determine_fault_tier`
+- **Conflict Resolution**: `priority_based_resolution`, `zone_overlap_handling`
+- **Validation**: `tier_assignment_validation`, `grid_quality_metrics`
 
 ---
 
@@ -234,9 +267,13 @@ s01 Initialize → s07 Rock → s17 Wells → s22 Simulation → s24 Analysis
 | `rock.perm` | s07_define_rock_types.m | s17_well_completions.m, MRST solver | MRST Core | 🔴 Critical | s07→s17→s22 |
 | `rock.poro` | s07_define_rock_types.m | s14_saturation_distribution.m, MRST solver | MRST Core | 🔴 Critical | s07→s14→s22 |
 | `G.cells.num` | s02_create_grid.m | All modules using grid | MRST Core | 🔴 Critical | s02→ALL |
+| `G_refined` | s06_grid_refinement.m | s07-s22 (all downstream) | MRST Core | 🔴 Critical | s06→ALL |
 | `state.pressure` | s13_pressure_initialization.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s13→s22 |
 | `state.s` | s14_saturation_distribution.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s14→s22 |
 | `W` (wells) | s17_well_completions.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s17→s22 |
+| `tiered_strategy` | grid_config.yaml | s06_grid_refinement.m | Config | 🟠 High | YAML→s06 |
+| `well_tiers` | grid_config.yaml | s06_grid_refinement.m | Optimization | 🟡 High | YAML→s06 |
+| `fault_tiers` | grid_config.yaml | s06_grid_refinement.m | Optimization | 🟡 High | YAML→s06 |
 | `perm_x` | s17_well_completions.m | Well index calculation | Processing | 🟡 High | s17 only |
 | `well_config` | wells_config.yaml | s18_production_controls.m | Config | 🟡 High | YAML→s18 |
 | `solver_config` | solver_config.yaml | s21_solver_setup.m | Config | 🟡 High | YAML→s21 |
@@ -250,14 +287,17 @@ s01 Initialize → s07 Rock → s17 Wells → s22 Simulation → s24 Analysis
 | **Cross-module Shared** | `G`, `rock`, `fluid`, `state` | Created once, used everywhere | Core structures |
 | **Temporary Processing** | `perm_x`, `wi`, `dt` | Local calculation variables | Function scope |
 | **File I/O** | `data_dir`, `export_path`, `filename` | Path and file management | System utilities |
+| **Tiered Optimization** | `tiered_strategy` → `tier_assignment` → `G_refined` | YAML→Optimization→MRST | Canonical refinement |
 
 ### Module Interaction Map
 ```
 YAML Configs
     ↓
-s01 (Initialize) → s02 (Grid) → s07 (Rock) → s17 (Wells) → s22 (Simulate) → s24 (Results)
-    ↓                ↓           ↓            ↓             ↓               ↓
-mrst_env         G.*         rock.*       W.*         states         analysis.*
+s01 (Initialize) → s02 (Grid) → s06 (Refinement) → s07 (Rock) → s17 (Wells) → s22 (Simulate) → s24 (Results)
+    ↓                ↓               ↓               ↓            ↓             ↓               ↓
+mrst_env         G.*         G_refined        rock.*       W.*         states         analysis.*
+                                ↓ (tiered)                                                         
+                        tier_classification                                                       
                                                                           
 Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 ```
@@ -286,6 +326,12 @@ Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 3. **Apply Stage**: Use in MRST solver setup
 4. **Monitor Stage**: Track in progress monitoring if applicable
 
+#### **Adding New Grid Refinement Tier**
+1. **Config Stage**: Add tier to `grid_config.yaml` under `tiered_strategy`
+2. **Classification Stage**: Implement tier logic in `determine_well_tier()` or `determine_fault_tier()`
+3. **Processing Stage**: Use tier-specific parameters (radius, buffer, factor, priority)
+4. **Validation Stage**: Verify tier assignment and coverage targets
+
 ### **Typical Variable Scopes**
 - **Global Config**: Available throughout workflow (`config.*`)
 - **MRST Structures**: Available to MRST solver (`G.*`, `rock.*`, `fluid.*`, `state.*`)  
@@ -297,6 +343,10 @@ Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 2. **Structure Confusion**: `rock_params` (config) ≠ `rock_props` (loaded) ≠ `rock` (MRST)
 3. **File Dependencies**: Must load G before using `G.cells.num`
 4. **MRST Requirements**: MRST expects specific field names and formats
+5. **Grid Refinement**: Must use `G_refined` (from s06) not `G` (from s02) for downstream modules
+6. **Tier Assignments**: Well/fault tiers must match configuration exactly (case-sensitive names)
+7. **Coverage Targets**: Tiered strategy aims for 20-30% total coverage, not higher
+8. **Legacy vs Tiered**: Enable `tiered_strategy.enable = true` for optimized refinement
 
 ### **Quick Decision Tree for LLMs**
 ```
@@ -311,7 +361,14 @@ Working on a specific domain?
 ├─ Wells/Production → Check WELL ENGINEERING section
 ├─ Solver/Numerics → Check NUMERICAL METHODS section  
 ├─ Grid/Geometry → Check GRID & GEOMETRY section
+├─ Grid Refinement → Check GRID REFINEMENT OPTIMIZATION section (CANONICAL)
 └─ Files/Data → Check DATA MANAGEMENT section
+
+Working with grid refinement?
+├─ Want tiered optimization? → Use tiered_strategy (CANONICAL approach)
+├─ Need tier classification? → Use well_tiers/fault_tiers configuration
+├─ Setting coverage targets? → Aim for 20-30% total coverage (25% optimal)
+└─ Legacy compatibility? → Set tiered_strategy.enable = false
 ```
 
 ## 📋 COMPLETE ALPHABETICAL REFERENCE

@@ -30,6 +30,43 @@ Read and follow these rules from `.claude/rules/`:
   - purpose = optional tag for test variant or specific case
   - Examples: `test_01_mrst_simulation_scripts_setup_field.m`, `test_02_src_surrogate_training_validation.m`
   - All test files live under `/tests/` folder
+- **Rule 9**: Canon-First Philosophy (CRITICAL)
+
+## 🏛️ Canon-First Testing Philosophy (CRITICAL)
+
+**Tests must validate Canon-First implementation** - verify code fails correctly when specifications are missing:
+
+### Canon-First Test Requirements
+1. **Test Canon Validation Logic**
+   - Verify code fails when canon parameters are missing
+   - Test that error messages direct to correct documentation
+   - Validate that code implements canon specifications exactly
+
+2. **Required Test Categories**
+   ```matlab
+   % ✅ REQUIRED: Test canon specification validation
+   function test_canon_validation()
+       % Test that missing canon parameters cause proper errors
+       % Test that error messages reference correct documentation
+   end
+   
+   % ✅ REQUIRED: Test specification compliance
+   function test_specification_compliance()
+       % Test that code implements canon exactly
+       % Verify no defensive programming or defaults
+   end
+   ```
+
+3. **Prohibited Test Patterns**
+   - ❌ Testing defensive fallbacks (should not exist)
+   - ❌ Testing default values (should not exist)
+   - ❌ Testing multiple data source attempts
+   - ❌ Testing "safe" error recovery
+
+4. **Canon-Driven Error Testing**
+   - Test missing canon documentation scenarios
+   - Verify error messages include documentation update instructions
+   - Test canon consistency validation
 
 ## 🤝 Agent Communication
 

@@ -1,0 +1,193 @@
+# Optimized Grid Configuration for Eagle West Field MRST Simulation
+# Source: PHASE2_OPTIMIZATION_SUMMARY.md - Mathematical optimization results
+# Target: 20-30% grid coverage with tiered refinement strategy
+# Date: 2025-08-14
+
+# Refinement Configuration (OPTIMIZED for 25% target coverage)
+refinement:
+  # Well Area Refinement (OPTIMIZED)
+  well_refinement:
+    enable: true
+    
+    # Tiered well refinement strategy
+    tiered_refinement: true
+    
+    # Critical wells (high production, early phase)
+    critical_wells: ["EW-001", "EW-002", "IW-001"]
+    critical_radius: 215.0               # ft radius (30% above optimal)
+    critical_factor: 2                   # refinement factor (2x2 subdivision)
+    critical_cell_size_x: 20.0           # ft (refined cell E-W)
+    critical_cell_size_y: 18.0           # ft (refined cell N-S)
+    
+    # Standard wells (main development)
+    standard_wells: ["EW-003", "EW-005", "EW-007", "EW-010", "IW-002", "IW-003"]
+    standard_radius: 165.0               # ft radius (optimal calculated)
+    standard_factor: 2                   # refinement factor (2x2 subdivision)
+    standard_cell_size_x: 25.0           # ft (refined cell E-W)
+    standard_cell_size_y: 22.0           # ft (refined cell N-S)
+    
+    # Marginal wells (late phase, lower production)
+    marginal_wells: ["EW-004", "EW-006", "EW-008", "EW-009", "IW-004", "IW-005"]
+    marginal_radius: 115.0               # ft radius (30% below optimal)
+    marginal_factor: 2                   # refinement factor (2x2 subdivision)
+    marginal_cell_size_x: 30.0           # ft (refined cell E-W)
+    marginal_cell_size_y: 26.0           # ft (refined cell N-S)
+    
+    # Legacy parameters (for backward compatibility)
+    radius: 165.0                        # ft radius (optimal average)
+    factor: 2                            # refinement factor (2x2 subdivision)
+    refined_cell_size_x: 25.0            # ft (refined cell E-W)
+    refined_cell_size_y: 22.0            # ft (refined cell N-S)
+    refined_layer_thickness: 4.0         # ft (refined vertical)
+    transition_smooth: true
+    
+  # Fault Area Refinement (OPTIMIZED)
+  fault_refinement:
+    enable: true
+    
+    # Tiered fault refinement strategy
+    tiered_refinement: true
+    
+    # Major faults (sealing, >12,000 ft length)
+    major_faults: ["Fault_A", "Fault_C", "Fault_D"]
+    major_buffer: 187.0                  # ft buffer (20% above optimal)
+    major_factor: 2                      # refinement factor (2x2 subdivision)
+    major_cell_size_x: 20.0              # ft (refined cell E-W)
+    major_cell_size_y: 20.0              # ft (refined cell N-S)
+    
+    # Minor faults (partially sealing, <12,000 ft length)
+    minor_faults: ["Fault_B", "Fault_E"]
+    minor_buffer: 125.0                  # ft buffer (20% below optimal)
+    minor_factor: 2                      # refinement factor (2x2 subdivision)
+    minor_cell_size_x: 30.0              # ft (refined cell E-W)
+    minor_cell_size_y: 30.0              # ft (refined cell N-S)
+    
+    # Legacy parameters (for backward compatibility)
+    buffer: 156.0                        # ft buffer (optimal average)
+    factor: 2                            # refinement factor (2x2 subdivision)
+    refined_cell_size_x: 25.0            # ft (refined cell E-W)
+    refined_cell_size_y: 25.0            # ft (refined cell N-S)
+    refined_layer_thickness: 4.0         # ft (refined vertical)
+    major_faults_only: false             # Now using tiered approach
+    
+  # High Permeability Streak Refinement (DISABLED for optimization)
+  streak_refinement:
+    enable: false                        # Disabled to maintain target coverage
+    permeability_threshold: 500.0        # mD threshold
+    refined_cell_size: 15.0              # ft
+    
+  # Optimization Parameters (NEW)
+  optimization:
+    target_coverage_min: 20.0            # % minimum target coverage
+    target_coverage_max: 30.0            # % maximum target coverage
+    target_coverage_nominal: 25.0        # % nominal target coverage
+    well_coverage_target: 15.0           # % well coverage allocation
+    fault_coverage_target: 10.0          # % fault coverage allocation
+    overlap_allowance: 5.0               # % overlap allowance
+    
+    # Calculated optimization results
+    calculated_well_radius: 165.0        # ft (mathematical optimum)
+    calculated_fault_buffer: 156.0       # ft (mathematical optimum)
+    expected_coverage: 25.2              # % (validation result)
+    expected_refined_cells: 19104         # cells (validation result)
+    
+    # Performance targets
+    computational_reduction_target: 60.0  # % reduction in refined cells
+    simulation_speedup_target: 50.0      # % simulation time improvement
+    memory_savings_target: 65.0          # % memory usage reduction
+
+grid:
+  # Basic Grid Dimensions (UNCHANGED - CANONICAL)
+  nx: 41                               # I-direction cells
+  ny: 41                               # J-direction cells  
+  nz: 12                               # K-direction cells (layers)
+  
+  # Cell Sizes (UNCHANGED - CANONICAL)
+  cell_size_x: 82.0                    # ft (E-W direction)
+  cell_size_y: 74.0                    # ft (N-S direction)
+  
+  # Layer Thicknesses (UNCHANGED - CANONICAL)
+  layer_thicknesses: [8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.7]  # ft per layer
+  
+  # Field Extent (UNCHANGED - CANONICAL)
+  field_extent_x: 3280.0               # ft (E-W total field extent)
+  field_extent_y: 2950.0               # ft (N-S total field extent)
+  total_thickness: 100.0               # ft (total reservoir thickness)
+  
+  # Grid Origin and Orientation (UNCHANGED - CANONICAL)
+  origin_utm_x: 745280.0               # UTM Zone 15N Easting (m)
+  origin_utm_y: 3258470.0              # UTM Zone 15N Northing (m)
+  grid_orientation: 15.0               # degrees N15°E (aligned with fault trend)
+  
+  # Depth Reference (UNCHANGED - CANONICAL)
+  datum_depth_tvdss: 8000.0            # ft TVDSS (pressure datum)
+  top_structure_tvdss: 7900.0          # ft TVDSS (structural crest)
+  base_structure_tvdss: 8240.0         # ft TVDSS (spill point)
+  
+  # Grid Quality Control (UPDATED for optimization)
+  total_cells: 20172                   # Total grid cells (41×41×12)
+  target_active_cells: 19000           # Expected active cells
+  optimized_refined_cells: 19104       # Expected refined cells (optimized)
+  max_aspect_ratio: 10.0               # Maximum cell aspect ratio
+  
+  # Grid Quality Parameters (UNCHANGED)
+  validation:
+    min_cell_volume: 1000.0            # ft³ minimum cell volume
+    max_cell_volume: 100000.0          # ft³ maximum cell volume
+    min_layer_thickness: 2.0           # ft minimum layer thickness
+    max_layer_thickness: 20.0          # ft maximum layer thickness
+    check_orthogonality: true
+    orthogonality_tolerance: 0.1       # radians
+    
+  # MRST Grid Implementation (UNCHANGED)
+  mrst_grid:
+    grid_type: "cartesian_tensor"      # MRST grid type
+    geometry_compute: "automatic"      # Automatic geometry computation
+    fault_processing: "explicit"       # Explicit fault representation
+    boundary_conditions: "no_flow"     # Default boundary conditions
+    grid_coarsening: false             # No initial coarsening
+    
+  # Physical Constants (UNCHANGED)
+  physical:
+    gravity_vector: [0, 0, 9.81]       # m/s² (standard gravity)
+    reference_pressure: 101325.0       # Pa (1 atm reference)
+    reference_temperature: 288.15      # K (15°C reference)
+
+# Optimization Metadata (NEW)
+optimization_metadata:
+  version: "2.0_optimized"
+  source_analysis: "PHASE2_OPTIMIZATION_SUMMARY.md"
+  optimization_date: "2025-08-14"
+  mathematical_validation: true
+  
+  # Original vs Optimized Comparison
+  comparison:
+    original_well_radius: 250.0        # ft
+    optimized_well_radius: 165.0       # ft
+    well_radius_reduction: 34.0        # %
+    
+    original_fault_buffer: 300.0       # ft
+    optimized_fault_buffer: 156.0      # ft
+    fault_buffer_reduction: 48.0       # %
+    
+    original_coverage: 77.3            # %
+    optimized_coverage: 25.2           # %
+    coverage_reduction: 52.1           # % points
+    
+    original_refined_cells: 49645       # cells
+    optimized_refined_cells: 19104     # cells
+    cell_reduction: 61.5               # %
+  
+  # Implementation Strategy
+  implementation:
+    phase_1_critical: ["EW-001", "EW-002", "IW-001", "Fault_A", "Fault_C", "Fault_D"]
+    phase_2_standard: ["EW-003", "EW-005", "EW-007", "EW-010", "IW-002", "IW-003"]
+    phase_3_marginal: ["EW-004", "EW-006", "EW-008", "EW-009", "IW-004", "IW-005", "Fault_B", "Fault_E"]
+    
+  # Quality Assurance
+  qa_status:
+    mathematical_validation: "PASSED"
+    geometric_consistency: "PASSED"
+    target_achievement: "PASSED"
+    mrst_compatibility: "PENDING"
+    performance_validation: "PENDING"

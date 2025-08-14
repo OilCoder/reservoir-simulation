@@ -9,6 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **CANONICAL STATUS: This documentation is authoritative and reflects the current project state as of 2025-08-12.**
 
 ### Key Achievements
+
 - **100% YAML-Documentation Coverage** - All 9 configuration files fully documented
 - **900+ Variable Inventory** - LLM-optimized organization in VARIABLE_INVENTORY.md
 - **Complete MRST Workflow** - 25+ integrated simulation scripts (23/25 phases working)
@@ -16,8 +17,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Multi-Agent Architecture** - Specialized agents for efficient development
 
 ### Project Characteristics
+
 - **MRST-based reservoir simulation** for Eagle West offshore field
-- **Strict coding standards** enforced automatically  
+- **Canon-First Development Philosophy** - Documentation as specification, zero fallbacks
+- **Strict coding standards** enforced automatically
 - **Claude Code integration** for AI-assisted development
 - **Dual language support** (Python & Octave/MRST)
 - **Comprehensive documentation** with LLM optimization
@@ -41,34 +44,46 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── 📖 obsidian-vault/ # Documentation system
 │ ├── Planning/Reservoir_Definition/ # Technical documentation (CANONICAL)
 │ │ ├── VARIABLE_INVENTORY.md # 900+ variables with LLM optimization
-│ │ ├── 01_Structural_Geology.md # Field structure, 41×41×12 grid
-│ │ ├── 05_Wells_Completions.md # 15 wells (10 producers, 5 injectors)
-│ │ └── 12_Technical_Variable_Mapping.md # Standardized naming
 │ └── Spanish/ # Spanish documentation
 ├── 🧪 tests/ # Test files (gitignored)
 ├── 🐛 debug/ # Debug scripts (gitignored)
 ├── 📊 data/ # Simulation data and results
 └── 🧠 CLAUDE.md # Main project memory (THIS FILE - CANONICAL)
 
-## Agent System
+## Claude Code Agent System (CANONICAL)
+
+**CRITICAL**: Claude Code acts as a **Manager/Orquestador** that delegates tasks to specialized agents rather than executing tasks directly.
+
+### Manager Role
+
+Claude Code (this AI) functions as:
+- **Task Analyzer** - Determines which specialized agent should handle each request
+- **Work Delegator** - Uses Task tool to assign work to appropriate agents  
+- **Coordinator** - Facilitates communication between agents when needed
+- **Progress Supervisor** - Ensures agents use MCP tools and follow project rules
+
+**Key Principle**: Claude Code NEVER executes tasks directly - always delegates to specialized agents.
 
 The project uses an **optimized multi-agent architecture** for efficient code generation and task management:
 
 ### Available Agents
 
 1. **`coder`** (Default Agent)
+
    - **Role**: Production code writer for `src/` and `mrst_simulation_scripts/`
    - **Activation**: Default for all code-related tasks
    - **Keywords**: create, implement, write, edit, add, build, develop, function, class, module
    - **Tools**: Read, Write, Edit, MultiEdit, Grep, Glob, Bash
 
 2. **`tester`** (Test Specialist)
+
    - **Role**: Creates comprehensive test suites in `tests/`
    - **Activation**: On-demand when test keywords detected
    - **Keywords**: test, pytest, unittest, validation, verify, check, assert, coverage
    - **Tools**: Read, Write, Bash
 
 3. **`debugger`** (Debug Specialist)
+
    - **Role**: Creates investigation scripts in `debug/`
    - **Activation**: On-demand when debug keywords detected
    - **Keywords**: debug, fix, error, bug, issue, problem, investigate, analyze, trace
@@ -78,7 +93,7 @@ The project uses an **optimized multi-agent architecture** for efficient code ge
    - **Role**: Creates and maintains documentation in `obsidian-vault/`
    - **Activation**: On-demand when documentation keywords detected
    - **Keywords**: document, documentation, readme, guide, tutorial, explain, describe, writeup
-   - **Tools**: Read, Write, Edit, mcp__obsidian__*
+   - **Tools**: Read, Write, Edit, mcp**obsidian**\*
 
 ### How Agent Routing Works
 
@@ -86,6 +101,25 @@ The project uses an **optimized multi-agent architecture** for efficient code ge
 2. **Budget-Aware**: Switches to conservative mode (coder only) when <25 prompts remaining
 3. **Single Agent Selection**: Only one agent is activated per task for efficiency
 4. **Minimal Context**: Agents receive only relevant git diff hunks (±30 lines)
+
+### Agent Communication Workflow
+
+**Manager → Agent Delegation:**
+1. Analyze user request for keywords and task type
+2. Select appropriate agent using Task tool
+3. Provide agent with minimal context (±30 lines git diff when relevant)
+4. Monitor agent progress and coordinate with other agents if needed
+
+**Inter-Agent Communication:**
+- **CODER → TESTER**: "Code complete in [file]. Key functions: [list]. Ready for testing."
+- **DEBUGGER → CODER**: "Root cause: [problem]. Located in [file:line]. Suggested fix: [solution]"
+- **DOC-WRITER ↔ CODER**: Coordinates for implementation details and technical accuracy
+
+**Agent → MCP Priority:**
+All agents must use MCP tools when available instead of native tools:
+- `mcp__filesystem__*` instead of Read/Write/Edit
+- `mcp__memory__*` for storing patterns and context
+- `mcp__obsidian__*` for documentation operations
 
 ### Usage Tips
 
@@ -114,26 +148,31 @@ octave mrst_simulation_scripts/s25_reservoir_analysis.m
 ### Workflow Stages (From VARIABLE_INVENTORY.md)
 
 **STAGE 1: CONFIGURATION INPUT (YAML → MATLAB)**
+
 - Variables: `config`, `rock_params`, `wells_config`, `solver_config`
 - Purpose: Bring user settings into system
 
-**STAGE 2: MRST INTEGRATION (MATLAB → MRST Framework)**  
+**STAGE 2: MRST INTEGRATION (MATLAB → MRST Framework)**
+
 - Variables: `G.*` (grid), `rock.*` (properties), `fluid.*`, `state.*`, `W` (wells)
 - Purpose: Interface with MRST core structures
 
 **STAGE 3: PROCESSING LOGIC (Algorithm Variables)**
-- Variables: `perm_x`, `well_indices`, `dt`, `convergence_failures`  
+
+- Variables: `perm_x`, `well_indices`, `dt`, `convergence_failures`
 - Purpose: Calculations, transformations, business logic
 
 **STAGE 4: RESULTS & EXPORT (Processing → Files)**
+
 - Variables: `workflow_results`, `production_results`, `quality_report`
 - Purpose: Output, validation, export
 
 ### Configuration System (100% Documented)
 
 **9 YAML Configuration Files** (all documented in obsidian-vault/Planning/):
+
 - `fault_config.yaml` - 5 major faults (Fault_A through Fault_E)
-- `grid_config.yaml` - 41×41×12 grid dimensions  
+- `grid_config.yaml` - 41×41×12 grid dimensions
 - `wells_config.yaml` - 15 wells, 6-phase development
 - `rock_properties_config.yaml` - Reservoir properties
 - `fluid_properties_config.yaml` - PVT properties
@@ -172,6 +211,7 @@ ENFORCEMENT_STRATEGY:
 ### Primary References for AI Assistants
 
 1. **VARIABLE_INVENTORY.md** (`/workspaces/claudeclean/obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`)
+
    - **900+ variables** organized by workflow stages and domains
    - **LLM-optimized structure** with decision trees and context helpers
    - **Cross-reference table** for variable dependencies and criticality
@@ -184,17 +224,18 @@ ENFORCEMENT_STRATEGY:
    - **Variable Naming**: Follow YAML↔MATLAB↔Documentation mapping in 12_Technical_Variable_Mapping.md
 
 ### LLM Decision Tree for Variables
+
 ```
 Need a variable? Ask:
 ├─ Is it user-configurable? → Look in YAML configs (Stage 1)
-├─ Is it required by MRST? → Look in MRST structures (Stage 2)  
+├─ Is it required by MRST? → Look in MRST structures (Stage 2)
 ├─ Is it calculated? → Look in processing variables (Stage 3)
 └─ Is it output/export? → Look in results variables (Stage 4)
 
 Working on a specific domain?
 ├─ Rock/Fluid properties → Check RESERVOIR PROPERTIES section
 ├─ Wells/Production → Check WELL ENGINEERING section
-├─ Solver/Numerics → Check NUMERICAL METHODS section  
+├─ Solver/Numerics → Check NUMERICAL METHODS section
 ├─ Grid/Geometry → Check GRID & GEOMETRY section
 └─ Files/Data → Check DATA MANAGEMENT section
 ```
@@ -202,18 +243,21 @@ Working on a specific domain?
 ### Common Usage Patterns for AIs
 
 #### Adding New Rock Property
+
 1. Config Stage: Add to `rock_properties_config.yaml`
-2. Load Stage: Access via `rock_params.new_property` in s07  
+2. Load Stage: Access via `rock_params.new_property` in s07
 3. MRST Stage: Add to `rock` structure for MRST compatibility
 4. Usage Stage: Access via `rock.new_property` in other modules
 
 #### Adding New Well Parameter
+
 1. Config Stage: Add to `wells_config.yaml`
 2. Load Stage: Access via `well_config.new_parameter` in s18
 3. Processing Stage: Use in well calculations (s17, s18)
 4. MRST Stage: Include in `W` structure if needed
 
 #### Error-Prone Areas for LLMs
+
 1. **Unit Confusion**: `perm_x` is in mD, `rock.perm` is in m²
 2. **Structure Confusion**: `rock_params` (config) ≠ `rock_props` (loaded) ≠ `rock` (MRST)
 3. **File Dependencies**: Must load G before using `G.cells.num`
@@ -226,12 +270,61 @@ PROJECT_STRUCTURE_REFERENCE:
 - **Tertiary**: Individual YAML configs for specific parameters
 - Structure follows 4-stage workflow: YAML→MATLAB→MRST→Results
 
-SIMPLE CODE POLICY (“Keep It Simple, Stupid”)
+## CANON-FIRST DEVELOPMENT PHILOSOPHY (CANONICAL)
 
-### KISS Core
+**CRITICAL**: This project follows a revolutionary "Documentation-as-Specification" approach that eliminates defensive programming and ensures true minimalism.
 
-- Write the most direct, readable solution that fulfils the requirement—no speculative abstractions.
-- Break problems into small, single-purpose functions (see Rule 1 _FUNCTION_STRUCTURE_).
+### Core Principles
+
+1. **Canon Documentation IS the Specification**
+   - Everything in `obsidian-vault/Planning/` is THE definitive specification
+   - Code implements ONLY what is explicitly documented in canon
+   - No assumptions, no defaults, no "helpful" fallbacks
+
+2. **Fail Fast to Documentation Updates**
+   - When data/behavior is missing → ERROR with specific documentation directive
+   - Example: `"ERROR: Update obsidian-vault/Planning/Grid_Definition.md to specify cell_size_x"`
+   - Never create "safe" fallbacks that hide specification gaps
+
+3. **Zero Defensive Programming**
+   - No try-catch for flow control
+   - No default values for domain parameters
+   - No "just in case" code for undocumented scenarios
+   - If canon doesn't specify it → fail immediately with actionable error
+
+4. **Documentation-Driven Development**
+   - Update canon documentation FIRST
+   - Then implement code to match specification exactly
+   - Code should be readable specification implementation
+   - Complex code = specification needs clarification
+
+### Implementation Pattern
+
+```matlab
+% CANON-FIRST PATTERN
+if ~isfield(config, 'canonical_parameter')
+    error(['Missing canonical parameter in config.\n' ...
+           'REQUIRED: Update obsidian-vault/Planning/CONFIG_SPEC.md\n' ...
+           'to define canonical_parameter for Eagle West Field.\n' ...
+           'Canon must specify exact value, no defaults allowed.']);
+end
+```
+
+### Benefits Achieved
+
+- **60-75% code reduction** by eliminating defensive patterns
+- **Crystal-clear specifications** in documentation
+- **Zero ambiguity** about system behavior
+- **Trivial debugging** (everything traceable to canon)
+- **True minimalism** with maximum clarity
+
+SIMPLE CODE POLICY ("Keep It Simple, Stupid")
+
+### KISS Core Enhanced with Canon-First
+
+- Write the most direct, readable solution that implements canon specification exactly
+- Break problems into small, single-purpose functions (see Rule 1 _FUNCTION_STRUCTURE_)
+- If complexity arises, clarify canon specification rather than adding code complexity
 
 ### Exception Handling Policy
 
@@ -304,11 +397,13 @@ If required configuration, data, or dependencies are missing, FAIL immediately w
 ### File Naming (STRICTLY ENFORCED - CANONICAL)
 
 **MRST Workflow Scripts** (Primary Pattern):
+
 - `s01_initialize_mrst.m` through `s25_reservoir_analysis.m`
 - `s99_run_workflow.m` (complete workflow)
-- Pattern: `sNN[x]_<verb>_<noun>.m` 
+- Pattern: `sNN[x]_<verb>_<noun>.m`
 
 **Other File Types**:
+
 - **Python scripts**: `sNN[x]_<verb>_<noun>.py` (if any)
 - **Tests**: `test_NN_<folder>_<module>.py` (e.g., `test_01_mrst_simulation_scripts_s02.py`)
 - **Debug**: `dbg_<issue>.m` (e.g., `dbg_s22_convergence_failure.m`)
@@ -379,9 +474,37 @@ Automatic validation on file operations:
 
 # important-instruction-reminders
 
-**FOR AI ASSISTANTS**: 
+**FOR AI ASSISTANTS (CLAUDE CODE)**:
+
+**CRITICAL ROLE**: You are a **Manager/Orquestador** - NEVER execute tasks directly, always delegate to specialized agents.
+
+**Primary Workflow**:
+1. **Analyze Request** - Parse user input for task type and keywords
+2. **Select Agent** - Choose coder/tester/debugger/doc-writer based on task
+3. **Delegate Task** - Use Task tool with appropriate agent and context
+4. **Coordinate** - Facilitate inter-agent communication when needed
+5. **Supervise** - Ensure agents use MCP tools and follow project rules
+
+**CANON-FIRST ENFORCEMENT**:
+- **ALWAYS verify canon documentation** before implementing anything
+- **NEVER create fallbacks** - instead direct to update obsidian-vault/Planning/
+- **FAIL FAST with documentation directives** when specification is missing
+- **Eliminate defensive programming** that hides specification gaps
+- **Code must implement canon exactly** - no assumptions or defaults
+
+**Variable Management**:
 - Always check VARIABLE_INVENTORY.md before working with variables
-- Use the LLM Decision Tree for variable classification  
+- Use the LLM Decision Tree for variable classification
 - Follow the 4-stage workflow understanding
 - Consult cross-reference table for variable dependencies
 - Maintain consistency with canonical naming conventions
+
+**Canon Documentation Authority**:
+- obsidian-vault/Planning/ contains THE specification for Eagle West Field
+- YAML configs implement canon specification exactly
+- Code implements YAML/canon exactly with zero deviation
+- Missing specifications → error directing to canon update
+
+**Memory Recovery** (for new sessions):
+- Use `mcp__memory__search_nodes "Claude_Manager_Role"` to recover role context
+- Consult this CLAUDE.md file for complete project understanding

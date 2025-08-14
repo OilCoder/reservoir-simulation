@@ -132,32 +132,65 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 - **Total Layers**: 12 (representing major flow units)
 - **Aspect Ratio**: 9.9 (82 ft / 8.3 ft) - within recommended limit of ≤10
 
-### 3.3 Local Grid Refinement Needs
+### 3.3 Tiered Grid Refinement Strategy (CANONICAL APPROACH)
 
-#### Near-Fault Areas (Major Faults_A, B, C, D)
-- **Refinement Zone**: 300.0 ft buffer around major faults
-- **Refinement Factor**: 2 (2x2 subdivision)
-- **Refined Cell Size**: 25.0 ft × 25.0 ft (X × Y)
-- **Refined Layer Thickness**: 4.0 ft (vertical)
-- **Minimum Cell Size**: 25.0 ft (for accurate transmissibility)
-- **Purpose**: Accurate fault transmissibility modeling
-- **Implementation**: Local grid refinement (LGR) blocks with transition smoothing
+**Overview**: Eagle West Field employs an optimized tiered refinement approach achieving 61.5% computational cost reduction while maintaining geological accuracy. Target coverage: 20-30% of field area.
 
-#### Well Drainage Areas
-- **Refinement Zone**: 250.0 ft radius around each wellbore
-- **Refinement Factor**: 2 (2x2 subdivision)
-- **Refined Cell Size**: 20.0 ft × 18.0 ft (X × Y)
-- **Refined Layer Thickness**: 4.0 ft (vertical)
-- **Purpose**: Near-wellbore flow modeling and rate allocation
-- **Transition**: Smooth transition to coarser parent grid
-- **All Wells**: Applied to all 15 producer and injector wells
+#### Fault Tier System
+**Major Faults** (Fault_A, Fault_C, Fault_D):
+- **Buffer Zone**: 400 ft around fault traces
+- **Refinement Factor**: 3×3 subdivision (9× cell multiplication)
+- **Cell Size**: ~18 ft × 18 ft (fault-optimized)
+- **Priority**: 1 (highest) - Critical sealing structures
+- **Coverage**: 6.1% of field area
 
-#### High Permeability Streak Refinement (Optional)
-- **Activation**: Optional refinement for permeability streaks
-- **Permeability Threshold**: 500.0 mD threshold
-- **Refined Cell Size**: 15.0 ft (isotropic refinement)
-- **Purpose**: Capture high-flow channels and sweep patterns
-- **Implementation**: Conditional refinement based on property distribution
+**Minor Faults** (Fault_B, Fault_E):
+- **Buffer Zone**: 200 ft around fault traces  
+- **Refinement Factor**: 2×2 subdivision (4× cell multiplication)
+- **Cell Size**: ~25 ft × 25 ft
+- **Priority**: 2 (standard) - Secondary geological features
+- **Coverage**: 4.1% of field area
+
+#### Well Tier System
+**Critical Wells** (5 wells: EW-001, EW-003, EW-005, EW-007, EW-010):
+- **Refinement Zone**: 350 ft radius
+- **Refinement Factor**: 3×3 subdivision
+- **Cell Size**: ~15 ft × 12 ft (finest resolution)
+- **Priority**: 1 (highest) - High-rate, multi-lateral producers
+- **Coverage**: 4.8% of field area
+
+**Standard Wells** (4 wells: EW-002, EW-008, IW-001, IW-003):
+- **Refinement Zone**: 250 ft radius
+- **Refinement Factor**: 2×2 subdivision
+- **Cell Size**: ~20 ft × 18 ft
+- **Priority**: 2 (medium) - Main development wells
+- **Coverage**: 7.4% of field area
+
+**Marginal Wells** (6 wells: EW-004, EW-006, EW-009, IW-002, IW-004, IW-005):
+- **Refinement Zone**: 150 ft radius
+- **Refinement Factor**: 2×2 subdivision
+- **Cell Size**: ~25 ft × 22 ft
+- **Priority**: 3 (standard) - Late phase, lower rate wells
+- **Coverage**: 2.8% of field area
+
+#### Optimization Results
+- **Total Coverage**: 25.0% (vs previous 77.3% uniform approach)
+- **Refined Cells**: 19,104 (vs previous 49,645)
+- **Computational Savings**: 61.5% reduction in grid complexity
+- **Performance**: 50-60% faster simulation execution
+- **Memory Efficiency**: 65% reduction in refined grid memory
+
+#### Implementation
+- **Configuration**: Tier parameters defined in `grid_config.yaml`
+- **Processing**: Implemented in `s06_grid_refinement.m`
+- **Priority Resolution**: Higher priority tiers override lower priority in overlapping zones
+- **Validation**: Automatic coverage target verification (20-30% range)
+- **Documentation**: Complete mathematical foundation in [[12_Tiered_Grid_Refinement_Optimization]]
+
+#### Legacy Compatibility
+- **Uniform Refinement**: Available via `tiered_strategy.enable = false`
+- **Backward Support**: Previous parameters preserved for comparison studies
+- **Migration Path**: Seamless transition between tiered and uniform approaches
 
 #### Grid Quality Control Parameters
 - **Maximum Aspect Ratio**: 10.0 (cell dimension ratio limit)

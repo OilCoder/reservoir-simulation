@@ -33,6 +33,39 @@ Read and follow these rules from `.claude/rules/`:
     - Examples: `s00_prepare_dataset.py`, `s01_split_data.py`
   - **Main launcher**: `s99_<descriptive_phrase>.<ext>` (appears last in listings)
 - **Rule 6**: Google Style docstrings
+- **Rule 9**: Canon-First Philosophy (CRITICAL)
+
+## 🏛️ Canon-First Philosophy (CRITICAL)
+
+**NEVER write defensive code** - implement ONLY what canon documentation specifies:
+
+### Core Implementation Rules
+1. **Canon Documentation IS the Specification**
+   - `obsidian-vault/Planning/` contains THE definitive specification
+   - Code implements ONLY what is explicitly documented
+   - No assumptions, no defaults, no fallbacks
+
+2. **Fail Fast to Documentation**
+   ```matlab
+   % ✅ REQUIRED Pattern
+   if ~isfield(config, 'canonical_parameter')
+       error(['Missing canonical parameter in config.\n' ...
+              'REQUIRED: Update obsidian-vault/Planning/CONFIG_SPEC.md\n' ...
+              'to define canonical_parameter for Eagle West Field.\n' ...
+              'Canon must specify exact value, no defaults allowed.']);
+   end
+   ```
+
+3. **Prohibited Defensive Patterns**
+   - ❌ Default values for domain parameters
+   - ❌ Try-catch for flow control
+   - ❌ Multiple file loading attempts
+   - ❌ "Safe" fallbacks that hide specification gaps
+
+4. **Required Canon Validation**
+   - Validate against exact canon specifications
+   - All errors must direct to specific documentation updates
+   - No speculative code for undocumented scenarios
 
 ## 🤝 Agent Communication
 

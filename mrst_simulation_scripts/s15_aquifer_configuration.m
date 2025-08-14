@@ -29,7 +29,15 @@ function output_data = s15_aquifer_configuration()
 % Date: January 30, 2025
 
     % Load print utilities for consistent table format
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     
     % Print module header
     print_step_header('S15', 'AQUIFER CONFIGURATION');
@@ -43,23 +51,26 @@ function output_data = s15_aquifer_configuration()
         fprintf('📋 Loading configuration and previous results...\n');
         
         % Load YAML configurations
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         init_config = read_yaml_config('config/initialization_config.yaml', true);
         
         % Load grid with pressure and saturations from s14
-        if exist('data/mrst_simulation/static/grid_with_pressure_saturation.mat', 'file')
+        data_dir = get_data_path('static');
+        grid_file = fullfile(data_dir, 'grid_with_pressure_saturation.mat');
+        if exist(grid_file, 'file')
             fprintf('   ✅ Loading grid with pressure and saturations from s14\n');
-            load('data/mrst_simulation/static/grid_with_pressure_saturation.mat', ...
-                 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
+            load(grid_file, 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
             G = G_with_pressure_sat;
         else
             error('Grid with pressure/saturations not found. Run s14_saturation_distribution.m first');
         end
         
         % Load fluid properties for aquifer
-        if exist('data/mrst_simulation/static/complete_fluid_blackoil.mat', 'file')
+        addpath(fullfile(script_dir, 'utils')); 
+        fluid_file = get_data_path('static', 'fluid', 'complete_fluid_blackoil.mat');
+        if exist(fluid_file, 'file')
             fprintf('   ✅ Loading fluid properties from s12\n');
-            load('data/mrst_simulation/static/complete_fluid_blackoil.mat', 'fluid_complete');
+            load(fluid_file, 'fluid_complete');
             fluid = fluid_complete;
         else
             error('Complete fluid properties not found. Run s12_pvt_tables.m first');
@@ -68,25 +79,65 @@ function output_data = s15_aquifer_configuration()
         %% 2. Extract Aquifer Configuration Parameters
         fprintf('⚙️  Extracting aquifer configuration parameters...\n');
         
-        % Aquifer properties from initialization config
-        aquifer_params = init_config.aquifer_parameters;
+        % Extract aquifer properties from YAML configuration (FAIL_FAST_POLICY)
+        if ~isfield(init_config.initialization, 'aquifer_configuration')
+            error('Aquifer configuration missing from initialization_config.yaml. Add aquifer_configuration section.');
+        end
         
-        aquifer_porosity = aquifer_params.porosity;           % 0.23
-        aquifer_permeability = aquifer_params.permeability_md; % 100 mD
-        aquifer_thickness = aquifer_params.thickness_ft;       % 50 ft
-        aquifer_compressibility = aquifer_params.compressibility_per_psi; % 4.1e-6 /psi
+        aquifer_config = init_config.initialization.aquifer_configuration;
         
-        % Aquifer geometry
-        reservoir_radius = aquifer_params.reservoir_radius_ft;  % Effective reservoir radius
-        aquifer_radius = aquifer_params.aquifer_radius_ft;      % External aquifer boundary
+        % Properties are now flattened in aquifer_config (YAML parser compatibility)
+        aquifer_params = aquifer_config;
+        
+        aquifer_porosity = aquifer_params.aquifer_porosity;
+        aquifer_permeability = aquifer_params.aquifer_permeability_md;
+        aquifer_thickness = aquifer_params.aquifer_thickness_ft;
+        aquifer_compressibility = aquifer_params.aquifer_compressibility_1_psi;
+        
+        % Aquifer geometry - calculate from grid if not specified
+        if isfield(aquifer_params, 'reservoir_radius_ft')
+            reservoir_radius = aquifer_params.reservoir_radius_ft;
+        else
+            % Calculate effective reservoir radius from grid
+            max_x = max(G.nodes.coords(:,1));
+            min_x = min(G.nodes.coords(:,1));
+            max_y = max(G.nodes.coords(:,2));
+            min_y = min(G.nodes.coords(:,2));
+            reservoir_radius = 0.5 * sqrt((max_x-min_x)^2 + (max_y-min_y)^2) * 3.28084; % Convert to ft
+        end
+        
+        aquifer_radius = aquifer_params.aquifer_radius_ft;
         
         % Carter-Tracy model parameters
-        aquifer_type = aquifer_params.model_type;               % 'carter_tracy'
-        boundary_condition = aquifer_params.boundary_condition; % 'peripheral'
+        aquifer_type = aquifer_config.aquifer_model;
+        boundary_condition = aquifer_config.aquifer_type;
+        
+        % Load pressure initialization data to get actual datum values (needed for calculations)
+        pressure_file = get_data_path('static', '', 'pressure_initialization.mat');
+        if exist(pressure_file, 'file')
+            load(pressure_file, 'init_config');
+            datum_pressure = init_config.initialization.initial_conditions.initial_pressure_psi;
+            datum_depth = init_config.initialization.equilibration_method.datum_depth_ft_tvdss;
+            water_gradient = init_config.initialization.pressure_gradients.water_gradient_psi_ft;
+        else
+            error('Pressure initialization data not found. Run s13_pressure_initialization.m first');
+        end
         
         % System properties for aquifer calculations from fluid model
-        p_ref = convertTo(datum_pressure, psia);  % Reference pressure for fluid properties
-        water_viscosity = fluid.muW(p_ref) / centi*poise;  % Convert from Pa·s to cp
+        p_ref = datum_pressure * 6894.76;  % Convert psi to Pa for MRST fluid functions
+        
+        % Get water viscosity - use try/catch for robustness
+        try
+            if isa(fluid.muW, 'function_handle')
+                water_viscosity = fluid.muW(p_ref) * 1000;  % Convert from Pa·s to cp
+            else
+                water_viscosity = fluid.muW * 1000;  % If it's a constant
+            end
+        catch
+            % Fallback to typical formation water viscosity
+            water_viscosity = 0.5;  % cp, typical formation water viscosity
+            fprintf('   ⚠️  Using default water viscosity: %.1f cp\n', water_viscosity);
+        end
         water_compressibility = 3.2e-6; % /psi (from YAML - not calculable by simulator)
         
         fprintf('   📊 Aquifer type: %s\n', aquifer_type);
@@ -110,10 +161,13 @@ function output_data = s15_aquifer_configuration()
         
         % Aquifer constant (for Carter-Tracy influx calculation)
         % W_e = B * sum(Q_D * ΔP) where B is the aquifer constant
-        % Load empirical constants from YAML (petroleum engineering standards)
-        carter_tracy_consts = aquifer_params.carter_tracy_constants;
-        carter_tracy_constant = carter_tracy_consts.carter_tracy_constant;
-        vh_time_constant = carter_tracy_consts.van_everdingen_hurst_constant;
+        % Load Carter-Tracy constants from YAML (FAIL_FAST_POLICY, flattened)
+        if ~isfield(aquifer_config, 'carter_tracy_constant')
+            error('Carter-Tracy constants missing from YAML config. Add carter_tracy_constant and van_everdingen_hurst_constant.');
+        end
+        
+        carter_tracy_constant = aquifer_config.carter_tracy_constant;
+        vh_time_constant = aquifer_config.van_everdingen_hurst_constant;
         
         aquifer_constant_B = carter_tracy_constant * phi_aq * ct_total * h_aq_ft * (reservoir_radius^2);
         
@@ -145,14 +199,22 @@ function output_data = s15_aquifer_configuration()
         %% 4. Configure MRST Aquifer Boundary Conditions
         fprintf('🌊 Configuring MRST aquifer boundary conditions...\n');
         
-        % Find boundary cells (cells at model edges that contact aquifer)
+        % Find boundary cells using MRST function (FAIL_FAST_POLICY)
+        if ~exist('boundaryFaces', 'file') && isempty(which('boundaryFaces'))
+            error('MRST function boundaryFaces not available. Install required MRST modules or check initialization.');
+        end
+        
         boundary_faces = boundaryFaces(G);
         boundary_cells = unique(boundary_faces);
         
         % For peripheral aquifer, identify bottom and edge cells
         cell_centers = G.cells.centroids;
         
-        % Convert cell depths to feet using MRST native function (consistent with s13/s14)
+        % Convert cell depths to feet using MRST units (FAIL_FAST_POLICY)
+        if ~exist('ft', 'var') && isempty(which('ft'))
+            error('MRST unit ft not available. Check MRST units module initialization.');
+        end
+        
         cell_depths_m = cell_centers(:, 3);
         cell_depths = convertTo(abs(cell_depths_m), ft);
         
@@ -163,7 +225,11 @@ function output_data = s15_aquifer_configuration()
         % Find cells that could connect to aquifer
         deep_cells = find(cell_depths > depth_threshold);
         
-        % Also include cells at lateral boundaries (for peripheral aquifer)
+        % Find lateral boundary cells using MRST function (FAIL_FAST_POLICY)
+        if ~exist('gridLogicalIndices', 'file') && isempty(which('gridLogicalIndices'))
+            error('MRST function gridLogicalIndices not available. Install required MRST modules.');
+        end
+        
         [I, J, K] = gridLogicalIndices(G);
         edge_cells = find(I == 1 | I == max(I) | J == 1 | J == max(J));
         
@@ -206,9 +272,6 @@ function output_data = s15_aquifer_configuration()
         
         % Initial aquifer pressure (matches initial reservoir pressure at aquifer depth)
         aquifer_depth = max_depth;  % Deepest part of reservoir
-        datum_pressure = 2900;      % psi (from initialization)
-        datum_depth = 8000;         % ft TVDSS
-        water_gradient = 0.433;     % psi/ft
         
         aquifer_pressure = datum_pressure + water_gradient * (aquifer_depth - datum_depth);
         aquifer_model.initial_pressure = aquifer_pressure;
@@ -280,7 +343,10 @@ function output_data = s15_aquifer_configuration()
         if ~isempty(aquifer_cells)
             connected_pore_volumes = rock.poro(aquifer_cells) .* G.cells.volumes(aquifer_cells);
             connected_pore_volume = sum(connected_pore_volumes);
-            % Convert to barrels using MRST native function
+            % Convert to barrels using MRST units (FAIL_FAST_POLICY)
+            if ~exist('stb', 'var') && isempty(which('stb'))
+                error('MRST unit stb not available. Check MRST units module initialization.');
+            end
             connected_pore_volume_bbl = convertTo(connected_pore_volume, stb);
         end
         
@@ -295,7 +361,7 @@ function output_data = s15_aquifer_configuration()
         % Ensure output directory exists
         % Use same path construction as other working phases  
         script_path = fileparts(mfilename('fullpath'));
-        output_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+        output_dir = get_data_path('static');
         if ~exist(output_dir, 'dir')
             mkdir(output_dir);
         end

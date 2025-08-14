@@ -1,5 +1,13 @@
 function fluid_with_pc = s11_capillary_pressure()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S11_CAPILLARY_PRESSURE - Define capillary pressure curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
@@ -56,10 +64,15 @@ end
 
 function [fluid, G] = step_1_load_fluid_data()
 % Step 1 - Load fluid structure from s10
+    script_dir = fileparts(mfilename('fullpath'));
 
     % Substep 1.1 – Locate fluid file __________________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    addpath(fullfile(script_dir, 'utils'));
+    data_dir = get_data_path('static', 'fluid');
     fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
     
     if ~exist(fluid_file, 'file')
@@ -73,10 +86,11 @@ end
 
 function scal_config = step_1_load_scal_config()
 % Step 1 - Load SCAL configuration (reuse from s10)
+    script_dir = fileparts(mfilename('fullpath'));
 
     try
         % Load SCAL configuration from YAML - CANON compliance
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         scal_config = scal_config.scal_properties;
         
@@ -366,9 +380,14 @@ end
 
 function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
 % Export enhanced fluid structure to file
+    script_dir = fileparts(mfilename('fullpath'));
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    addpath(fullfile(script_dir, 'utils'));
+    data_dir = get_data_path('static', 'fluid');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -382,9 +401,14 @@ end
 
 function export_pc_summary(fluid_with_pc, G, scal_config)
 % Export capillary pressure summary
+    script_dir = fileparts(mfilename('fullpath'));
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    addpath(fullfile(script_dir, 'utils'));
+    data_dir = get_data_path('static', 'fluid');
     
     pc_summary_file = fullfile(data_dir, 'capillary_pressure_summary.txt');
     fid = fopen(pc_summary_file, 'w');

@@ -1,5 +1,13 @@
 function fluid = s03_define_fluids()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S03_DEFINE_FLUIDS - Define fluid properties using native MRST modules
 % Requires: MRST
 %
@@ -64,17 +72,43 @@ function verify_mrst_modules()
     if isempty(MRST_MODULES_LOADED) && exist('mrstModule', 'file')
         % Try to load required modules if not persistent from s01
         required_modules = {'ad-core', 'ad-blackoil', 'ad-props'};
+        all_modules_loaded = true;
+        
+        fprintf('   Loading required MRST modules...\n');
         for i = 1:length(required_modules)
+            module_name = required_modules{i};
             try
-                mrstModule('add', required_modules{i});
-            catch
-                % Silent failure - fallbacks will handle this
+                mrstModule('add', module_name);
+                fprintf('   ✅ Module loaded: %s\n', module_name);
+            catch module_error
+                fprintf('   ❌ Failed to load module %s: %s\n', module_name, module_error.message);
+                all_modules_loaded = false;
             end
+        end
+        
+        if all_modules_loaded
+            fprintf('   ✅ All required MRST modules loaded successfully\n');
+            MRST_MODULES_LOADED = true;
+        else
+            fprintf('   ⚠️ Some MRST modules failed to load - attempting to continue\n');
         end
     end
     
-    % Substep 1.3 – Verify key functions are available (silently) _____
-    % Functions verified silently - fallbacks handle missing functions
+    % Substep 1.3 – Verify key functions are available ________________
+    required_functions = {'initSimpleADIFluid', 'mrstModule'};
+    missing_functions = {};
+    
+    for i = 1:length(required_functions)
+        func_name = required_functions{i};
+        if ~exist(func_name, 'file')
+            missing_functions{end+1} = func_name;
+        end
+    end
+    
+    if ~isempty(missing_functions)
+        fprintf('   ⚠️ Missing MRST functions: %s\n', strjoin(missing_functions, ', '));
+        fprintf('   Proceeding with fallback implementations\n');
+    end
 
 end
 
@@ -96,25 +130,69 @@ function try_fallback_mrst_initialization()
     mrst_found = false;
     for i = 1:length(potential_paths)
         path = potential_paths{i};
-        if exist(fullfile(path, 'startup.m'), 'file')
+        startup_file = fullfile(path, 'startup.m');
+        
+        if exist(startup_file, 'file')
             try
-                % Add MRST paths
-                addpath(fullfile(path, 'core'));
-                addpath(fullfile(path, 'core', 'utils'));
-                addpath(fullfile(path, 'core', 'gridprocessing'));
-                addpath(path);
+                % Store current directory
+                current_dir = pwd;
                 
-                fprintf('   ✅ Added MRST paths from: %s\n', path);
+                % Add core utilities path BEFORE running startup.m
+                % This ensures mrstPath is available when startup.m executes
+                core_utils_path = fullfile(path, 'core', 'utils');
+                if exist(core_utils_path, 'dir')
+                    addpath(core_utils_path);
+                    fprintf('   Added core utils path: %s\n', core_utils_path);
+                end
+                
+                % Change to MRST directory and run startup
+                cd(path);
+                run('startup.m');
+                
+                % Return to original directory
+                cd(current_dir);
+                
+                fprintf('   ✅ MRST startup executed from: %s\n', path);
+                
+                % Now load required modules with error visibility
+                required_modules = {'ad-core', 'ad-blackoil', 'ad-props'};
+                modules_loaded = true;
+                
+                for j = 1:length(required_modules)
+                    module_name = required_modules{j};
+                    try
+                        mrstModule('add', module_name);
+                        fprintf('   ✅ Module loaded: %s\n', module_name);
+                    catch module_error
+                        fprintf('   ❌ Failed to load module %s: %s\n', module_name, module_error.message);
+                        modules_loaded = false;
+                    end
+                end
+                
+                if modules_loaded
+                    fprintf('   ✅ All required MRST modules loaded successfully\n');
+                    % Set global flag to indicate modules are loaded
+                    global MRST_MODULES_LOADED;
+                    MRST_MODULES_LOADED = true;
+                else
+                    fprintf('   ⚠️ Some MRST modules failed to load - proceeding with available modules\n');
+                end
+                
                 mrst_found = true;
                 break;
-            catch
+                
+            catch init_error
+                % Return to original directory if error occurred
+                cd(current_dir);
+                fprintf('   ⚠️ MRST initialization failed at %s: %s\n', path, init_error.message);
                 continue;
             end
         end
     end
     
     if ~mrst_found
-        fprintf('   ⚠️ Could not locate MRST installation for fallback\n');
+        error('Could not locate or initialize MRST installation. Please ensure MRST is installed and accessible in one of these locations: %s', ...
+              strjoin(potential_paths, ', '));
     end
 
 end
@@ -405,7 +483,9 @@ function validate_native_fluid(fluid, fluid_params)
     
     % Validate phases
     if ~strcmp(fluid.phases, 'WOG') && ~strcmp(fluid.phases, 'OWG')
-        warning('Unexpected phase configuration: %s', fluid.phases);
+        error(['Invalid phase configuration: %s\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
+               'Must use exactly ''WOG'' or ''OWG'' phase ordering.'], fluid.phases);
     end
     
     % Check that PVT tables exist
@@ -415,7 +495,9 @@ function validate_native_fluid(fluid, fluid_params)
         if isfield(fluid, table) && ~isempty(fluid.(table))
             fprintf('     %s table: %dx%d\n', upper(table), size(fluid.(table)));
         else
-            warning('Missing or empty PVT table: %s', table);
+            error(['Missing PVT table: %s\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
+                   'Must define complete PVT tables for 3-phase black oil.'], table);
         end
     end
     
@@ -442,7 +524,7 @@ function export_native_fluid_data(fluid, fluid_params, deck)
 
     % Create output directory
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -505,7 +587,8 @@ function fluid_params = create_default_fluid_params()
 % Load fluid parameters from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load from YAML only
-        addpath('utils');
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
         config = read_yaml_config('config/fluid_properties_config.yaml');
         fluid_params = config.fluid_properties;
         

@@ -100,22 +100,20 @@ initialization:
     aquifer_type: "analytical_peripheral"
     aquifer_model: "carter_tracy"
     
-    # Aquifer Properties
-    aquifer_properties:
-      aquifer_radius_ft: 8500.0         # Aquifer extent
-      aquifer_thickness_ft: 50.0        # Aquifer interval thickness
-      aquifer_porosity: 0.23            # Aquifer porosity
-      aquifer_permeability_md: 100.0    # Aquifer permeability
-      aquifer_compressibility_1_psi: 6.5e-6  # Aquifer + water compressibility
+    # Aquifer Properties (flattened for YAML parser compatibility)
+    aquifer_radius_ft: 8500.0         # Aquifer extent
+    aquifer_thickness_ft: 50.0        # Aquifer interval thickness
+    aquifer_porosity: 0.23            # Aquifer porosity
+    aquifer_permeability_md: 100.0    # Aquifer permeability
+    aquifer_compressibility_1_psi: 6.5e-6  # Aquifer + water compressibility
       
     # Aquifer Strength
     aquifer_strength: "moderate"        # Support classification
     dimensionless_productivity_index: 15.0
     
-    # Carter-Tracy Model Constants (petroleum engineering standards)
-    carter_tracy_constants:
-      carter_tracy_constant: 1.119      # Empirical constant from petroleum engineering literature
-      van_everdingen_hurst_constant: 0.0002637  # Time constant from van Everdingen & Hurst (1949)
+    # Carter-Tracy Model Constants (flattened for YAML parser compatibility)
+    carter_tracy_constant: 1.119      # Empirical constant from petroleum engineering literature
+    van_everdingen_hurst_constant: 0.0002637  # Time constant from van Everdingen & Hurst (1949)
     
   # Height Functions and Pc Integration (CANON)
   height_function_parameters:
@@ -191,6 +189,18 @@ initialization:
     # Aquifer Uncertainty
     aquifer_strength_multiplier: [0.5, 2.0]  # Range for uncertainty
     
+  # Unit Conversions (CANON)
+  unit_conversions:
+    length:
+      m_to_ft: 3.28084              # Meters to feet conversion
+      ft_to_m: 0.3048               # Feet to meters conversion
+    pressure:
+      psi_to_pa: 6894.76            # PSI to Pascal conversion
+      pa_to_psi: 0.000145038        # Pascal to PSI conversion
+    volume:
+      bbl_to_m3: 0.158987294928     # Barrel to cubic meter
+      m3_to_bbl: 6.28981            # Cubic meter to barrel
+
   # Reference Standards
   technical_standards:
     industry_standard: "SPE_reservoir_initialization"

@@ -30,7 +30,15 @@ function output_data = s13_pressure_initialization()
 % Date: January 30, 2025
 
     % Load print utilities for consistent table format
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     
     % Print module header
     print_step_header('S13', 'PRESSURE INITIALIZATION');
@@ -44,32 +52,43 @@ function output_data = s13_pressure_initialization()
         fprintf('📋 Loading configuration and grid data...\n');
         
         % Load YAML configurations
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         init_config = read_yaml_config('config/initialization_config.yaml', true);
         
         % Load grid and rock properties from previous steps
         script_path = fileparts(mfilename('fullpath'));
-        data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+        if isempty(script_path)
+            script_path = pwd();
+        end
+        data_dir = get_data_path('static');
         
         grid_loaded = false;
         
-        % Try loading from final simulation rock (latest step)
-        grid_files = {'final_simulation_rock.mat', 'refined_grid.mat', 'base_grid.mat'};
-        
-        for i = 1:length(grid_files)
-            grid_file = fullfile(data_dir, grid_files{i});
-            if exist(grid_file, 'file')
-                data = load(grid_file);
-                if isfield(data, 'G')
-                    G = data.G;
-                    grid_loaded = true;
-                    fprintf('   ✅ Loading grid from %s\n', grid_files{i});
-                    break;
-                elseif isfield(data, 'G_refined')
-                    G = data.G_refined;
-                    grid_loaded = true;
-                    fprintf('   ✅ Loading refined grid from %s\n', grid_files{i});
-                    break;
+        % Try loading from enhanced rock (contains grid from workflow)
+        enhanced_rock_file = fullfile(data_dir, 'enhanced_rock_with_layers.mat');
+        if exist(enhanced_rock_file, 'file')
+            fprintf('   ✅ Loading grid from enhanced_rock_with_layers.mat\n');
+            load(enhanced_rock_file, 'G');
+            grid_loaded = true;
+        else
+            % Try loading from other grid files as fallback
+            grid_files = {'final_simulation_rock.mat', 'refined_grid.mat', 'base_grid.mat'};
+            
+            for i = 1:length(grid_files)
+                grid_file = fullfile(data_dir, grid_files{i});
+                if exist(grid_file, 'file')
+                    data = load(grid_file);
+                    if isfield(data, 'G')
+                        G = data.G;
+                        grid_loaded = true;
+                        fprintf('   ✅ Loading grid from %s\n', grid_files{i});
+                        break;
+                    elseif isfield(data, 'G_refined')
+                        G = data.G_refined;
+                        grid_loaded = true;
+                        fprintf('   ✅ Loading refined grid from %s\n', grid_files{i});
+                        break;
+                    end
                 end
             end
         end
@@ -258,7 +277,9 @@ function output_data = s13_pressure_initialization()
         if validation_passed
             fprintf('   ✅ Pressure validation PASSED\n');
         else
-            fprintf('   ⚠️  Pressure validation completed with warnings\n');
+            error(['Pressure validation FAILED\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Initial_Conditions.md\n' ...
+                   'Must define valid pressure initialization parameters.']);
         end
         
         %% 7. Store Results and Create Output
@@ -307,8 +328,8 @@ function output_data = s13_pressure_initialization()
         fprintf('📁 Exporting pressure initialization data...\n');
         
         % Ensure output directory exists (use same path as other phases)
-        script_path = fileparts(mfilename('fullpath'));
-        output_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+        addpath(fullfile(script_dir, 'utils'));
+        output_dir = get_data_path('static');
         if ~exist(output_dir, 'dir')
             mkdir(output_dir);
         end
@@ -316,7 +337,7 @@ function output_data = s13_pressure_initialization()
         % Save pressure field and analysis
         save(fullfile(output_dir, 'pressure_initialization.mat'), ...
              'pressure', 'pressure_stats', 'pressure_by_zone', 'state', ...
-             'cell_depths', 'compartment_pressure_adj');
+             'cell_depths', 'compartment_pressure_adj', 'init_config');
         
         % Save for next phase
         G_with_pressure = G;  % Copy grid structure

@@ -1,5 +1,13 @@
 function rock = s07_define_rock_types()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S07_DEFINE_ROCK_TYPES - Define rock types using MRST native makeRock()
 % Requires: MRST
 %
@@ -56,19 +64,29 @@ end
 function G = step_1_load_grid()
 % Step 1 - Load grid structure from previous steps
 
-    % Substep 1.1 – Locate grid files ______________________________ 
+    % Substep 1.1 – Load canonical grid file ________________________ 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
     base_grid_file = fullfile(data_dir, 'base_grid.mat');
     
-    % Substep 1.2 – Load grid (refined preferred) ___________________
+    % Substep 1.3 – Load grid from files (refined preferred) ________
+    enhanced_rock_file = fullfile(data_dir, 'enhanced_rock_with_layers.mat');
+    
     if exist(refined_grid_file, 'file')
         load_data = load(refined_grid_file);
         G = load_data.G_refined;
+        fprintf('   ✅ Loading refined grid from file\n');
     elseif exist(base_grid_file, 'file')
         load(base_grid_file, 'G');
+        fprintf('   ✅ Loading base grid from file\n');
+    elseif exist(enhanced_rock_file, 'file')
+        load(enhanced_rock_file, 'G');
+        fprintf('   ✅ Loading grid from enhanced_rock_with_layers\n');
     else
         error('Grid not found. Run s02_create_grid.m first.');
     end
@@ -91,10 +109,11 @@ end
 
 function rock_params = create_default_rock_config()
 % Load rock configuration from YAML - NO HARDCODING POLICY
+    script_dir = fileparts(mfilename('fullpath'));
     
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         config = read_yaml_config('config/rock_properties_config.yaml');
         rock_params = config.rock_properties;
         
@@ -403,7 +422,10 @@ function export_rock_files(rock, G, rock_params, layer_properties)
 % Export rock data to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

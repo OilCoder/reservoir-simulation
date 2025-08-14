@@ -15,7 +15,15 @@ function control_results = s18_production_controls()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S18', 'Production Controls Setup');
     
     total_start_time = tic;
@@ -100,9 +108,13 @@ end
 
 function [completion_data, config] = step_1_load_completion_data()
 % Step 1 - Load well completion data and configuration
+    script_dir = fileparts(mfilename('fullpath'));
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 1.1 - Load completion data ___________________________
     completion_file = fullfile(data_dir, 'well_completions.mat');
@@ -117,7 +129,7 @@ function [completion_data, config] = step_1_load_completion_data()
     % Substep 1.2 - Load wells configuration _______________________
     config_path = fullfile(script_path, 'config', 'wells_config.yaml');
     if exist(config_path, 'file')
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         config = read_yaml_config(config_path);
         fprintf('Loaded wells configuration\n');
     else
@@ -477,7 +489,10 @@ function export_path = step_6_export_control_data(control_results)
 % Step 6 - Export production controls data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

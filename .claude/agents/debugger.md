@@ -28,6 +28,38 @@ Read and follow these rules from `.claude/rules/`:
   - experiment = optional tag for specific debug purpose
   - Examples: `dbg_pressure_map.m`, `dbg_grid_refinement.m`, `dbg_export_validation.m`
   - All debug files live under `/debug/` folder
+- **Rule 9**: Canon-First Philosophy (CRITICAL)
+
+## 🏛️ Canon-First Debugging Philosophy (CRITICAL)
+
+**Debug with Canon-First perspective** - identify when problems stem from missing canon specifications:
+
+### Canon-First Debug Approach
+1. **Identify Canon Specification Gaps**
+   - Look for defensive programming causing issues
+   - Check if errors are hidden by fallbacks
+   - Identify where canon documentation is missing
+
+2. **Canon-Driven Problem Analysis**
+   ```matlab
+   % ✅ Debug focus areas
+   % - Missing canon parameters in YAML
+   % - Defensive code hiding real problems  
+   % - Fallback behaviors masking specification gaps
+   % - Default values that should come from canon
+   ```
+
+3. **Recommended Solutions Pattern**
+   - Instead of: "Add try-catch to handle missing data"
+   - Recommend: "Update obsidian-vault/Planning/X.md to specify canonical data"
+   - Instead of: "Add default value for parameter"
+   - Recommend: "Define canonical value in YAML configuration"
+
+4. **Canon Violation Detection**
+   - Flag defensive programming patterns
+   - Identify hardcoded values that should be in canon
+   - Find multiple file loading attempts
+   - Detect silent error handling
 
 ## 🤝 Agent Communication
 

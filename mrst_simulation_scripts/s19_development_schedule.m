@@ -18,7 +18,15 @@ function schedule_results = s19_development_schedule()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S19', 'Development Schedule Implementation');
     
     total_start_time = tic;
@@ -109,9 +117,13 @@ end
 
 function [control_data, config] = step_1_load_control_data()
 % Step 1 - Load production controls and configuration data
+    script_dir = fileparts(mfilename('fullpath'));
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 1.1 - Load production controls data __________________
     controls_file = fullfile(data_dir, 'production_controls.mat');
@@ -127,7 +139,7 @@ function [control_data, config] = step_1_load_control_data()
     % Substep 1.2 - Load wells configuration _______________________
     config_path = fullfile(script_path, 'config', 'wells_config.yaml');
     if exist(config_path, 'file')
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         config = read_yaml_config(config_path);
         fprintf('Loaded wells configuration\n');
     else
@@ -598,7 +610,10 @@ function export_path = step_6_export_development_schedule(schedule_results)
 % Step 6 - Export development schedule data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

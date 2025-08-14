@@ -21,6 +21,7 @@ function config = read_yaml_config(config_file, silent_mode)
 %   - Arrays with [] notation
 %   - Nested structures with indentation
 %   - Wells configuration with specific well names
+%   - Tier structures (critical, standard, marginal) - FIX APPLIED
 %
 % Author: Claude Code AI System
 % Date: August 7, 2025
@@ -84,6 +85,7 @@ function config = parse_simple_yaml(filename)
 % - Arrays with [] notation
 % - Nested structures with indentation
 % - Wells configuration with specific well names (EW-001, IW-001, etc.)
+% - Tier structures (critical, standard, marginal) - FIX APPLIED
 %
 % INPUT:
 %   filename - Path to YAML file
@@ -176,15 +178,73 @@ function config = parse_simple_yaml(filename)
                             config.(current_section).(current_subsection).(current_well) = struct();
                         end
                     else
-                        % Regular parameter
+                        % Regular parameter (includes well_tiers, fault_tiers as containers)
                         if length(tokens) > 1
                             param_value = strtrim(tokens{2});
                             config.(current_section).(current_subsection).(param_name) = parse_value(param_value);
+                        else
+                            % Empty value - initialize as struct for nested content
+                            config.(current_section).(current_subsection).(param_name) = struct();
                         end
                     end
                     
-                % Fourth-level sections (6 spaces) - well parameters
+                % Fourth-level sections (6 spaces) - well parameters or tier names
                 elseif ~isempty(strfind(line, ':')) && indent_level == 6 && ~strncmp(line, '-', 1)
+                    if isempty(current_section) || isempty(current_subsection)
+                        continue;
+                    end
+                    
+                    tokens = strsplit(line, ':');
+                    param_name = strtrim(tokens{1});
+                    
+                    % FIX: Handle tier names (critical, standard, marginal, major, minor) at 6-space level
+                    if strcmp(param_name, 'critical') || strcmp(param_name, 'standard') || ...
+                       strcmp(param_name, 'marginal') || strcmp(param_name, 'major') || strcmp(param_name, 'minor')
+                        
+                        % This is a tier definition - need to find the parent structure
+                        % Look for well_tiers or fault_tiers in current subsection
+                        if isfield(config.(current_section).(current_subsection), 'well_tiers')
+                            % Add to well_tiers
+                            if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
+                                config.(current_section).(current_subsection).well_tiers.(param_name) = parse_value(strtrim(tokens{2}));
+                            else
+                                config.(current_section).(current_subsection).well_tiers.(param_name) = struct();
+                            end
+                            current_well = param_name; % Track current tier for nested params
+                            
+                        elseif isfield(config.(current_section).(current_subsection), 'fault_tiers')
+                            % Add to fault_tiers
+                            if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
+                                config.(current_section).(current_subsection).fault_tiers.(param_name) = parse_value(strtrim(tokens{2}));
+                            else
+                                config.(current_section).(current_subsection).fault_tiers.(param_name) = struct();
+                            end
+                            current_well = param_name; % Track current tier for nested params
+                        end
+                        
+                    elseif ~isempty(current_well)
+                        % Check if it's a sub-well element (like ESP systems)
+                        if strcmp(param_name, 'GC-2500') || strcmp(param_name, 'GC-4000') || ...
+                           strcmp(param_name, 'GC-6000') || strcmp(param_name, 'GC-8000') || ...
+                           strcmp(param_name, 'GC-10000') || ~isempty(strfind(param_name, '_'))
+                            current_subwell = param_name;
+                            
+                            if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
+                                config.(current_section).(current_subsection).(current_well).(current_subwell) = parse_value(strtrim(tokens{2}));
+                            else
+                                config.(current_section).(current_subsection).(current_well).(current_subwell) = struct();
+                            end
+                        else
+                            % Regular well parameter
+                            if length(tokens) > 1
+                                param_value = strtrim(tokens{2});
+                                config.(current_section).(current_subsection).(current_well).(param_name) = parse_value(param_value);
+                            end
+                        end
+                    end
+                    
+                % Fifth-level sections (8 spaces) - tier parameters
+                elseif ~isempty(strfind(line, ':')) && indent_level == 8 && ~strncmp(line, '-', 1)
                     if isempty(current_section) || isempty(current_subsection) || isempty(current_well)
                         continue;
                     end
@@ -192,58 +252,29 @@ function config = parse_simple_yaml(filename)
                     tokens = strsplit(line, ':');
                     param_name = strtrim(tokens{1});
                     
-                    % Check if it's a sub-well element (like ESP systems)
-                    if strcmp(param_name, 'GC-2500') || strcmp(param_name, 'GC-4000') || ...
-                       strcmp(param_name, 'GC-6000') || strcmp(param_name, 'GC-8000') || ...
-                       strcmp(param_name, 'GC-10000') || ~isempty(strfind(param_name, '_'))
-                        current_subwell = param_name;
-                        
-                        if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
-                            config.(current_section).(current_subsection).(current_well).(current_subwell) = parse_value(strtrim(tokens{2}));
-                        else
-                            config.(current_section).(current_subsection).(current_well).(current_subwell) = struct();
-                        end
-                    else
-                        % Regular well parameter
-                        if length(tokens) > 1
-                            param_value = strtrim(tokens{2});
-                            config.(current_section).(current_subsection).(current_well).(param_name) = parse_value(param_value);
-                        end
-                    end
-                    
-                elseif ~isempty(strfind(line, ':')) && indent_level == 8 && ~strncmp(line, '-', 1)
-                    % Fifth-level parameter (deep nested properties)
-                    if isempty(current_section) || isempty(current_subsection) || isempty(current_well) || isempty(current_subwell)
-                        continue;
-                    end
-                    
-                    tokens = strsplit(line, ':');
-                    param_name = strtrim(tokens{1});
-                    
                     if length(tokens) > 1
                         param_value = strtrim(tokens{2});
-                        if ~isempty(current_subwell)
+                        
+                        % FIX: Handle tier parameters (wells, radius, factor, etc.)
+                        if strcmp(current_well, 'critical') || strcmp(current_well, 'standard') || ...
+                           strcmp(current_well, 'marginal') || strcmp(current_well, 'major') || strcmp(current_well, 'minor')
+                            
+                            % Check if we're in well_tiers or fault_tiers context
+                            if isfield(config.(current_section).(current_subsection), 'well_tiers') && ...
+                               isfield(config.(current_section).(current_subsection).well_tiers, current_well)
+                                config.(current_section).(current_subsection).well_tiers.(current_well).(param_name) = parse_value(param_value);
+                            elseif isfield(config.(current_section).(current_subsection), 'fault_tiers') && ...
+                                   isfield(config.(current_section).(current_subsection).fault_tiers, current_well)
+                                config.(current_section).(current_subsection).fault_tiers.(current_well).(param_name) = parse_value(param_value);
+                            end
+                            
+                        elseif ~isempty(current_subwell)
                             % Property of sub-well element
                             config.(current_section).(current_subsection).(current_well).(current_subwell).(param_name) = parse_value(param_value);
                         else
                             % Property of well
                             config.(current_section).(current_subsection).(current_well).(param_name) = parse_value(param_value);
                         end
-                    end
-                end
-                
-                if ~isempty(strfind(line, ':')) && indent_level == 8 && ~strncmp(line, '-', 1)
-                    % Fifth-level parameter (deep nested properties)
-                    if isempty(current_section) || isempty(current_subsection) || isempty(current_well) || isempty(current_subwell)
-                        continue;
-                    end
-                    
-                    tokens = strsplit(line, ':');
-                    param_name = strtrim(tokens{1});
-                    
-                    if length(tokens) > 1
-                        param_value = strtrim(tokens{2});
-                        config.(current_section).(current_subsection).(current_well).(current_subwell).(param_name) = parse_value(param_value);
                     end
                     
                 elseif strncmp(original_line, '    -', 5) || strncmp(original_line, '      -', 7) || strncmp(original_line, '        -', 9)

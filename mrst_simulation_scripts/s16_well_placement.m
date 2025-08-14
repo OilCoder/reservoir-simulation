@@ -14,7 +14,15 @@ function wells_results = s16_well_placement()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S16', 'Well System Placement - 15 Wells');
     
     total_start_time = tic;
@@ -58,12 +66,11 @@ function wells_results = s16_well_placement()
         % Step 5 - Export Well Placement Data
         % ----------------------------------------
         step_start = tic;
+        wells_results.status = 'success';
+        wells_results.total_wells = length(producer_wells) + length(injector_wells);
         export_path = step_5_export_well_data(wells_results);
         wells_results.export_path = export_path;
         print_step_result(5, 'Export Well Placement Data', 'success', toc(step_start));
-        
-        wells_results.status = 'success';
-        wells_results.total_wells = length(producer_wells) + length(injector_wells);
         wells_results.creation_time = datestr(now);
         
         print_step_footer('S16', sprintf('15-Well System Placed (%d producers + %d injectors)', ...
@@ -89,6 +96,7 @@ end
 
 function [config, G] = step_1_load_config_and_grid()
 % Step 1 - Load YAML configuration and grid structure
+    script_dir = fileparts(mfilename('fullpath'));
 
     % Substep 1.1 - Load YAML configuration ________________________
     script_path = fileparts(mfilename('fullpath'));
@@ -99,11 +107,11 @@ function [config, G] = step_1_load_config_and_grid()
     end
     
     % Load YAML using working parser
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
     config = read_yaml_config(config_path);
     
     % Substep 1.2 - Load grid structure _____________________________
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    data_dir = get_data_path('static');
     
     % Try refined grid first, then base grid
     refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
@@ -245,8 +253,10 @@ function well = create_well_structure(well_name, well_type, well_config, G)
     
     % Validate grid location
     if I < 1 || I > G.cartDims(1) || J < 1 || J > G.cartDims(2)
-        warning('Well %s grid location [%d,%d] outside grid bounds [%d,%d]', ...
-            well_name, I, J, G.cartDims(1), G.cartDims(2));
+        error(['Well %s location [%d,%d] outside 41x41 grid bounds\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Well_Placement.md\n' ...
+               'Well coordinates must be within [1,41] x [1,41] grid.'], ...
+            well_name, I, J);
     end
     
     well.cell_index = sub2ind(G.cartDims, I, J, K_top);
@@ -371,8 +381,10 @@ function validation_results = step_4_validate_well_locations(wells_results, G)
                            (well1.surface_coords(2) - well2.surface_coords(2))^2);
             
             if distance < min_spacing_ft
-                validation_results.warnings{end+1} = sprintf('Wells %s and %s too close: %.1f ft', ...
-                    well1.name, well2.name, distance);
+                error(['Wells %s and %s too close: %.1f ft (minimum %.1f ft)\n' ...
+                       'UPDATE CANON: obsidian-vault/Planning/Well_Placement.md\n' ...
+                       'Must maintain minimum spacing between all wells.'], ...
+                    well1.name, well2.name, distance, min_spacing_ft);
             end
         end
     end
@@ -410,7 +422,10 @@ function export_path = step_5_export_well_data(wells_results)
 % Step 5 - Export well placement data to static files
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

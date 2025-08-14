@@ -1,5 +1,13 @@
 function fluid = s10_relative_permeability()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S10_RELATIVE_PERMEABILITY - Define relative permeability curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
@@ -62,10 +70,12 @@ end
 
 function [rock, G] = step_1_load_rock_data()
 % Step 1 - Load rock structure from previous steps
+    script_dir = fileparts(mfilename('fullpath'));
 
     % Substep 1.1 – Locate final rock file ____________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    addpath(fullfile(script_dir, 'utils'));
+    data_dir = get_data_path('static');
     rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
     
     if ~exist(rock_file, 'file')
@@ -80,10 +90,11 @@ end
 
 function scal_config = step_1_load_scal_config()
 % Step 1 - Load SCAL configuration from canonical documentation
+    script_dir = fileparts(mfilename('fullpath'));
 
     try
         % Load SCAL configuration from YAML - CANON compliance
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         fprintf('SCAL configuration loaded successfully\n');
         
@@ -118,10 +129,11 @@ end
 
 function fluid = step_2_initialize_fluid_structure()
 % Initialize basic MRST fluid structure with canonical viscosity values
+    script_dir = fileparts(mfilename('fullpath'));
 
     % Load canonical fluid properties for viscosity
     try
-        addpath('utils');
+        addpath(fullfile(script_dir, 'utils'));
         fluid_config = read_yaml_config('config/fluid_properties_config.yaml', true);
         fluid_props = fluid_config.fluid_properties;
         
@@ -595,7 +607,10 @@ function export_fluid_file(fluid, G, scal_config)
 % Export MRST fluid structure to file
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static', 'fluid');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -611,7 +626,10 @@ function export_scal_summary(fluid, G, scal_config)
 % Export SCAL properties summary
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static', 'fluid');
     
     scal_summary_file = fullfile(data_dir, 'scal_summary.txt');
     fid = fopen(scal_summary_file, 'w');

@@ -16,7 +16,15 @@ function simulation_results = s22_run_simulation()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S22', 'MRST Simulation Execution');
     
     total_start_time = tic;
@@ -110,7 +118,10 @@ function [model, schedule, solver, config] = step_1_load_solver_configuration()
 % Step 1 - Load complete solver configuration from s21
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 1.1 - Load solver configuration ________________________
     solver_file = fullfile(data_dir, 'solver_configuration.mat');
@@ -175,7 +186,10 @@ function initial_state = step_2_setup_initial_conditions(model, config)
     fprintf(' ──────────────────────────────────────────────────────────\n');
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 2.1 - Load pressure initialization _____________________
     pressure_file = fullfile(data_dir, 'pressure_initialization.mat');
@@ -184,8 +198,10 @@ function initial_state = step_2_setup_initial_conditions(model, config)
         if isfield(pressure_data, 'state') && isfield(pressure_data.state, 'pressure_Pa')
             initial_pressure = pressure_data.state.pressure_Pa;
         elseif isfield(pressure_data, 'pressure')
-            % Convert from psi to Pascal for MRST (1 psi = 6894.76 Pa)
-            initial_pressure = pressure_data.pressure * 6894.76;
+            % Convert from psi to Pascal using configuration-driven conversion
+            addpath('utils/simulation');
+            conversions = get_unit_conversions(config);
+            initial_pressure = pressure_data.pressure * conversions.psi_to_pa;
         else
             error('No valid pressure data found in pressure initialization file');
         end
@@ -276,7 +292,10 @@ function [wells, facilities] = step_3_prepare_wells_and_facilities(model, schedu
     fprintf(' ──────────────────────────────────────────────────────────\n');
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = '/workspaces/claudeclean/data/simulation_data/static';
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 3.1 - Load well completions ____________________________
     completions_file = fullfile(data_dir, 'well_completions.mat');
@@ -288,7 +307,7 @@ function [wells, facilities] = step_3_prepare_wells_and_facilities(model, schedu
         elseif isfield(completion_results, 'mrst_wells')
             total_wells = length(completion_results.mrst_wells);
         else
-            total_wells = 15; % Default from Eagle West field specification
+            error('No valid well completion data found. Expected wells_data or mrst_wells field in s17 output.');
         end
         fprintf('   Well Completions: Loaded (%d wells)\n', total_wells);
     else
@@ -309,13 +328,23 @@ function [wells, facilities] = step_3_prepare_wells_and_facilities(model, schedu
     wells = cell(length(schedule.control), 1);
     
     for control_idx = 1:length(schedule.control)
-        control = schedule.control{control_idx};
+        % Handle both cell array and struct array access
+        if iscell(schedule.control)
+            control = schedule.control{control_idx};
+        else
+            control = schedule.control(control_idx);
+        end
         
         W = [];  % Initialize well array for this control period
         
         % Add producers
-        for i = 1:length(control.active_producers)
-            well_name = control.active_producers{i};
+        if isfield(control, 'active_producers') && ~isempty(control.active_producers)
+            for i = 1:length(control.active_producers)
+                if iscell(control.active_producers)
+                    well_name = control.active_producers{i};
+                else
+                    well_name = control.active_producers(i);
+                end
             
             % Find well completion data
             well_completion = find_well_completion(well_name, completion_results);
@@ -339,11 +368,17 @@ function [wells, facilities] = step_3_prepare_wells_and_facilities(model, schedu
                 'Name', well_name, ...
                 'Comp_i', [0, 1, 0], ...  % Oil production
                 'compi', [0, 1, 0]));
+            end
         end
         
         % Add injectors
-        for i = 1:length(control.active_injectors)
-            well_name = control.active_injectors{i};
+        if isfield(control, 'active_injectors') && ~isempty(control.active_injectors)
+            for i = 1:length(control.active_injectors)
+                if iscell(control.active_injectors)
+                    well_name = control.active_injectors{i};
+                else
+                    well_name = control.active_injectors(i);
+                end
             
             % Find well completion data
             well_completion = find_well_completion(well_name, completion_results);
@@ -367,6 +402,7 @@ function [wells, facilities] = step_3_prepare_wells_and_facilities(model, schedu
                 'Name', well_name, ...
                 'Comp_i', [1, 0, 0], ...  % Water injection
                 'compi', [1, 0, 0]));
+            end
         end
         
         wells{control_idx} = W;
@@ -387,122 +423,26 @@ function [states, reports] = step_4_execute_simulation_with_monitoring(model, in
     fprintf('\n Simulation Execution with Progress Monitoring:\n');
     fprintf(' ──────────────────────────────────────────────────────────\n');
     
-    % Handle config structure safely with defaults
-    if isfield(config, 'solver_configuration') && isfield(config.solver_configuration, 'progress_monitoring')
-        progress_config = config.solver_configuration.progress_monitoring;
-        checkpoint_frequency = progress_config.checkpoint_frequency_steps;
-        report_frequency = progress_config.progress_report_frequency_steps;
-    else
-        % Use safe defaults for progress monitoring
-        progress_config = struct();
-        progress_config.save_intermediate_results = true;
-        progress_config.checkpoint_frequency_steps = 10;
-        progress_config.progress_report_frequency_steps = 5;
-        checkpoint_frequency = 10;  % Checkpoint every 10 steps
-        report_frequency = 5;       % Progress report every 5 steps
-    end
-    
     % Substep 4.1 - Setup progress monitoring ________________________
-    total_steps = length(schedule.step);
+    [progress_config, checkpoint_frequency, report_frequency] = substep_4_1_setup_progress_monitoring(config);
     
+    total_steps = length(schedule.step);
     fprintf('   Total Timesteps: %d\n', total_steps);
     fprintf('   Progress Reports: Every %d steps\n', report_frequency);
     fprintf('   Checkpoints: Every %d steps\n', checkpoint_frequency);
     
     % Substep 4.2 - Initialize simulation state ______________________
-    states = cell(total_steps + 1, 1);  % +1 for initial state
-    reports = cell(total_steps, 1);
-    states{1} = initial_state;
-    
-    convergence_failures = 0;
-    simulation_start_time = tic;
+    [states, reports, convergence_failures, simulation_start_time] = substep_4_2_initialize_simulation_state(total_steps, initial_state);
     
     fprintf('\n   Simulation Progress:\n');
     fprintf('   ─────────────────────────────────────────────────────────\n');
     
     % Substep 4.3 - Main simulation loop _____________________________
-    for step_idx = 1:total_steps
-        step_start_time = tic;
-        
-        try
-            % Get current timestep
-            dt = schedule.step{step_idx}.val;
-            
-            % Create basic wells for simulation (simplified approach)
-            W = [];  % No wells for now - will run as closed system
-            
-            % Execute single timestep without wells (closed reservoir system)
-            if isfield(solver, 'solveTimestep')
-                [state_new, report] = solver.solveTimestep(states{step_idx}, dt, model);
-            else
-                % Fallback: Simple pressure depletion simulation
-                state_new = states{step_idx};
-                state_new.pressure = state_new.pressure * 0.999; % Small pressure drop
-                report = struct('Converged', true, 'Iterations', 1);
-            end
-            
-            states{step_idx + 1} = state_new;
-            reports{step_idx} = report;
-            
-            step_time = toc(step_start_time);
-            
-            % Progress reporting
-            if mod(step_idx, report_frequency) == 0 || step_idx == total_steps
-                % Calculate cumulative days
-                days_completed = 0;
-                for i = 1:step_idx
-                    days_completed = days_completed + schedule.step{i}.val;
-                end
-                days_completed = days_completed / (24 * 3600);
-                progress_percent = step_idx / total_steps * 100;
-                
-                fprintf('   Step %4d/%d │ %5.1f%% │ %6.1f days │ %5.1fs │ %2d iter\n', ...
-                    step_idx, total_steps, progress_percent, days_completed, ...
-                    step_time, report.Iterations);
-            end
-            
-            % Checkpointing
-            if progress_config.save_intermediate_results && mod(step_idx, checkpoint_frequency) == 0
-                save_checkpoint(step_idx, states, reports, schedule, config);
-            end
-            
-        catch ME
-            % Handle timestep failure
-            convergence_failures = convergence_failures + 1;
-            
-            fprintf('   ⚠️  Step %d failed: %s\n', step_idx, ME.message);
-            
-            if convergence_failures > 5
-                error('Too many convergence failures (%d). Simulation stopped.', convergence_failures);
-            end
-            
-            % Use previous state and continue (or implement timestep cutting)
-            states{step_idx + 1} = states{step_idx};
-            reports{step_idx} = struct('Converged', false, 'Iterations', NaN);
-        end
-    end
-    
-    total_simulation_time = toc(simulation_start_time);
-    
-    fprintf('   ─────────────────────────────────────────────────────────\n');
-    fprintf('   Simulation completed in %.1f minutes\n', total_simulation_time / 60);
-    fprintf('   Convergence failures: %d\n', convergence_failures);
+    [states, reports, convergence_failures] = substep_4_3_main_simulation_loop(states, reports, schedule, solver, model, total_steps, progress_config, checkpoint_frequency, report_frequency, convergence_failures, config);
     
     % Substep 4.4 - Final validation _________________________________
-    % Count successful steps safely
-    successful_steps = 0;
-    for i = 1:length(reports)
-        if ~isempty(reports{i}) && isfield(reports{i}, 'Converged') && reports{i}.Converged
-            successful_steps = successful_steps + 1;
-        end
-    end
-    success_rate = successful_steps / total_steps * 100;
-    
-    fprintf('   Success rate: %.1f%% (%d/%d steps)\n', success_rate, successful_steps, total_steps);
-    
-    if success_rate < 90
-        warning('Low simulation success rate: %.1f%%', success_rate);
-    end
+    total_simulation_time = toc(simulation_start_time);
+    substep_4_4_final_validation_and_summary(reports, total_steps, total_simulation_time, convergence_failures);
     
     fprintf(' ──────────────────────────────────────────────────────────\n');
 
@@ -515,46 +455,10 @@ function post_processed = step_5_post_process_results(states, reports, schedule,
     fprintf(' ──────────────────────────────────────────────────────────\n');
     
     total_steps = length(reports);
-    
-    % Substep 5.1 - Extract field production rates ___________________
     post_processed = struct();
     
-    time_days = zeros(total_steps, 1);
-    field_oil_rate = zeros(total_steps, 1);
-    field_water_rate = zeros(total_steps, 1);
-    field_gas_rate = zeros(total_steps, 1);
-    field_injection_rate = zeros(total_steps, 1);
-    
-    cumulative_time = 0;
-    
-    for i = 1:total_steps
-        dt_days = schedule.step{i}.val / (24 * 3600);
-        cumulative_time = cumulative_time + dt_days;
-        time_days(i) = cumulative_time;
-        
-        % Extract rates from well solutions (if available)
-        if isfield(reports{i}, 'WellSol') && ~isempty(reports{i}.WellSol)
-            wellsol = reports{i}.WellSol;
-            
-            for j = 1:length(wellsol)
-                well = wellsol(j);
-                
-                if ~isempty(strfind(well.name, 'EW-'))  % Producer
-                    field_oil_rate(i) = field_oil_rate(i) + max(0, -well.qOs);  % Oil rate (m³/s to m³/d)
-                    field_water_rate(i) = field_water_rate(i) + max(0, -well.qWs);
-                    field_gas_rate(i) = field_gas_rate(i) + max(0, -well.qGs);
-                elseif ~isempty(strfind(well.name, 'IW-'))  % Injector
-                    field_injection_rate(i) = field_injection_rate(i) + max(0, well.qWs);
-                end
-            end
-            
-            % Convert to field units
-            field_oil_rate(i) = field_oil_rate(i) * 24 * 3600 / 0.158987;  % m³/s to STB/day
-            field_water_rate(i) = field_water_rate(i) * 24 * 3600 / 0.158987;  % m³/s to bbl/day  
-            field_gas_rate(i) = field_gas_rate(i) * 24 * 3600 / 0.0283168;  % m³/s to MSCF/day
-            field_injection_rate(i) = field_injection_rate(i) * 24 * 3600 / 0.158987;  % m³/s to bbl/day
-        end
-    end
+    % Substep 5.1 - Extract field production rates ___________________
+    [time_days, field_oil_rate, field_water_rate, field_gas_rate, field_injection_rate] = substep_5_1_extract_field_production_rates(reports, schedule, total_steps);
     
     post_processed.time_days = time_days;
     post_processed.field_oil_rate_stb_day = field_oil_rate;
@@ -563,38 +467,16 @@ function post_processed = step_5_post_process_results(states, reports, schedule,
     post_processed.field_injection_rate_bbl_day = field_injection_rate;
     
     % Substep 5.2 - Calculate cumulative production ___________________
-    post_processed.cumulative_oil_stb = cumsum(field_oil_rate .* (time_days - [0; time_days(1:end-1)]));
-    post_processed.cumulative_water_bbl = cumsum(field_water_rate .* (time_days - [0; time_days(1:end-1)]));
-    post_processed.cumulative_gas_mscf = cumsum(field_gas_rate .* (time_days - [0; time_days(1:end-1)]));
-    post_processed.cumulative_injection_bbl = cumsum(field_injection_rate .* (time_days - [0; time_days(1:end-1)]));
+    post_processed = substep_5_2_calculate_cumulative_production(post_processed, time_days, field_oil_rate, field_water_rate, field_gas_rate, field_injection_rate);
     
     % Substep 5.3 - Extract pressure and saturation fields ___________
-    post_processed.average_pressure = zeros(total_steps + 1, 1);
-    post_processed.average_oil_saturation = zeros(total_steps + 1, 1);
-    
-    for i = 1:(total_steps + 1)
-        state = states{i};
-        post_processed.average_pressure(i) = mean(state.pressure) / 1e5;  % Convert to bar
-        post_processed.average_oil_saturation(i) = mean(state.s(:, 2));  % Oil saturation
-    end
+    post_processed = substep_5_3_extract_pressure_saturation_fields(post_processed, states, total_steps);
     
     % Substep 5.4 - Calculate key performance indicators ______________
-    final_oil_cum = post_processed.cumulative_oil_stb(end);
-    final_time_years = time_days(end) / 365;
-    peak_oil_rate = max(post_processed.field_oil_rate_stb_day);
+    post_processed = substep_5_4_calculate_key_performance_indicators(post_processed, time_days, config);
     
-    post_processed.kpis = struct();
-    post_processed.kpis.ultimate_recovery_mmstb = final_oil_cum / 1e6;
-    post_processed.kpis.peak_oil_rate_stb_day = peak_oil_rate;
-    post_processed.kpis.average_oil_rate_stb_day = final_oil_cum / time_days(end);
-    post_processed.kpis.simulation_duration_years = final_time_years;
-    post_processed.kpis.recovery_factor = calculate_recovery_factor(final_oil_cum, config);
-    
-    fprintf('   Field Performance Summary:\n');
-    fprintf('   Peak Oil Rate: %.0f STB/day\n', peak_oil_rate);
-    fprintf('   Ultimate Recovery: %.1f MMstb\n', post_processed.kpis.ultimate_recovery_mmstb);
-    fprintf('   Average Rate: %.0f STB/day\n', post_processed.kpis.average_oil_rate_stb_day);
-    fprintf('   Recovery Factor: %.1f%%\n', post_processed.kpis.recovery_factor * 100);
+    % Print summary
+    substep_5_5_print_performance_summary(post_processed);
     
     fprintf(' ──────────────────────────────────────────────────────────\n');
 
@@ -602,6 +484,7 @@ end
 
 function export_path = step_6_export_simulation_results(simulation_results)
 % Step 6 - Export complete simulation results for analysis using organized structure
+    script_dir = fileparts(mfilename('fullpath'));
 
     timestamp = datestr(now, 'yyyymmdd_HHMMSS');
     
@@ -625,7 +508,8 @@ function export_path = step_6_export_simulation_results(simulation_results)
         
         % Export to organized structure - analytics data
         script_path = fileparts(mfilename('fullpath'));
-        organized_dir = fullfile(fileparts(script_path), 'data', 'simulation_data', 'by_type', 'derived', 'analytics');
+        addpath(fullfile(script_dir, 'utils'));
+        organized_dir = get_data_path('by_type', 'derived', 'analytics');
         if ~exist(organized_dir, 'dir')
             mkdir(organized_dir);
         end
@@ -635,7 +519,7 @@ function export_path = step_6_export_simulation_results(simulation_results)
         save(export_path, 'simulation_results');  % Standard Octave format
         
         % Save time series data to rates directory
-        rates_dir = fullfile(fileparts(script_path), 'data', 'simulation_data', 'by_type', 'dynamic', 'rates');
+        rates_dir = get_data_path('by_type', 'dynamic', 'rates');
         if ~exist(rates_dir, 'dir')
             mkdir(rates_dir);
         end
@@ -653,7 +537,11 @@ function export_path = step_6_export_simulation_results(simulation_results)
     
     % Always export to legacy results directory for S24 compatibility 
     script_path = fileparts(mfilename('fullpath'));
-    results_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'results');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    addpath(fullfile(script_dir, 'utils'));
+    results_dir = get_data_path('results');
     
     if ~exist(results_dir, 'dir')
         mkdir(results_dir);
@@ -676,7 +564,11 @@ function export_path = step_6_export_simulation_results(simulation_results)
     
     % Substep 6.4 - Export final states for analysis _______________
     final_state_file = fullfile(results_dir, sprintf('final_reservoir_state_%s.mat', timestamp));
-    final_state = simulation_results.states{end};
+    if iscell(simulation_results.states)
+        final_state = simulation_results.states{end};
+    else
+        final_state = simulation_results.states(end);
+    end
     save(final_state_file, 'final_state');
     
     fprintf('   Exported to: %s\n', export_path);
@@ -737,7 +629,7 @@ end
 function save_checkpoint(step_idx, states, reports, schedule, config)
 % Save intermediate checkpoint
     script_path = fileparts(mfilename('fullpath'));
-    checkpoint_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation', 'checkpoints');
+    checkpoint_dir = get_data_path('checkpoints');
     
     if ~exist(checkpoint_dir, 'dir')
         mkdir(checkpoint_dir);
@@ -807,6 +699,263 @@ function write_simulation_summary_file(filename, simulation_results)
         fclose(fid);
         error('Error writing simulation summary: %s', ME.message);
     end
+
+end
+
+function [progress_config, checkpoint_frequency, report_frequency] = substep_4_1_setup_progress_monitoring(config)
+% Setup progress monitoring configuration with safe defaults
+    
+    if isfield(config, 'solver_configuration') && isfield(config.solver_configuration, 'progress_monitoring')
+        progress_config = config.solver_configuration.progress_monitoring;
+        checkpoint_frequency = progress_config.checkpoint_frequency_steps;
+        report_frequency = progress_config.progress_report_frequency_steps;
+    else
+        % Use safe defaults for progress monitoring
+        progress_config = struct();
+        progress_config.save_intermediate_results = true;
+        progress_config.checkpoint_frequency_steps = 10;
+        progress_config.progress_report_frequency_steps = 5;
+        checkpoint_frequency = 10;  % Checkpoint every 10 steps
+        report_frequency = 5;       % Progress report every 5 steps
+    end
+
+end
+
+function [states, reports, convergence_failures, simulation_start_time] = substep_4_2_initialize_simulation_state(total_steps, initial_state)
+% Initialize simulation state arrays and counters
+    
+    states = cell(total_steps + 1, 1);  % +1 for initial state
+    reports = cell(total_steps, 1);
+    states{1} = initial_state;
+    
+    convergence_failures = 0;
+    simulation_start_time = tic;
+
+end
+
+function [states, reports, convergence_failures] = substep_4_3_main_simulation_loop(states, reports, schedule, solver, model, total_steps, progress_config, checkpoint_frequency, report_frequency, convergence_failures, config)
+% Execute main simulation timestep loop
+    
+    for step_idx = 1:total_steps
+        step_start_time = tic;
+        
+        try
+            % Execute single simulation timestep
+            if iscell(schedule.step)
+                dt = schedule.step{step_idx}.val;
+            else
+                dt = schedule.step(step_idx).val;
+            end
+            [states{step_idx + 1}, reports{step_idx}] = execute_single_timestep(states{step_idx}, dt, solver, model);
+            
+            step_time = toc(step_start_time);
+            
+            % Progress reporting
+            if mod(step_idx, report_frequency) == 0 || step_idx == total_steps
+                print_progress_report(step_idx, total_steps, schedule, step_time, reports{step_idx});
+            end
+            
+            % Checkpointing
+            if progress_config.save_intermediate_results && mod(step_idx, checkpoint_frequency) == 0
+                save_checkpoint(step_idx, states, reports, schedule, config);
+            end
+            
+        catch ME
+            convergence_failures = handle_timestep_failure(step_idx, ME, states, reports, convergence_failures);
+        end
+    end
+
+end
+
+function substep_4_4_final_validation_and_summary(reports, total_steps, total_simulation_time, convergence_failures)
+% Final validation and simulation summary
+    
+    fprintf('   ─────────────────────────────────────────────────────────\n');
+    fprintf('   Simulation completed in %.1f minutes\n', total_simulation_time / 60);
+    fprintf('   Convergence failures: %d\n', convergence_failures);
+    
+    % Count successful steps safely
+    successful_steps = 0;
+    for i = 1:length(reports)
+        if ~isempty(reports{i}) && isfield(reports{i}, 'Converged') && reports{i}.Converged
+            successful_steps = successful_steps + 1;
+        end
+    end
+    success_rate = successful_steps / total_steps * 100;
+    
+    fprintf('   Success rate: %.1f%% (%d/%d steps)\n', success_rate, successful_steps, total_steps);
+    
+    if success_rate < 90
+        error(['Simulation success rate below 90%%: %.1f%%\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
+               'Must achieve minimum 90%% timestep success rate.'], success_rate);
+    end
+
+end
+
+function [state_new, report] = execute_single_timestep(current_state, dt, solver, model)
+% Execute single simulation timestep
+    
+    % Execute single timestep without wells (closed reservoir system)
+    if isfield(solver, 'solveTimestep')
+        [state_new, report] = solver.solveTimestep(current_state, dt, model);
+    else
+        % Fallback: Simple pressure depletion simulation
+        state_new = current_state;
+        state_new.pressure = state_new.pressure * 0.999; % Small pressure drop
+        report = struct('Converged', true, 'Iterations', 1);
+    end
+
+end
+
+function print_progress_report(step_idx, total_steps, schedule, step_time, report)
+% Print simulation progress report
+    
+    % Calculate cumulative days
+    days_completed = 0;
+    for i = 1:step_idx
+        if iscell(schedule.step)
+            days_completed = days_completed + schedule.step{i}.val;
+        else
+            days_completed = days_completed + schedule.step(i).val;
+        end
+    end
+    days_completed = days_completed / (24 * 3600);
+    progress_percent = step_idx / total_steps * 100;
+    
+    fprintf('   Step %4d/%d │ %5.1f%% │ %6.1f days │ %5.1fs │ %2d iter\n', ...
+        step_idx, total_steps, progress_percent, days_completed, ...
+        step_time, report.Iterations);
+
+end
+
+function convergence_failures = handle_timestep_failure(step_idx, ME, states, reports, convergence_failures)
+% Handle simulation timestep failure
+    
+    convergence_failures = convergence_failures + 1;
+    
+    fprintf('   ⚠️  Step %d failed: %s\n', step_idx, ME.message);
+    
+    if convergence_failures > 5
+        error('Too many convergence failures (%d). Simulation stopped.', convergence_failures);
+    end
+    
+    % Use previous state and continue (or implement timestep cutting)
+    states{step_idx + 1} = states{step_idx};
+    reports{step_idx} = struct('Converged', false, 'Iterations', NaN);
+
+end
+
+function [time_days, field_oil_rate, field_water_rate, field_gas_rate, field_injection_rate] = substep_5_1_extract_field_production_rates(reports, schedule, total_steps)
+% Extract field production rates from simulation reports
+    
+    time_days = zeros(total_steps, 1);
+    field_oil_rate = zeros(total_steps, 1);
+    field_water_rate = zeros(total_steps, 1);
+    field_gas_rate = zeros(total_steps, 1);
+    field_injection_rate = zeros(total_steps, 1);
+    
+    cumulative_time = 0;
+    
+    for i = 1:total_steps
+        if iscell(schedule.step)
+            dt_days = schedule.step{i}.val / (24 * 3600);
+        else
+            dt_days = schedule.step(i).val / (24 * 3600);
+        end
+        cumulative_time = cumulative_time + dt_days;
+        time_days(i) = cumulative_time;
+        
+        % Extract rates from well solutions (if available)
+        if iscell(reports)
+            current_report = reports{i};
+        else
+            current_report = reports(i);
+        end
+        if isfield(current_report, 'WellSol') && ~isempty(current_report.WellSol)
+            [field_oil_rate(i), field_water_rate(i), field_gas_rate(i), field_injection_rate(i)] = ...
+                extract_rates_from_wellsol(current_report.WellSol);
+        end
+    end
+
+end
+
+function [oil_rate, water_rate, gas_rate, injection_rate] = extract_rates_from_wellsol(wellsol)
+% Extract production rates from wellsol structure
+    
+    oil_rate = 0;
+    water_rate = 0;
+    gas_rate = 0;
+    injection_rate = 0;
+    
+    for j = 1:length(wellsol)
+        well = wellsol(j);
+        
+        if ~isempty(strfind(well.name, 'EW-'))  % Producer
+            oil_rate = oil_rate + max(0, -well.qOs);  % Oil rate (m³/s to m³/d)
+            water_rate = water_rate + max(0, -well.qWs);
+            gas_rate = gas_rate + max(0, -well.qGs);
+        elseif ~isempty(strfind(well.name, 'IW-'))  % Injector
+            injection_rate = injection_rate + max(0, well.qWs);
+        end
+    end
+    
+    % Convert to field units
+    oil_rate = oil_rate * 24 * 3600 / 0.158987;  % m³/s to STB/day
+    water_rate = water_rate * 24 * 3600 / 0.158987;  % m³/s to bbl/day  
+    gas_rate = gas_rate * 24 * 3600 / 0.0283168;  % m³/s to MSCF/day
+    injection_rate = injection_rate * 24 * 3600 / 0.158987;  % m³/s to bbl/day
+
+end
+
+function post_processed = substep_5_2_calculate_cumulative_production(post_processed, time_days, field_oil_rate, field_water_rate, field_gas_rate, field_injection_rate)
+% Calculate cumulative production volumes
+    
+    post_processed.cumulative_oil_stb = cumsum(field_oil_rate .* (time_days - [0; time_days(1:end-1)]));
+    post_processed.cumulative_water_bbl = cumsum(field_water_rate .* (time_days - [0; time_days(1:end-1)]));
+    post_processed.cumulative_gas_mscf = cumsum(field_gas_rate .* (time_days - [0; time_days(1:end-1)]));
+    post_processed.cumulative_injection_bbl = cumsum(field_injection_rate .* (time_days - [0; time_days(1:end-1)]));
+
+end
+
+function post_processed = substep_5_3_extract_pressure_saturation_fields(post_processed, states, total_steps)
+% Extract pressure and saturation field averages
+    
+    post_processed.average_pressure = zeros(total_steps + 1, 1);
+    post_processed.average_oil_saturation = zeros(total_steps + 1, 1);
+    
+    for i = 1:(total_steps + 1)
+        state = states{i};
+        post_processed.average_pressure(i) = mean(state.pressure) / 1e5;  % Convert to bar
+        post_processed.average_oil_saturation(i) = mean(state.s(:, 2));  % Oil saturation
+    end
+
+end
+
+function post_processed = substep_5_4_calculate_key_performance_indicators(post_processed, time_days, config)
+% Calculate key field performance indicators
+    
+    final_oil_cum = post_processed.cumulative_oil_stb(end);
+    final_time_years = time_days(end) / 365;
+    peak_oil_rate = max(post_processed.field_oil_rate_stb_day);
+    
+    post_processed.kpis = struct();
+    post_processed.kpis.ultimate_recovery_mmstb = final_oil_cum / 1e6;
+    post_processed.kpis.peak_oil_rate_stb_day = peak_oil_rate;
+    post_processed.kpis.average_oil_rate_stb_day = final_oil_cum / time_days(end);
+    post_processed.kpis.simulation_duration_years = final_time_years;
+    post_processed.kpis.recovery_factor = calculate_recovery_factor(final_oil_cum, config);
+
+end
+
+function substep_5_5_print_performance_summary(post_processed)
+% Print field performance summary
+    
+    fprintf('   Field Performance Summary:\n');
+    fprintf('   Peak Oil Rate: %.0f STB/day\n', post_processed.kpis.peak_oil_rate_stb_day);
+    fprintf('   Ultimate Recovery: %.1f MMstb\n', post_processed.kpis.ultimate_recovery_mmstb);
+    fprintf('   Average Rate: %.0f STB/day\n', post_processed.kpis.average_oil_rate_stb_day);
+    fprintf('   Recovery Factor: %.1f%%\n', post_processed.kpis.recovery_factor * 100);
 
 end
 

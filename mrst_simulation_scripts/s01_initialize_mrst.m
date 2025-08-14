@@ -8,7 +8,9 @@ function mrst_env = s01_initialize_mrst()
 % Author: Claude Code AI System
 % Date: January 30, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
     print_step_header('S01', 'Initialize MRST Environment');
     
     total_start_time = tic;
@@ -163,9 +165,12 @@ end
 function add_mrst_paths(mrst_root)
 % Add MRST directories to MATLAB path permanently
     core_paths = {
-        fullfile(mrst_root, 'core', 'utils'),
-        fullfile(mrst_root, 'core', 'gridprocessing'), 
         fullfile(mrst_root, 'core'),
+        fullfile(mrst_root, 'core', 'utils'),
+        fullfile(mrst_root, 'core', 'gridprocessing'),
+        fullfile(mrst_root, 'core', 'plotting'),         % FOR boundaryFaces
+        fullfile(mrst_root, 'core', 'utils', 'gridtools'), % FOR gridLogicalIndices  
+        fullfile(mrst_root, 'core', 'utils', 'units'),     % FOR ft, stb, psia
         mrst_root
     };
     
@@ -327,7 +332,7 @@ end
 function create_working_directories()
 % Create required directories for simulation data
     script_path = fileparts(mfilename('fullpath'));
-    base_dir = fullfile(fileparts(script_path), 'data', 'mrst_simulation');
+    base_dir = fullfile(script_path, 'data', 'mrst_simulation');
     
     directories = {'results', 'logs', 'static', 'dynamic', 'exports', 'plots', 'restart'};
     

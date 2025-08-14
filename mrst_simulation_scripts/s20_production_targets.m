@@ -2,7 +2,15 @@ function targets_results = s20_production_targets()
 % S20_PRODUCTION_TARGETS - Minimal working version for workflow testing
 % This is a simplified version to allow testing of phases s21-s26
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S20', 'Production Targets (Minimal Version)');
     
     total_start_time = tic;
@@ -13,7 +21,10 @@ function targets_results = s20_production_targets()
         % Step 1 - Load data
         step_start = tic;
         script_path = fileparts(mfilename('fullpath'));
-        data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+        if isempty(script_path)
+            script_path = pwd();
+        end
+        data_dir = get_data_path('static');
         
         schedule_file = fullfile(data_dir, 'development_schedule.mat');
         load(schedule_file, 'schedule_results');

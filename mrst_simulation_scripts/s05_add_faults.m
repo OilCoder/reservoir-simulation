@@ -1,5 +1,13 @@
 function fault_data = s05_add_faults()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S05_ADD_FAULTS - Add fault system to Eagle West Field
 % Requires: MRST
 %
@@ -57,8 +65,10 @@ function G = step_1_load_structural_data()
 % Step 1 - Load structural framework from s04
 
     % Substep 1.1 – Load structural framework _____________________
-    script_path = fileparts(mfilename('fullpath'));
-    structural_file = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static', 'structural_framework.mat');
+    func_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(func_dir, 'utils'));
+    data_dir = get_data_path('static');
+    structural_file = fullfile(data_dir, 'structural_framework.mat');
     
     if ~exist(structural_file, 'file')
         error('Structural framework not found. Run s04_structural_framework first.');
@@ -400,8 +410,9 @@ end
 function export_fault_files(G, fault_geometries, intersections, trans_mult)
 % Export fault data to files
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    func_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(func_dir, 'utils'));
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -429,7 +440,8 @@ function config = load_fault_config()
 % Load fault configuration from YAML - NO HARDCODING POLICY
     try
         % Policy Compliance: Load ALL parameters from YAML config
-        addpath('utils');
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
         full_config = read_yaml_config('config/fault_config.yaml');
         config = full_config.fault_system;
         
@@ -438,7 +450,7 @@ function config = load_fault_config()
             error('Missing required field in fault_config.yaml: faults');
         end
         
-        fprintf('Fault configuration loaded from YAML: %d faults\n', length(config.faults));
+        fprintf('Fault configuration loaded from YAML: %d faults\n', length(fieldnames(config.faults)));
         
     catch ME
         error('Failed to load fault configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);

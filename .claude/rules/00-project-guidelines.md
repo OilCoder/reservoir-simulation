@@ -12,11 +12,13 @@ RULE_INDEX:
   6. 06-doc-enforcement.md – Requires Google Style docstrings for all public and non-trivial private functions/classes.
   7. 07-docs-style.md – Defines required format and structure for Markdown documentation.
   8. 08-logging-policy.md – Allows temporary print/logging but enforces cleanup before commit.
+  9. 09-canon-first-philosophy.md – Enforces documentation-as-specification approach with zero defensive programming.
 
 ENFORCEMENT_STRATEGY:
   - All source changes must comply with style (1) and scope (2) rules.
   - All committed code must use valid naming (5).
   - Code must comply with doc_enforcement (6) and logging_policy (8).
+  - All code must follow Canon-First Philosophy (9) - documentation-as-specification with zero defensive programming.
   - All error handling must follow Exception Handling Policy and FAIL_FAST_POLICY.
   - No defensive programming that hides missing requirements or generates incorrect defaults.
   - Debugging code (4) must be isolated in debug/ folder for development and removed before final delivery.

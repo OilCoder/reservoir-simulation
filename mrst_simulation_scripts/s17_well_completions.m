@@ -15,7 +15,15 @@ function completion_results = s17_well_completions()
 % Author: Claude Code AI System
 % Date: August 8, 2025
 
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
     print_step_header('S17', 'Well Completion Design');
     
     total_start_time = tic;
@@ -102,7 +110,10 @@ function [wells_data, rock_props, G] = step_1_load_wells_and_properties()
 % Step 1 - Load well placement and rock properties data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     % Substep 1.1 - Load well placement data ________________________
     well_file = fullfile(data_dir, 'well_placement.mat');
@@ -129,6 +140,11 @@ function [wells_data, rock_props, G] = step_1_load_wells_and_properties()
                 if exist('final_rock', 'var')
                     rock_props = final_rock;
                     fprintf('Loaded rock properties from %s: %d cells\n', rock_files{i}, length(rock_props.poro));
+                    % Check if grid is also in this file
+                    if exist('G', 'var')
+                        grid_from_rock_file = G;
+                        fprintf('Also found grid in %s: %d cells\n', rock_files{i}, G.cells.num);
+                    end
                     break;
                 elseif exist('rock_enhanced', 'var')
                     rock_props = rock_enhanced;
@@ -155,29 +171,36 @@ function [wells_data, rock_props, G] = step_1_load_wells_and_properties()
     end
     
     % Substep 1.3 - Load grid structure ____________________________
-    refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
-    base_grid_file = fullfile(data_dir, 'base_grid.mat');
-    
-    if exist(refined_grid_file, 'file')
-        data = load(refined_grid_file);
-        if isfield(data, 'G_refined')
-            G = data.G_refined;
-        elseif isfield(data, 'G')
-            G = data.G;
-        else
-            error('No grid structure found in refined_grid.mat');
-        end
-        fprintf('Loaded refined grid: %d cells\n', G.cells.num);
-    elseif exist(base_grid_file, 'file')
-        data = load(base_grid_file);
-        if isfield(data, 'G')
-            G = data.G;
-        else
-            error('No grid structure found in base_grid.mat');
-        end
-        fprintf('Loaded base grid: %d cells\n', G.cells.num);
+    % First check if we already loaded grid with rock properties
+    if exist('grid_from_rock_file', 'var')
+        G = grid_from_rock_file;
+        fprintf('Using grid from rock file: %d cells\n', G.cells.num);
     else
-        error('Grid structure file not found. Run grid creation scripts first.');
+        % Try separate grid files
+        refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
+        base_grid_file = fullfile(data_dir, 'base_grid.mat');
+        
+        if exist(refined_grid_file, 'file')
+            data = load(refined_grid_file);
+            if isfield(data, 'G_refined')
+                G = data.G_refined;
+            elseif isfield(data, 'G')
+                G = data.G;
+            else
+                error('No grid structure found in refined_grid.mat');
+            end
+            fprintf('Loaded refined grid: %d cells\n', G.cells.num);
+        elseif exist(base_grid_file, 'file')
+            data = load(base_grid_file);
+            if isfield(data, 'G')
+                G = data.G;
+            else
+                error('No grid structure found in base_grid.mat');
+            end
+            fprintf('Loaded base grid: %d cells\n', G.cells.num);
+        else
+            error('Grid structure file not found. Run grid creation scripts first.');
+        end
     end
 
 end
@@ -658,7 +681,10 @@ function export_path = step_6_export_completion_data(completion_results)
 % Step 6 - Export completion design data
 
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);

@@ -10,7 +10,9 @@ function workflow_results = s99_run_workflow(varargin)
 % Date: January 30, 2025
 
     % Load print utilities for consistent table format
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
     % ASCII Art Header
     fprintf('\n');
@@ -247,18 +249,18 @@ function phases = define_workflow_phases()
                        'description', 'Run Simulation (10 years)', ...
                        'critical', true, 'estimated_time', 600);
                        
+    % Phase 9: Quality Control and Analysis
     phases{23} = struct('phase_id', 's23', 'script_name', 's23_quality_validation', ...
                        'description', 'Quality Validation', ...
-                       'critical', true, 'estimated_time', 90);
+                       'critical', false, 'estimated_time', 120);
                        
-    % Phase 9: Results & Reporting
     phases{24} = struct('phase_id', 's24', 'script_name', 's24_production_analysis', ...
-                       'description', 'Production Analysis & Reporting', ...
-                       'critical', true, 'estimated_time', 180);
+                       'description', 'Production Analysis', ...
+                       'critical', false, 'estimated_time', 150);
                        
     phases{25} = struct('phase_id', 's25', 'script_name', 's25_reservoir_analysis', ...
-                       'description', 'Reservoir Performance Analysis', ...
-                       'critical', true, 'estimated_time', 200);
+                       'description', 'Reservoir Analysis', ...
+                       'critical', false, 'estimated_time', 180);
 end
 
 function filtered_phases = filter_phases_fixed(phases, requested_phases)
@@ -362,6 +364,15 @@ function phase_result = execute_phase_fixed(phase, workflow_results)
                 
             case 's12'
                 output_data = s12_pvt_tables();
+                
+            case 's13'
+                output_data = s13_pressure_initialization();
+                
+            case 's14'
+                output_data = s14_saturation_distribution();
+                
+            case 's15'
+                output_data = s15_aquifer_configuration();
                 
             case 's16'
                 output_data = s16_well_placement();
@@ -472,7 +483,7 @@ function export_workflow_results_octave(workflow_results)
     % Export results using Octave-compatible format
     try
         script_path = fileparts(mfilename('fullpath'));
-        data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'results');
+        data_dir = fullfile(script_path, '..', 'data', 'mrst_simulation', 'results');
         
         if ~exist(data_dir, 'dir')
             mkdir(data_dir);

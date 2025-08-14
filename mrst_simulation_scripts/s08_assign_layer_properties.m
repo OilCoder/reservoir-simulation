@@ -1,5 +1,13 @@
 function rock_with_layers = s08_assign_layer_properties()
-    addpath('utils'); run('utils/print_utils.m');
+    script_dir = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_dir, 'utils')); 
+    run(fullfile(script_dir, 'utils', 'print_utils.m'));
+
+    % Add MRST session validation
+    [success, message] = validate_mrst_session(script_dir);
+    if ~success
+        error('MRST validation failed: %s', message);
+    end
 % S08_ASSIGN_LAYER_PROPERTIES - Assign layer properties (MRST Native)
 % Requires: MRST
 %
@@ -33,6 +41,8 @@ function rock_with_layers = s08_assign_layer_properties()
         % Step 3 – Validate & Export Enhanced Rock
         % ----------------------------------------
         step_start = tic;
+        % Add layer assignments to rock_params before export
+        rock_params = create_rock_type_assignments(rock_params, rock_with_layers, G);
         step_3_export_enhanced_rock(rock_with_layers, G, rock_params);
         print_step_result(3, 'Validate & Export Enhanced Rock', 'success', toc(step_start));
         
@@ -50,7 +60,10 @@ function [rock, G, rock_params] = step_1_load_rock_data()
 
     % Substep 1.1 – Locate rock file ______________________________
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     rock_file = fullfile(data_dir, 'native_rock_properties.mat');
     
     if ~exist(rock_file, 'file')
@@ -102,6 +115,9 @@ function rock_enhanced = step_2_enhance_rock_layers(rock, G, rock_params, layer_
     
     % Substep 3.4 – Create cell-layer mapping ________________________
     rock_enhanced = create_cell_layer_mapping(rock_enhanced, G);
+    
+    % Substep 3.5 – Create rock type assignments array _______________
+    rock_params = create_rock_type_assignments(rock_params, rock_enhanced, G);
     
 end
 
@@ -189,7 +205,11 @@ function export_enhanced_files(rock_enhanced, G, rock_params)
 % Export enhanced rock to files
     
     script_path = fileparts(mfilename('fullpath'));
-    data_dir = fullfile(fileparts(script_path), '..', 'data', 'simulation_data', 'static');
+    if isempty(script_path)
+        % Fallback when called from command line
+        script_path = pwd();
+    end
+    data_dir = get_data_path('static');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -198,6 +218,32 @@ function export_enhanced_files(rock_enhanced, G, rock_params)
     % Save enhanced rock structure
     enhanced_rock_file = fullfile(data_dir, 'enhanced_rock_with_layers.mat');
     save(enhanced_rock_file, 'rock_enhanced', 'G', 'rock_params');
+    
+end
+
+function rock_params = create_rock_type_assignments(rock_params, rock_enhanced, G)
+% Create layer_assignments array for S14 saturation distribution
+    
+    % Create array mapping each cell to its rock type/layer
+    layer_assignments = zeros(G.cells.num, 1);
+    
+    for cell_id = 1:G.cells.num
+        layer_index = rock_enhanced.meta.layer_info.cell_to_layer{cell_id};
+        % Map layer index to rock type (layers 1-12 map to rock types 1-6)
+        % Use simple mapping: layers 1-2 → RT1, 3-4 → RT2, etc.
+        rock_type = min(6, ceil(layer_index / 2));
+        layer_assignments(cell_id) = rock_type;
+    end
+    
+    % Add to rock_params for S14
+    rock_params.layer_assignments = layer_assignments;
+    
+    % Add summary information
+    rock_params.rock_type_summary = struct();
+    for rt = 1:6
+        cells_of_type = sum(layer_assignments == rt);
+        rock_params.rock_type_summary.(sprintf('RT%d_cells', rt)) = cells_of_type;
+    end
     
 end
 
