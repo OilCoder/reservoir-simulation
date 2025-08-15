@@ -1,4 +1,59 @@
 function fault_data = s05_add_faults()
+% S05_ADD_FAULTS - Implement 5-fault system for Eagle West Field with sealing properties
+%
+% PURPOSE:
+%   Implements the complete Eagle West Field fault system with 5 major faults (Fault_A to Fault_E)
+%   providing compartmentalization and flow barriers. Calculates fault-grid intersections,
+%   applies transmissibility multipliers for sealing behavior, and enhances grid with
+%   fault properties for reservoir simulation. Critical for compartment flow modeling.
+%
+% SCOPE:
+%   - 5 major fault geometry definition (NE-SW trending normal faults)
+%   - Fault-cell intersection calculations using MRST connectivity
+%   - Transmissibility multiplier application to fault-crossing faces
+%   - Grid enhancement with fault zone properties and affected cells
+%   - Does NOT: Modify grid geometry, create new grids, or handle rock properties
+%
+% WORKFLOW POSITION:
+%   Fifth step in Eagle West Field MRST workflow sequence:
+%   s01 (Initialize) → s02 (Fluids) → s03 (PEBI Grid) → s04 (Structure) → s05 (Faults)
+%   Dependencies: s04 (structural framework) | Used by: s06 (refinement), s07 (rock)
+%
+% INPUTS:
+%   - data/static/structural_framework.mat - Framework from s04_structural_framework.m
+%   - config/fault_config.yaml - Eagle West fault specifications (Fault_A to Fault_E)
+%   - MRST session from s01_initialize_mrst.m
+%
+% OUTPUTS:
+%   fault_data - Complete fault system structure containing:
+%     .grid - Enhanced grid with fault properties
+%     .geometries - Array of 5 fault geometries with endpoints
+%     .intersections - Cell arrays of fault-grid intersections
+%     .transmissibility_multipliers - Face-based T-multipliers
+%     .status - 'completed' when successful
+%
+% CONFIGURATION:
+%   - fault_config.yaml - Complete Eagle West fault specification
+%   - Key parameters: 5 faults, 3 sealing (T≤0.01), 2 partially sealing (T>0.01)
+%   - Fault geometry: Strike, dip, length, position offsets, transmissibility values
+%
+% CANONICAL REFERENCE:
+%   - Specification: obsidian-vault/Planning/Reservoir_Definition/01_Structural_Geology.md
+%   - Implementation: Major faults (Fault_A, C, D) sealing, minor faults (Fault_B, E) leaky
+%   - Canon-first: FAIL_FAST when fault configuration missing from YAML
+%
+% EXAMPLES:
+%   % Implement fault system
+%   fault_data = s05_add_faults();
+%   
+%   % Verify fault implementation
+%   fprintf('Fault system: %d faults implemented\n', length(fault_data.geometries));
+%   fprintf('Sealing faces: %d\n', sum(fault_data.grid.faces.fault_multiplier < 0.1));
+%
+% Author: Claude Code AI System
+% Date: 2025-08-14 (Updated with comprehensive headers)
+% Implementation: Eagle West Field MRST Workflow Phase 5
+
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
@@ -8,14 +63,6 @@ function fault_data = s05_add_faults()
     if ~success
         error('MRST validation failed: %s', message);
     end
-% S05_ADD_FAULTS - Add fault system to Eagle West Field
-% Requires: MRST
-%
-% OUTPUT:
-%   fault_data - Structure containing fault system data
-%
-% Author: Claude Code AI System
-% Date: January 30, 2025
 
     print_step_header('S05', 'Add Fault System');
     
@@ -408,19 +455,61 @@ function validate_fault_system_implementation(G, fault_geometries, trans_mult)
 end
 
 function export_fault_files(G, fault_geometries, intersections, trans_mult)
-% Export fault data to files
+% Export fault data to files using canonical organization
     
-    func_dir = fileparts(mfilename('fullpath'));
-    addpath(fullfile(func_dir, 'utils'));
-    data_dir = get_data_path('static');
-    
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
+    try
+        % Load canonical data utilities
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        run(fullfile(func_dir, 'utils', 'canonical_data_utils.m'));
+        run(fullfile(func_dir, 'utils', 'directory_management.m'));
+        
+        % Create basic canonical directory structure
+        base_data_path = fullfile(fileparts(func_dir), 'data');
+        static_path = fullfile(base_data_path, 'by_type', 'static');
+        if ~exist(static_path, 'dir')
+            mkdir(static_path);
+        end
+        
+        % Save fault system directly in canonical structure
+        fault_file = fullfile(static_path, 'fault_system_s05.mat');
+        save(fault_file, 'fault_geometries', 'trans_mult', 'intersections', 'G');
+        
+        % Count sealing vs leaky faults
+        sealing_count = 0;
+        for i = 1:length(fault_geometries)
+            if fault_geometries(i).trans_mult <= 0.01
+                sealing_count = sealing_count + 1;
+            end
+        end
+        fprintf('     Canonical fault system saved: %s\n', fault_file);
+        
+        % Maintain legacy compatibility during transition
+        legacy_data_dir = get_data_path('static');
+        if ~exist(legacy_data_dir, 'dir')
+            mkdir(legacy_data_dir);
+        end
+        legacy_fault_file = fullfile(legacy_data_dir, 'fault_system.mat');
+        save(legacy_fault_file, 'G', 'fault_geometries', 'intersections', 'trans_mult');
+        
+        fprintf('     Legacy compatibility maintained: %s\n', legacy_fault_file);
+        
+    catch ME
+        fprintf('Warning: Canonical export failed: %s\n', ME.message);
+        
+        % Fallback to legacy export
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        data_dir = get_data_path('static');
+        
+        if ~exist(data_dir, 'dir')
+            mkdir(data_dir);
+        end
+        
+        fault_file = fullfile(data_dir, 'fault_system.mat');
+        save(fault_file, 'G', 'fault_geometries', 'intersections', 'trans_mult');
+        fprintf('     Fallback: Fault system saved to: %s\n', fault_file);
     end
-    
-    % Save fault system data
-    fault_file = fullfile(data_dir, 'fault_system.mat');
-    save(fault_file, 'G', 'fault_geometries', 'intersections', 'trans_mult');
     
 end
 

@@ -1,4 +1,58 @@
 function structural_data = s04_structural_framework()
+% S04_STRUCTURAL_FRAMEWORK - Create geological structural framework for Eagle West Field
+%
+% PURPOSE:
+%   Establishes the geological and structural framework for Eagle West Field reservoir model.
+%   Defines anticline geometry, fault compartmentalization, and stratigraphic layering
+%   required for PEBI grid construction and reservoir property distribution.
+%   Provides structural foundation for 2,600-acre offshore field development.
+%
+% SCOPE:
+%   - Anticline structural geometry definition and axis orientation
+%   - Geological layer framework (12 layers, 8.3 ft average thickness)
+%   - Compartment boundaries (Northern/Southern fault blocks)
+%   - Structural depth relationships and crest definition
+%   - Does NOT: Create actual grid geometry, fault planes, or rock properties
+%
+% WORKFLOW POSITION:
+%   Fourth step in Eagle West Field MRST workflow sequence:
+%   s01 (Initialize) → s02 (Fluids) → s03 (PEBI Grid) → s04 (Structure) → s05 (Faults)
+%   Dependencies: s03 (PEBI grid) | Used by: s05 (fault system), s06 (refinement)
+%
+% INPUTS:
+%   - data/static/pebi_grid.mat - PEBI grid from s03_create_pebi_grid.m
+%   - config/structural_framework_config.yaml - Eagle West geological parameters
+%   - MRST session from s01_initialize_mrst.m
+%
+% OUTPUTS:
+%   structural_data - Geological framework structure containing:
+%     .grid - Enhanced grid with structural properties
+%     .surfaces - Anticline geometry and compartment definitions
+%     .layers - Stratigraphic layer framework (12 layers)
+%     .status - 'completed' when successful
+%
+% CONFIGURATION:
+%   - structural_framework_config.yaml - Eagle West geological specification
+%   - Key parameters: anticline axis trend, crest depth 7900 ft, structural relief 340 ft
+%   - Layer configuration: 12 layers at 8.3 ft average thickness
+%
+% CANONICAL REFERENCE:
+%   - Specification: obsidian-vault/Planning/Reservoir_Definition/01_Structural_Geology.md
+%   - Implementation: Faulted anticline with 2 compartments, 238 ft gross thickness
+%   - Canon-first: FAIL_FAST when structural configuration missing from YAML
+%
+% EXAMPLES:
+%   % Create structural framework
+%   structural_data = s04_structural_framework();
+%   
+%   % Verify anticline setup
+%   fprintf('Anticline axis trend: %.1f degrees\n', structural_data.surfaces.anticline_axis.trend * 180/pi);
+%   fprintf('Layer count: %d\n', structural_data.layers.n_layers);
+%
+% Author: Claude Code AI System
+% Date: 2025-08-14 (Updated with comprehensive headers)
+% Implementation: Eagle West Field MRST Workflow Phase 4
+
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
@@ -8,14 +62,6 @@ function structural_data = s04_structural_framework()
     if ~success
         error('MRST validation failed: %s', message);
     end
-% S04_STRUCTURAL_FRAMEWORK - Setup structural framework for Eagle West Field
-% Requires: MRST
-%
-% OUTPUT:
-%   structural_data - Structure containing geological framework
-%
-% Author: Claude Code AI System
-% Date: January 30, 2025
 
     print_step_header('S04', 'Setup Structural Framework');
     
@@ -56,20 +102,21 @@ function structural_data = s04_structural_framework()
 end
 
 function G = step_1_load_grid()
-% Step 1 - Load grid structure from s02
+% Step 1 - Load grid structure from s03
     
     % Substep 1.1 – Load base grid ________________________________
     func_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(func_dir, 'utils'));
     data_dir = get_data_path('static');
-    grid_file = fullfile(data_dir, 'base_grid.mat');
+    grid_file = fullfile(data_dir, 'pebi_grid.mat');
     
     if ~exist(grid_file, 'file')
-        error('Base grid not found. Run s02_create_grid first.');
+        error('PEBI grid not found. Run s03_create_pebi_grid.m first.');
     end
     
-    % ✅ Load grid structure
-    load(grid_file, 'G');
+    % ✅ Load PEBI grid structure
+    load(grid_file, 'G_pebi');
+    G = G_pebi;  % Use PEBI grid as base grid
     
 end
 
@@ -106,7 +153,8 @@ function layers = step_2_create_layers(G, surfaces, config)
 
     % Substep 2.1 – Create layer structure from YAML config ______
     layers = struct();
-    layers.n_layers = G.cartDims(3);
+    % For PEBI grids, get number of layers from config instead of cartDims
+    layers.n_layers = config.layering.n_layers;  % From YAML config - PEBI grid compatible
     layer_thickness = config.layering.layer_thickness;  % From YAML - Policy compliance
     layers.layer_tops = surfaces.crest_depth + (0:layers.n_layers-1) * layer_thickness;
     layers.anticline_structure = true;
@@ -129,7 +177,7 @@ function G = step_2_apply_framework(G, surfaces, layers)
 end
 
 function structural_data = step_3_export_framework(G, surfaces, layers)
-% Step 4 - Export structural framework data
+% Step 4 - Export structural framework data using canonical organization
 
     % Assemble structural data
     structural_data = struct();
@@ -138,17 +186,52 @@ function structural_data = step_3_export_framework(G, surfaces, layers)
     structural_data.layers = layers;
     structural_data.status = 'completed';
     
-    % Export to file
-    func_dir = fileparts(mfilename('fullpath'));
-    addpath(fullfile(func_dir, 'utils'));
-    data_dir = get_data_path('static');
-    
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
+    try
+        % Load canonical data utilities
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        run(fullfile(func_dir, 'utils', 'canonical_data_utils.m'));
+        run(fullfile(func_dir, 'utils', 'directory_management.m'));
+        
+        % Create basic canonical directory structure
+        base_data_path = fullfile(fileparts(func_dir), 'data');
+        static_path = fullfile(base_data_path, 'by_type', 'static');
+        if ~exist(static_path, 'dir')
+            mkdir(static_path);
+        end
+        
+        % Save structural framework directly in canonical structure
+        framework_file = fullfile(static_path, 'structural_framework_s04.mat');
+        save(framework_file, 'structural_data', 'layers', 'surfaces');
+        
+        fprintf('     Canonical structural framework saved: %s\n', framework_file);
+        
+        % Maintain legacy compatibility during transition
+        legacy_data_dir = get_data_path('static');
+        if ~exist(legacy_data_dir, 'dir')
+            mkdir(legacy_data_dir);
+        end
+        legacy_framework_file = fullfile(legacy_data_dir, 'structural_framework.mat');
+        save(legacy_framework_file, 'structural_data');
+        
+        fprintf('     Legacy compatibility maintained: %s\n', legacy_framework_file);
+        
+    catch ME
+        fprintf('Warning: Canonical export failed: %s\n', ME.message);
+        
+        % Fallback to legacy export
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        data_dir = get_data_path('static');
+        
+        if ~exist(data_dir, 'dir')
+            mkdir(data_dir);
+        end
+        
+        framework_file = fullfile(data_dir, 'structural_framework.mat');
+        save(framework_file, 'structural_data');
+        fprintf('     Fallback: Structural framework saved to: %s\n', framework_file);
     end
-    
-    framework_file = fullfile(data_dir, 'structural_framework.mat');
-    save(framework_file, 'structural_data');
     
 end
 

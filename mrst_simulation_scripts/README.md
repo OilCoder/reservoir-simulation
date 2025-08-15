@@ -6,8 +6,8 @@ Simulación de yacimiento Eagle West usando MATLAB/Octave nativo con MRST.
 
 - **`s99_run_workflow.m`** - **Ejecutar simulación completa**
 - `s01_initialize_mrst.m` - Inicializar entorno MRST
-- `s02_create_grid.m` - Crear grid del yacimiento (40×40×12)
-- `s03_define_fluids.m` - Definir propiedades de fluidos (3-phase)
+- `s05_create_pebi_grid.m` - Crear grid PEBI del yacimiento (41×41×12 canónico)
+- `s02_define_fluids.m` - Definir propiedades de fluidos (3-phase)
 - `read_yaml_config.m` - Lector de configuraciones YAML
 - `config/` - **Configuración del yacimiento**
 - `../data/mrst_simulation/` - Resultados de simulación
@@ -16,7 +16,7 @@ Simulación de yacimiento Eagle West usando MATLAB/Octave nativo con MRST.
 
 ### 1. Configurar Yacimiento
 Editar archivos en carpeta `config/`:
-- `grid_config.yaml` - Grid 40×40×12 (82×74×8.3 ft celdas)
+- `grid_config.yaml` - Grid 41×41×12 (82×74×8.3 ft celdas)
 - `rock_properties_config.yaml` - Propiedades por capa (12 layers)
 - `fluid_properties_config.yaml` - Black oil 3-phase (API 32°)
 - `wells_config.yaml` - 15 pozos (10 productores + 5 inyectores)
@@ -34,7 +34,7 @@ Opciones avanzadas:
 s99_run_workflow('validation_only', true)
 
 % Ejecutar fases específicas
-s99_run_workflow('phases', {'s01', 's02', 's03'})
+s99_run_workflow('phases', {'s01', 's05', 's02'})
 
 % Sin output detallado
 s99_run_workflow('verbose', false)
@@ -52,11 +52,11 @@ Los resultados se guardan en:
 
 ## Configuración Detallada
 
-### Grid (Malla) - 40×40×12
+### Grid (Malla) - 41×41×12
 ```yaml
 grid:
-  nx: 40              # Celdas en X (3,280 ft total)
-  ny: 40              # Celdas en Y (2,960 ft total)  
+  nx: 41              # Celdas en X (3,362 ft total)
+  ny: 41              # Celdas en Y (3,034 ft total)  
   nz: 12              # Capas en Z (100 ft total)
   cell_size_x: 82.0   # Tamaño celda X (ft)
   cell_size_y: 74.0   # Tamaño celda Y (ft)
@@ -114,13 +114,43 @@ fluid_properties:
   residual_oil_saturation: 0.25
 ```
 
+### Grid PEBI - Construcción Conforme a Fallas
+El script `s05_create_pebi_grid.m` implementa construcción de grid PEBI (Perpendicular Bisection) usando el módulo UPR de MRST:
+
+```yaml
+pebi_grid:
+  approach: "fault_conforming"     # Grid que respeta geometría de fallas
+  size_field: "tiered_influence"   # Zonas de influencia escalonadas
+  
+  # Zonas de refinamiento por tamaño
+  well_zones:
+    near_wellbore: 25.0     # ft - refinamiento máximo cerca pozos
+    intermediate: 50.0      # ft - zona intermedia
+    far_field: 82.0        # ft - tamaño base del grid
+    
+  fault_zones:
+    fault_edge: 30.0        # ft - refinamiento en bordes de falla
+    fault_influence: 60.0   # ft - zona de influencia de fallas
+    
+  # Características técnicas
+  edge_conforming: true     # Fallas como bordes de grid (sellado)
+  quality_preservation: true # Mantener calidad de celdas PEBI
+  transition_smoothing: true # Transiciones suaves entre zonas
+```
+
+**Ventajas del Grid PEBI**:
+- **Conformidad Geológica**: Fallas como límites naturales del grid
+- **Refinamiento Inteligente**: Zonas de influencia graduales sin subdivisión artificial
+- **Comportamiento de Sello**: Fallas actúan como barreras de flujo reales
+- **Optimización Numérica**: Mejor condicionamiento de matrices vs grid refinado
+
 ## Requisitos
 
 ### Software Necesario
 - **MATLAB R2019b+** o **Octave 6.0+**
 - **MRST** instalado en `/opt/mrst` (o `/usr/local/mrst`)
   - Descarga: https://www.sintef.no/projectweb/mrst/download/
-  - Módulos requeridos: ad-core, ad-blackoil, ad-props, incomp
+  - Módulos requeridos: ad-core, ad-blackoil, ad-props, incomp, upr
 - **YAML support** (yamlread function o parser incluído)
 
 ### Instalación MRST
@@ -132,18 +162,18 @@ chmod -R 755 /opt/mrst
 # En MATLAB/Octave verificar:
 cd /opt/mrst
 startup
-mrstModule add ad-core ad-blackoil ad-props incomp
+mrstModule add ad-core ad-blackoil ad-props incomp upr
 ```
 
 ## Workflow de Simulación
 
 ### Fases de Ejecución (s01-s10)
 1. **s01_initialize_mrst** - Setup MRST, cargar módulos ✅
-2. **s02_create_grid** - Grid 40×40×12 Cartesiano ✅  
-3. **s03_define_fluids** - PVT 3-phase, rel-perm ✅
-4. **s04_structural_framework** - Estructura geológica 🚧
-5. **s05_add_faults** - Sistema de 5 fallas 🚧
-6. **s06_grid_refinement** - Refinamiento local 🚧
+2. **s05_create_pebi_grid** - Grid 41×41×12 PEBI canónico ✅  
+3. **s02_define_fluids** - PVT 3-phase, rel-perm ✅
+4. **s03_structural_framework** - Estructura geológica 🚧
+5. **s04_add_faults** - Sistema de 5 fallas 🚧
+(Number 6 was eliminated - s05 PEBI grid is now canonical)
 7. **s07_define_rock_types** - 6 tipos de roca (RT1-RT6) 🚧
 8. **s08_assign_layer_properties** - Propiedades por capa 🚧
 9. **s09_spatial_heterogeneity** - Heterogeneidad espacial 🚧
@@ -164,17 +194,17 @@ mrstModule add ad-core ad-blackoil ad-props incomp
 mrst_simulation_scripts/
 ├── s99_run_workflow.m          # 🎯 EJECUTAR AQUÍ
 ├── s01_initialize_mrst.m       # ✅ Inicialización MRST
-├── s02_create_grid.m           # ✅ Grid construction  
-├── s03_define_fluids.m         # ✅ Fluid properties
-├── s04_structural_framework.m  # 🚧 Auto-placeholder
-├── s05_add_faults.m            # 🚧 Auto-placeholder
-├── s06_grid_refinement.m       # 🚧 Auto-placeholder
+├── s05_create_pebi_grid.m      # ✅ Canonical PEBI grid  
+├── s02_define_fluids.m         # ✅ Fluid properties
+├── s03_structural_framework.m  # 🚧 Auto-placeholder
+├── s04_add_faults.m            # 🚧 Auto-placeholder
+(s06 eliminated - s05 is canonical PEBI grid)
 ├── s07_define_rock_types.m     # 🚧 Auto-placeholder
 ├── s08_assign_layer_properties.m # 🚧 Auto-placeholder
 ├── s09_spatial_heterogeneity.m # 🚧 Auto-placeholder
 ├── read_yaml_config.m          # ✅ YAML reader
 ├── config/
-│   ├── grid_config.yaml        # ✅ Grid 40×40×12
+│   ├── grid_config.yaml        # ✅ Grid 41×41×12
 │   ├── rock_properties_config.yaml # ✅ 12 layers
 │   ├── fluid_properties_config.yaml # ✅ 3-phase
 │   └── wells_config.yaml       # ✅ 15 wells, 6 phases
@@ -185,9 +215,10 @@ mrst_simulation_scripts/
 
 ### Especificaciones Técnicas
 - **Yacimiento**: 2,600 acres, anticline fallado
-- **Grid**: 40×40×12 = 19,200 celdas activas
-- **Fallas**: 5 principales (A, B, C, D, E)
-- **Compartimentos**: 2 principales (Northern/Southern)
+- **Grid Base**: 41×41×12 Cartesiano → PEBI conforme a fallas
+- **Fallas**: 5 principales (Fault_A, Fault_B, Fault_C, Fault_D, Fault_E)
+- **Grid PEBI**: Zonas de influencia pozos/fallas, transiciones suaves
+- **Compartimentos**: 2 principales (Northern/Southern) con sello efectivo
 - **Pozos**: 15 total, desarrollo en 6 fases
 - **Producción**: Target 18,500 STB/day (Fase 6)
 - **Simulación**: 10 años (3,650 días)
@@ -242,8 +273,8 @@ s99_run_workflow('verbose', true)
 s99_run_workflow('validation_only', true)
 
 % Ejecutar fase individual:
-G = s02_create_grid();  % Test grid creation
-fluid = s03_define_fluids();  % Test fluid setup
+G = s05_create_pebi_grid();  % Test PEBI grid creation (canonical)
+fluid = s02_define_fluids();  % Test fluid setup
 ```
 
 ### Archivos de Salida

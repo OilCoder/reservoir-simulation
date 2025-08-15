@@ -41,84 +41,115 @@ function [success, message] = validate_mrst_session(script_dir)
         end
     end
     
-    % Step 2 - Check if MRST is already initialized
+    % Step 2 - Check if s01 session functions are available
     fprintf('   Validating MRST session...\n');
     
-    % Check for critical MRST functions (Pattern B from s02)
-    critical_functions = {'mrstModule', 'cartGrid', 'computeGeometry'};
+    % Check for critical MRST functions that s01 should have loaded
+    critical_functions = {'cartGrid', 'computeGeometry', 'initSimpleADIFluid', 'triangleGrid', 'pebi'};
     all_functions_available = true;
-    
-    for i = 1:length(critical_functions)
-        func_name = critical_functions{i};
-        if ~exist(func_name, 'file')
-            all_functions_available = false;
-            break;
-        end
-    end
-    
-    % Step 3 - Initialize MRST if needed
-    if ~all_functions_available
-        fprintf('   MRST not fully initialized - running fallback initialization...\n');
-        
-        try
-            % Execute s01_initialize_mrst.m from script directory
-            s01_path = fullfile(script_dir, 's01_initialize_mrst.m');
-            
-            if exist(s01_path, 'file')
-                fprintf('   Executing: %s\n', s01_path);
-                run(s01_path);
-            else
-                success = false;
-                message = sprintf('s01_initialize_mrst.m not found at: %s', s01_path);
-                return;
-            end
-            
-        catch ME
-            success = false;
-            message = sprintf('MRST initialization failed: %s', ME.message);
-            return;
-        end
-    end
-    
-    % Step 4 - Verify MRST is now ready
-    verification_passed = true;
     missing_functions = {};
     
     for i = 1:length(critical_functions)
         func_name = critical_functions{i};
         if ~exist(func_name, 'file')
-            verification_passed = false;
+            all_functions_available = false;
             missing_functions{end+1} = func_name;
         end
     end
     
-    % Step 5 - Check for loaded modules (optional validation)
-    modules_status = 'unknown';
-    if exist('mrstModule', 'file')
-        try
-            current_modules = mrstModule();
-            if iscell(current_modules) && ~isempty(current_modules)
-                modules_status = sprintf('%d modules loaded', length(current_modules));
-            elseif ischar(current_modules) || isstring(current_modules)
-                modules_status = 'modules available';
-            else
-                modules_status = 'no modules loaded';
+    % Step 3 - Try to load saved s01 session before failing
+    if ~all_functions_available
+        fprintf('   MRST functions missing, attempting to load saved s01 session...\n');
+        
+        % Try to load saved session from s01
+        session_loaded = load_saved_s01_session(script_dir);
+        
+        if session_loaded
+            % Re-check functions after loading session
+            all_functions_available = true;
+            missing_functions = {};
+            
+            for i = 1:length(critical_functions)
+                func_name = critical_functions{i};
+                if ~exist(func_name, 'file')
+                    all_functions_available = false;
+                    missing_functions{end+1} = func_name;
+                end
             end
-        catch
-            modules_status = 'module check failed';
+            
+            if all_functions_available
+                fprintf('   ✅ Successfully loaded saved s01 session\n');
+            end
+        end
+        
+        % FAIL_FAST if still not available after loading attempt
+        if ~all_functions_available
+            success = false;
+            message = sprintf(['MRST session incomplete - s01 must be run first.\n' ...
+                              'REQUIRED: Execute s01_initialize_mrst() to establish complete MRST session.\n' ...
+                              'Missing functions: %s\n' ...
+                              'CANON-FIRST: Each s** script requires the persistent session that s01 creates.'], ...
+                              strjoin(missing_functions, ', '));
+            fprintf('   ❌ %s\n', message);
+            return;
         end
     end
     
-    % Step 6 - Return results
-    if verification_passed
-        success = true;
-        message = sprintf('MRST session ready (%s)', modules_status);
-        fprintf('   ✅ MRST session validated successfully\n');
-    else
-        success = false;
-        message = sprintf('MRST validation failed - missing functions: %s', ...
-                         strjoin(missing_functions, ', '));
-        fprintf('   ❌ MRST validation failed: %s\n', message);
-    end
+    % Step 4 - Validate s01 persistent session is complete
+    success = true;
+    message = sprintf('MRST persistent session from s01 validated successfully');
+    fprintf('   ✅ MRST session validated successfully\n')
 
+end
+
+function session_loaded = load_saved_s01_session(script_dir)
+% Load saved MRST session from s01_initialize_mrst
+    session_loaded = false;
+    
+    try
+        % Look for saved session file
+        session_file = fullfile(script_dir, 'data', 'session', 's01_mrst_session.mat');
+        
+        if exist(session_file, 'file')
+            fprintf('   Loading saved MRST session from: %s\n', session_file);
+            
+            % Load the saved session data
+            session_data = load(session_file);
+            
+            % Restore MATLAB path from saved session
+            if isfield(session_data, 'mrst_paths') && ~isempty(session_data.mrst_paths)
+                for i = 1:length(session_data.mrst_paths)
+                    if exist(session_data.mrst_paths{i}, 'dir')
+                        addpath(session_data.mrst_paths{i});
+                    end
+                end
+                fprintf('   Restored %d MRST paths from saved session\n', length(session_data.mrst_paths));
+            end
+            
+            % Restore global variables if they exist
+            if isfield(session_data, 'global_vars')
+                global_vars = session_data.global_vars;
+                if isfield(global_vars, 'MRST_ROOT_PATH')
+                    global MRST_ROOT_PATH;
+                    MRST_ROOT_PATH = global_vars.MRST_ROOT_PATH;
+                end
+                if isfield(global_vars, 'MRST_SESSION_INITIALIZED')
+                    global MRST_SESSION_INITIALIZED;
+                    MRST_SESSION_INITIALIZED = global_vars.MRST_SESSION_INITIALIZED;
+                end
+                if isfield(global_vars, 'MRST_PERSISTENT_SESSION')
+                    global MRST_PERSISTENT_SESSION;
+                    MRST_PERSISTENT_SESSION = global_vars.MRST_PERSISTENT_SESSION;
+                end
+            end
+            
+            session_loaded = true;
+        else
+            fprintf('   No saved session found at: %s\n', session_file);
+        end
+        
+    catch ME
+        fprintf('   Warning: Failed to load saved session: %s\n', ME.message);
+        session_loaded = false;
+    end
 end

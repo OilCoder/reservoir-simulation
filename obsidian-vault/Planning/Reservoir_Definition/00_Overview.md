@@ -122,7 +122,7 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 
 - Grid dimensions: 41 × 41 × 12 cells (I × J × K) [CORRECTED for detailed simulation]
 - Cell dimensions: 82 × 74 × 8.3 ft (X × Y × Z) [UPDATED for field extent]
-- Total active cells: 19,200 (high resolution) [CORRECTED for realistic simulation]
+- Total active cells: 20,172 (high resolution) [CORRECTED for realistic simulation]
 - Refinement strategy: **Tiered optimization** (20-30% coverage target) [CANONICAL APPROACH]
 - Refinement areas: Critical wells, major faults, with tier-based prioritization
 

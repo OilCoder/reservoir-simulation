@@ -545,7 +545,7 @@ where:
 
 ### 9.1 Layer-by-Layer Rock Properties Distribution
 
-**For 40×40×12 simulation grid - Definitive specification for all simulation studies:**
+**For PEBI grid simulation - Definitive specification for all simulation studies:**
 
 #### Upper Zone (Layers 1-4)
 | Layer | Lithology | Porosity (fraction) | Permeability (mD) | Kv/Kh Ratio | Thickness (ft) |
@@ -585,7 +585,7 @@ where:
 ### 9.3 Implementation Notes
 - **Shale Barriers**: Layers 4 and 8 represent interbedded shale intervals that act as vertical flow barriers
 - **Vertical Permeability**: Calculated as Kv = Kh × (Kv/Kh ratio)
-- **Grid Compatibility**: Specifications exactly match 40×40×12 simulation grid
+- **Grid Compatibility**: Specifications exactly match PEBI simulation grid
 - **Zonation**: Three main reservoir zones with realistic heterogeneity
 - **Flow Barriers**: Shale layers significantly restrict vertical communication
 

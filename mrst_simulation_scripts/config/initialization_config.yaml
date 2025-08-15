@@ -101,7 +101,7 @@ initialization:
     aquifer_model: "carter_tracy"
     
     # Aquifer Properties (flattened for YAML parser compatibility)
-    aquifer_radius_ft: 8500.0         # Aquifer extent
+    aquifer_radius_ft: 65000.0        # Aquifer extent (must be > reservoir radius for Carter-Tracy)
     aquifer_thickness_ft: 50.0        # Aquifer interval thickness
     aquifer_porosity: 0.23            # Aquifer porosity
     aquifer_permeability_md: 100.0    # Aquifer permeability
@@ -167,6 +167,10 @@ initialization:
     # Field-Level Checks
     total_hydrocarbon_pore_volume_check: true
     initial_oil_in_place_estimate: 125.0  # MMstb (from volumetrics)
+    
+    # Aquifer Connection Thresholds (Canon-First S14 Requirements)
+    aquifer_boundary_tolerance: 20.0     # ft - Distance from bottom to identify aquifer-connected cells
+    min_geometric_factor: 2.0            # Minimum ln(re/rw) for Carter-Tracy model stability
     initial_water_in_place_estimate: 35.0 # MMstb
     
     # Well-Level Checks

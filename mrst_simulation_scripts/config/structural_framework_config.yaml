@@ -1,6 +1,6 @@
 # Structural Framework Configuration for Eagle West Field MRST Simulation
 # Source: 01_Structural_Geology.md (CANON)
-# Compatible with s04_structural_framework.m requirements
+# Compatible with s03_structural_framework.m requirements
 # Date: 2025-08-07
 
 structural_framework:
@@ -29,6 +29,7 @@ structural_framework:
     
   # Layer Architecture (CANON)
   layering:
+    n_layers: 12                        # Number of layers for PEBI grid compatibility
     gross_thickness: 100.0              # ft (average across field)
     layer_thickness: 8.3                # ft average per layer (100/12 layers)
     thickness_variation: [85, 120]      # ft range (structural control)

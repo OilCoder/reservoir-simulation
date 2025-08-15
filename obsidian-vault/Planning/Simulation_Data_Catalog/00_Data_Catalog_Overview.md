@@ -24,29 +24,29 @@ This catalog exists to help stakeholders understand:
 
 | Document | Description | Key Data Types |
 |----------|-------------|----------------|
-| [01_Grid_Geometry_Data.md](01_Grid_Geometry_Data.md) | Static reservoir grid and geometric properties | Grid cells, coordinates, connectivity, rock properties |
-| [02_Well_Configuration_Data.md](02_Well_Configuration_Data.md) | Well trajectories, completions, and equipment | Well paths, perforations, control parameters |
-| [03_Solver_Internal_Data.md](03_Solver_Internal_Data.md) | MRST solver states and convergence metrics | Solver iterations, residuals, timestep controls |
-| [04_Production_Performance_Data.md](04_Production_Performance_Data.md) | Well and field production/injection rates | Flow rates, pressures, cumulative volumes |
-| [05_Pressure_Field_Data.md](05_Pressure_Field_Data.md) | Spatial pressure distributions over time | Cell pressures, pressure gradients, contour maps |
-| [06_Saturation_Field_Data.md](06_Saturation_Field_Data.md) | Fluid saturation distributions | Oil, water, gas saturations by cell and time |
-| [07_Economic_Analysis_Data.md](07_Economic_Analysis_Data.md) | Financial metrics and economic indicators | NPV, cash flows, costs, commodity prices |
-| [08_Optimization_Results_Data.md](08_Optimization_Results_Data.md) | Parameter optimization and sensitivity data | Optimal parameters, sensitivity coefficients |
-| [09_Validation_Quality_Data.md](09_Validation_Quality_Data.md) | Data quality metrics and validation results | Error metrics, uncertainty bounds, QC flags |
+| [01_Static_Data_Inventory.md](01_Static_Data_Inventory.md) | Static reservoir properties and geometry | Grid cells, rock properties, fluid PVT, wells, faults |
+| [02_Dynamic_Data_Inventory.md](02_Dynamic_Data_Inventory.md) | Time-varying simulation results | Pressure fields, saturations, production rates, well data |
+| [03_Solver_Internal_Data.md](03_Solver_Internal_Data.md) | MRST solver diagnostics and convergence | Newton iterations, residuals, timestep controls |
+| [04_Derived_Calculated_Data.md](04_Derived_Calculated_Data.md) | Calculated analytics and KPIs | Recovery factors, material balance, flow diagnostics |
+| [05_Visualization_Outputs.md](05_Visualization_Outputs.md) | Charts, maps, and visual outputs | 3D maps, cross-sections, time series plots |
+| [06_ML_Ready_Features.md](06_ML_Ready_Features.md) | Pre-processed ML datasets | Feature matrices, training sets, normalized data |
+| [07_Metadata_Specifications.md](07_Metadata_Specifications.md) | Data schemas and quality standards | YAML metadata, validation rules, data governance |
+| [08_Data_Access_Guide.md](08_Data_Access_Guide.md) | Access patterns and integration | APIs, loading procedures, performance optimization |
+| [09_Storage_Organization.md](09_Storage_Organization.md) | File organization strategies | by_type, by_usage, by_phase directory structures |
 
 ## Quick Reference: Data Categories and Applications
 
 | Category | Update Frequency | ML Applications |
 |----------|------------------|-----------------|
-| **Grid Geometry** | Static | Spatial feature engineering, geological ML |
-| **Well Configuration** | Per phase | Well placement optimization, drilling ML |
-| **Solver Internal** | Per timestep | Convergence prediction, numerical stability ML |
-| **Production Performance** | Per timestep | Production forecasting, decline curve ML |
-| **Pressure Fields** | Per timestep | Pressure prediction, connectivity analysis ML |
-| **Saturation Fields** | Per timestep | Flood front tracking, sweep efficiency ML |
-| **Economic Analysis** | Per timestep | Economic optimization, risk assessment ML |
-| **Optimization Results** | Per scenario | Parameter tuning, automated optimization ML |
-| **Validation/Quality** | Per timestep | Data quality ML, uncertainty quantification |
+| **Static Data** | Once per model | Spatial feature engineering, geological ML |
+| **Dynamic Simulation** | Per timestep | Production forecasting, pressure prediction ML |
+| **Solver Internal** | Per iteration | Convergence prediction, numerical stability ML |
+| **Derived Analytics** | Per timestep | Performance optimization, flow diagnostics ML |
+| **Visualization** | On demand | Dashboard creation, reporting automation |
+| **ML Features** | Batch processing | Direct model training, feature engineering |
+| **Metadata** | Continuous | Data governance, quality assurance ML |
+| **Data Access** | Real-time | System integration, API development |
+| **Storage Organization** | Static | Data management, retrieval optimization |
 
 
 

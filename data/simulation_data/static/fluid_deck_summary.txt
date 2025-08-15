@@ -1,0 +1,30 @@
+Eagle West Field - Native MRST Fluid Summary
+=============================================
+
+Implementation: 100% Native MRST (Canonical Organization)
+Fluid System: 3-phase black oil
+MRST Modules: ad-blackoil, ad-props, ad-core
+
+Surface Properties:
+  Oil Density: 865 kg/m³ (API 32.0°)
+  Water Density: 1025 kg/m³
+  Gas Density: 0.8 kg/m³
+
+Reservoir Conditions:
+  Temperature: 176 °F
+  Bubble Point: 2100 psi
+  Solution GOR: 450 scf/STB
+
+PVT Tables (Native MRST Deck Format):
+  PVTO: 10x4 points
+  PVTW: 1x5 points
+  PVTG: 8x4 points
+
+Relative Permeability Tables:
+  SWOF: 50x4 points
+  SGOF: 50x4 points
+
+Data Organization: Canonical (by_type/by_usage/by_phase)
+Format: Native .mat (oct2py compatible)
+Creation Date: 15-Aug-2025 17:58:43
+Policy: 100% MRST Native Implementation

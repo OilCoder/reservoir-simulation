@@ -1,11 +1,20 @@
 function data_export_utils()
-% DATA_EXPORT_UTILS - Utilities for exporting simulation data to organized structure
+% DATA_EXPORT_UTILS - Legacy utilities for exporting simulation data to organized structure
 %
-% This function provides utilities for saving MRST simulation data to the
-% three-tier organizational structure (by_type, by_usage, by_phase)
+% DEPRECATED: This utility is being migrated to canonical_data_utils.m
+% For new implementations, use canonical_data_utils.m which provides:
+% - HDF5 format support for Python/ML compatibility
+% - Enhanced YAML metadata generation
+% - Canon-First error handling
+% - Automatic symlink creation for multi-organization
+% - Timestamp-based versioning
+%
+% LEGACY COMPATIBILITY: This function maintains backward compatibility
+% during the transition to canonical data utilities.
 %
 % Author: Claude Code AI System  
 % Date: August 11, 2025
+% Updated: August 15, 2025 (canonical integration)
 
 end
 
@@ -301,6 +310,319 @@ function create_metadata_file(yaml_path, data_type, data_struct, description)
     write_yaml_metadata(yaml_path, metadata);
 end
 
+% ========================================
+% CANONICAL INTEGRATION FUNCTIONS
+% ========================================
+
+function export_canonical_static_data(grid_data, rock_data, well_data, fluid_data, varargin)
+% EXPORT_CANONICAL_STATIC_DATA - Export static data using canonical utilities
+%
+% Bridge function to canonical_data_utils.m for enhanced data export
+% Provides HDF5 format, enhanced metadata, and multi-organization access
+
+    % Parse input arguments
+    p = inputParser;
+    addParameter(p, 'step_name', 's05', @ischar);  % Default to grid step
+    addParameter(p, 'base_path', '', @ischar);
+    addParameter(p, 'timestamp', datestr(now, 'yyyymmdd_HHMMSS'), @ischar);
+    parse(p, varargin{:});
+    
+    % Prepare data structure for canonical export
+    canonical_data = struct();
+    
+    % Include grid data if provided
+    if ~isempty(grid_data)
+        canonical_data.G = grid_data;
+        if isfield(grid_data, 'cells')
+            canonical_data.grid_cells = grid_data.cells;
+        end
+        if isfield(grid_data, 'faces')
+            canonical_data.grid_faces = grid_data.faces;
+        end
+    end
+    
+    % Include rock data if provided
+    if ~isempty(rock_data)
+        canonical_data.rock = rock_data;
+        if isfield(rock_data, 'poro')
+            canonical_data.porosity = rock_data.poro;
+        end
+        if isfield(rock_data, 'perm')
+            canonical_data.permeability = rock_data.perm;
+        end
+    end
+    
+    % Include well data if provided
+    if ~isempty(well_data)
+        canonical_data.wells = well_data;
+    end
+    
+    % Include fluid data if provided
+    if ~isempty(fluid_data)
+        canonical_data.fluid = fluid_data;
+        if isfield(fluid_data, 'bO')
+            canonical_data.pvt_tables = extract_pvt_tables(fluid_data);
+        end
+    end
+    
+    % Add export metadata
+    canonical_data.export_metadata = struct();
+    canonical_data.export_metadata.export_function = 'data_export_utils.export_canonical_static_data';
+    canonical_data.export_metadata.legacy_compatible = true;
+    canonical_data.export_metadata.enhanced_format = 'canonical_v1.0';
+    
+    try
+        % Use canonical data utilities for enhanced export
+        addpath(fullfile(fileparts(mfilename('fullpath'))));  % Ensure utils in path
+        
+        output_files = save_canonical_data(p.Results.step_name, canonical_data, ...
+            'base_path', p.Results.base_path, ...
+            'timestamp', p.Results.timestamp, ...
+            'formats', {'hdf5', 'yaml'}, ...
+            'organizations', {'by_type', 'by_usage', 'by_phase'});
+        
+        fprintf('   ✅ Canonical export completed\n');
+        fprintf('   📄 Files created: %d\n', length(output_files.primary_files));
+        fprintf('   🔗 Symlinks created: %d\n', length(output_files.symlinks));
+        
+    catch ME
+        warning('Canonical export failed, falling back to legacy export: %s', ME.message);
+        
+        % Fallback to legacy export
+        export_static_data(grid_data, rock_data, well_data, fluid_data, varargin{:});
+    end
+end
+
+function migrate_to_canonical_format(legacy_data_path, varargin)
+% MIGRATE_TO_CANONICAL_FORMAT - Migrate existing legacy data to canonical format
+%
+% INPUTS:
+%   legacy_data_path - Path to existing legacy data files
+%   varargin - Optional parameters:
+%              'target_base_path' - Target path for canonical structure
+%              'preserve_legacy' - Keep original files (default: true)
+%              'validation_level' - Validation level for migration
+
+    p = inputParser;
+    addRequired(p, 'legacy_data_path', @ischar);
+    addParameter(p, 'target_base_path', '', @ischar);
+    addParameter(p, 'preserve_legacy', true, @islogical);
+    addParameter(p, 'validation_level', 'standard', @ischar);
+    parse(p, legacy_data_path, varargin{:});
+    
+    fprintf('🔄 Migrating legacy data to canonical format...\n');
+    fprintf('   Legacy path: %s\n', legacy_data_path);
+    
+    if ~exist(legacy_data_path, 'dir')
+        error(['Legacy data path not found: %s\n' ...
+               'REQUIRED: Specify valid path to existing legacy data.\n' ...
+               'Canon migration requires accessible source data.'], legacy_data_path);
+    end
+    
+    % Determine target path
+    target_path = p.Results.target_base_path;
+    if isempty(target_path)
+        [parent_dir, ~, ~] = fileparts(legacy_data_path);
+        target_path = fullfile(parent_dir, 'simulation_data_canonical');
+    end
+    
+    try
+        % Create canonical structure
+        create_canonical_structure(target_path, 'verbose', true);
+        
+        % Scan legacy files
+        legacy_files = scan_legacy_data_files(legacy_data_path);
+        
+        fprintf('   Found %d legacy data files\n', length(legacy_files));
+        
+        % Migrate each file type
+        migration_summary = struct();
+        migration_summary.migrated_files = 0;
+        migration_summary.failed_files = 0;
+        migration_summary.errors = {};
+        
+        for i = 1:length(legacy_files)
+            file_info = legacy_files{i};
+            
+            try
+                migrate_single_file(file_info, target_path);
+                migration_summary.migrated_files = migration_summary.migrated_files + 1;
+                
+            catch ME
+                migration_summary.failed_files = migration_summary.failed_files + 1;
+                migration_summary.errors{end+1} = sprintf('%s: %s', file_info.filename, ME.message);
+                warning('Migration failed for %s: %s', file_info.filename, ME.message);
+            end
+        end
+        
+        % Validation after migration
+        if strcmp(p.Results.validation_level, 'standard') || strcmp(p.Results.validation_level, 'comprehensive')
+            fprintf('   Validating migrated data...\n');
+            validation_result = validate_workflow_data('all', 'base_path', target_path, ...
+                'validation_level', p.Results.validation_level);
+            
+            migration_summary.validation_status = validation_result.validation_summary.overall_status;
+        end
+        
+        % Summary report
+        fprintf('   ✅ Migration completed\n');
+        fprintf('   📄 Migrated files: %d\n', migration_summary.migrated_files);
+        if migration_summary.failed_files > 0
+            fprintf('   ⚠️  Failed migrations: %d\n', migration_summary.failed_files);
+        end
+        
+        % Remove legacy files if not preserving
+        if ~p.Results.preserve_legacy
+            fprintf('   🗑️  Removing legacy files...\n');
+            rmdir(legacy_data_path, 's');
+        end
+        
+    catch ME
+        error(['Migration to canonical format failed: %s\n' ...
+               'REQUIRED: Migration must complete successfully.\n' ...
+               'Canon requires successful data migration with validation.'], ME.message);
+    end
+end
+
+function legacy_files = scan_legacy_data_files(legacy_path)
+% SCAN_LEGACY_DATA_FILES - Scan directory for legacy data files to migrate
+
+    legacy_files = {};
+    
+    % Known legacy file patterns
+    legacy_patterns = {
+        '*.mat',     % MATLAB data files
+        '*.h5',      % Existing HDF5 files
+        '*.yaml',    % YAML configuration files
+        '*.csv',     % CSV data files
+        '*.txt'      % Text summary files
+    };
+    
+    for i = 1:length(legacy_patterns)
+        pattern = legacy_patterns{i};
+        matches = dir(fullfile(legacy_path, '**', pattern));
+        
+        for j = 1:length(matches)
+            file_info = struct();
+            file_info.filename = matches(j).name;
+            file_info.full_path = fullfile(matches(j).folder, matches(j).name);
+            file_info.size_mb = matches(j).bytes / 1048576;
+            file_info.last_modified = matches(j).datenum;
+            file_info.format = determine_file_format(file_info.filename);
+            file_info.data_type = infer_data_type(file_info.filename);
+            
+            legacy_files{end+1} = file_info;
+        end
+    end
+end
+
+function format = determine_file_format(filename)
+% DETERMINE_FILE_FORMAT - Determine file format from filename
+
+    [~, ~, ext] = fileparts(filename);
+    
+    switch lower(ext)
+        case '.mat'
+            format = 'matlab';
+        case '.h5'
+            format = 'hdf5';
+        case '.yaml'
+            format = 'yaml';
+        case '.csv'
+            format = 'csv';
+        case '.txt'
+            format = 'text';
+        otherwise
+            format = 'unknown';
+    end
+end
+
+function data_type = infer_data_type(filename)
+% INFER_DATA_TYPE - Infer data type from filename patterns
+
+    filename_lower = lower(filename);
+    
+    if contains(filename_lower, {'grid', 'pebi', 'cartesian'})
+        data_type = 'pebi_grid';
+    elseif contains(filename_lower, {'rock', 'perm', 'poro'})
+        data_type = 'base_rock_properties';
+    elseif contains(filename_lower, {'fluid', 'pvt', 'oil', 'water'})
+        data_type = 'fluid_pvt';
+    elseif contains(filename_lower, {'well', 'completion'})
+        data_type = 'wells';
+    elseif contains(filename_lower, {'fault', 'transmissibility'})
+        data_type = 'fault_system';
+    elseif contains(filename_lower, {'struct', 'layer', 'geology'})
+        data_type = 'structural_framework';
+    else
+        data_type = 'unknown';
+    end
+end
+
+function migrate_single_file(file_info, target_base_path)
+% MIGRATE_SINGLE_FILE - Migrate single legacy file to canonical format
+
+    % Determine target step based on data type
+    step_mapping = containers.Map(...
+        {'pebi_grid', 'base_rock_properties', 'fluid_pvt', 'wells', 'fault_system', 'structural_framework'}, ...
+        {'s05', 's06', 's02', 's16', 's04', 's03'});
+    
+    if isKey(step_mapping, file_info.data_type)
+        target_step = step_mapping(file_info.data_type);
+    else
+        target_step = 's99';  % Generic step for unknown types
+    end
+    
+    % Load legacy data
+    switch file_info.format
+        case 'matlab'
+            legacy_data = load(file_info.full_path);
+            
+        case 'hdf5'
+            % Copy HDF5 file to canonical location
+            legacy_data = struct();
+            legacy_data.hdf5_source = file_info.full_path;
+            
+        case 'yaml'
+            % Read YAML content
+            fid = fopen(file_info.full_path, 'r');
+            content = fread(fid, '*char')';
+            fclose(fid);
+            legacy_data = struct();
+            legacy_data.yaml_content = content;
+            
+        otherwise
+            % Generic file copy
+            legacy_data = struct();
+            legacy_data.file_source = file_info.full_path;
+    end
+    
+    % Add migration metadata
+    legacy_data.migration_metadata = struct();
+    legacy_data.migration_metadata.source_file = file_info.full_path;
+    legacy_data.migration_metadata.migration_date = datestr(now, 'yyyy-mm-ddTHH:MM:SS');
+    legacy_data.migration_metadata.original_format = file_info.format;
+    legacy_data.migration_metadata.inferred_data_type = file_info.data_type;
+    
+    % Export using canonical utilities
+    output_files = save_canonical_data(target_step, legacy_data, ...
+        'base_path', target_base_path, ...
+        'formats', {'hdf5', 'yaml'});
+    
+    % For HDF5 sources, copy original file to preserve format
+    if strcmp(file_info.format, 'hdf5') && exist(file_info.full_path, 'file')
+        for i = 1:length(output_files.primary_files)
+            primary_file = output_files.primary_files{i};
+            [file_path, file_name, file_ext] = fileparts(primary_file);
+            
+            if strcmp(file_ext, '.h5')
+                copyfile(file_info.full_path, primary_file);
+                break;
+            end
+        end
+    end
+end
+
 function name = get_data_name_from_path(yaml_path)
 % Generate human-readable name from file path
     [~, filename, ~] = fileparts(yaml_path);
@@ -406,10 +728,25 @@ end
 function grid_data = extract_grid_geometry(G)
 % EXTRACT_GRID_GEOMETRY - Extract grid geometry data for export
     grid_data = struct();
-    grid_data.dimensions = struct('nx', G.cartDims(1), 'ny', G.cartDims(2));
-    if length(G.cartDims) > 2
-        grid_data.dimensions.nz = G.cartDims(3);
+    
+    % For PEBI grids, report grid type and cell count instead of cartDims
+    if isfield(G, 'cartDims')
+        % Cartesian grid
+        grid_data.grid_type = 'cartesian';
+        grid_data.dimensions = struct('nx', G.cartDims(1), 'ny', G.cartDims(2));
+        if length(G.cartDims) > 2
+            grid_data.dimensions.nz = G.cartDims(3);
+        end
+    else
+        % PEBI/unstructured grid
+        grid_data.grid_type = 'pebi';
+        grid_data.dimensions = struct('total_cells', G.cells.num);
+        % Extract approximate field dimensions from cell centroids
+        grid_data.field_extent_x = max(G.cells.centroids(:,1)) - min(G.cells.centroids(:,1));
+        grid_data.field_extent_y = max(G.cells.centroids(:,2)) - min(G.cells.centroids(:,2));
+        grid_data.field_extent_z = max(G.cells.centroids(:,3)) - min(G.cells.centroids(:,3));
     end
+    
     grid_data.num_cells = G.cells.num;
     grid_data.num_faces = G.faces.num;
     grid_data.cell_centers = G.cells.centroids;

@@ -84,7 +84,7 @@ This index provides navigation to all documentation related to the **Tiered Grid
 - `refinement.tiered_strategy` section with complete tier definitions
 
 ### Code Implementation
-- `mrst_simulation_scripts/s06_grid_refinement.m` - Tiered refinement implementation
+- `mrst_simulation_scripts/s05_create_pebi_grid.m` - PEBI grid with size-field optimization
 - Functions: `create_tiered_well_refinement_zones()`, `determine_well_tier()`, etc.
 
 ### Analysis and Validation
@@ -113,7 +113,7 @@ $$\text{Efficiency Ratio} = \frac{\text{Accuracy Gain}}{\text{Computational Cost
 ## 🏗️ Implementation Status
 
 ✅ **Mathematical Optimization** - Complete with validated calculations  
-✅ **Code Implementation** - Tiered strategy integrated in s06_grid_refinement.m  
+✅ **Code Implementation** - PEBI size-field approach integrated in s05_create_pebi_grid.m  
 ✅ **Configuration Ready** - YAML parameters defined and validated  
 ✅ **Documentation Complete** - Comprehensive technical documentation  
 ✅ **Testing Ready** - Validation framework implemented  
@@ -122,9 +122,9 @@ $$\text{Efficiency Ratio} = \frac{\text{Accuracy Gain}}{\text{Computational Cost
 ## 🔗 Related Documentation
 
 ### Workflow Integration
-- **s01-s05**: Pre-refinement workflow steps
-- **s06**: **TIERED GRID REFINEMENT** (canonical implementation)
-- **s07-s25**: Post-refinement workflow (uses G_refined)
+- **s01-s04**: Pre-grid workflow steps (MRST init, fluids, structure, faults)
+- **s05**: **PEBI GRID CONSTRUCTION** (canonical implementation with size-field optimization)
+- **s07-s25**: Post-grid workflow (uses PEBI grid structure)
 
 ### Quality Assurance
 - **Validation**: Coverage target verification (20-30% range)

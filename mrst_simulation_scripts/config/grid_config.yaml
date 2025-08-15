@@ -1,18 +1,24 @@
 # Grid Configuration for Eagle West Field MRST Simulation
 # Source: 00_Overview.md, 01_Structural_Geology.md (CANON)
-# Compatible with s02_create_grid.m and s06_grid_refinement.m requirements
+# Compatible with s05_create_pebi_grid.m (canonical PEBI grid implementation)
 # Date: 2025-08-07
-# OPTIMIZED: 2025-08-14 - Phase 3 Implementation with optimized refinement parameters
+# UPDATED: 2025-08-14 - PEBI Grid Implementation with fault-conforming geometry
+# REORGANIZED: 2025-08-14 - Canon-First cleanup, eliminated information duplication
 #
-# OPTIMIZATION SUMMARY - PHASE 3 RECALIBRATION:
-# - Target Coverage: 20-30% (RECALIBRATED from 82.1% actual)
-# - Well Radii: Further reduced by 40-50% (Critical: 250→150, Standard: 175→100, Marginal: removed)
-# - Fault Buffers: Further reduced by 45-50% (Major: 275→150, Minor: 150→100 ft)
-# - Refinement Factors: Reduced (Critical: 3x3→2x2, Standard: 2x2→1.5x1.5, Marginal: removed)
-# - Expected Performance: ~85% reduction in refined cells from current 82.1% to target 25%
-# - Validation: Maintains critical feature resolution while achieving computational efficiency
+# CANON-FIRST PRINCIPLE ENFORCED:
+# - This file contains ONLY grid geometry and PEBI generation parameters
+# - Well classifications: wells_config.yaml -> grid_refinement.well_tiers (CANONICAL)
+# - Fault classifications: fault_config.yaml (CANONICAL)
+# - NO well/fault domain information duplicated here
+#
+# PEBI GRID ARCHITECTURE:
+# - Fault-conforming PEBI grid using MRST UPR module
+# - Size-field approach with tiered well/fault influence zones
+# - Natural size transitions instead of artificial subdivision
+# - Faults as grid edges for proper sealing behavior
+# - Target cells: ~20,000-25,000 (comparable efficiency to refined Cartesian)
 
-# Refinement Configuration (Top-level for s06_grid_refinement.m)
+# Refinement Configuration (Top-level for s05_grid_refinement.m)
 refinement:
   # Tiered Refinement Strategy - Phase 2 Implementation
   tiered_strategy:
@@ -23,32 +29,9 @@ refinement:
   well_refinement:
     enable: true
     
-    # Tiered Well Classification (RECALIBRATED parameters - Phase 3)
-    # Target: 20-30% refined cell coverage (RECALIBRATED from 82.1% actual)
-    well_tiers:
-      critical:
-        wells: ["EW-001", "EW-003", "EW-005", "EW-007", "EW-010"]  # High-rate, multi-lateral, horizontal producers
-        radius: 185.0                   # ft - FINAL TUNING: increased to 185 ft to achieve 20% minimum
-        factor: 2                       # 2x2 subdivision (reduced from 3x3)
-        refined_cell_size_x: 20.0       # ft (standard cells E-W)
-        refined_cell_size_y: 18.0       # ft (standard cells N-S)
-        priority: 1
-        
-      standard:
-        wells: ["EW-002", "EW-008", "IW-001", "IW-003"]           # Standard producers + key injectors
-        radius: 125.0                   # ft - FINE-TUNED: increased from 100 ft to reach 20% minimum
-        factor: 1.5                     # 1.5x1.5 subdivision (reduced from 2x2)
-        refined_cell_size_x: 25.0       # ft (moderate cells E-W)
-        refined_cell_size_y: 22.0       # ft (moderate cells N-S)
-        priority: 2
-        
-      marginal:
-        wells: ["EW-004", "EW-006", "EW-009", "IW-002", "IW-004", "IW-005"]  # REMOVED - no refinement
-        radius: 0.0                     # ft - RECALIBRATED: removed refinement entirely
-        factor: 1                       # No subdivision (no refinement)
-        refined_cell_size_x: 0.0        # ft (no refinement)
-        refined_cell_size_y: 0.0        # ft (no refinement)
-        priority: 0                     # Disabled
+    # Well refinement parameters loaded from wells_config.yaml
+    # CANONICAL SOURCE: wells_config.yaml -> grid_refinement.well_tiers
+    # Grid scripts must load well tier classifications from wells config
     
     # Legacy uniform refinement (used when tiered_strategy.enable = false)
     radius: 250.0                    # ft radius around wellbores
@@ -95,25 +78,72 @@ refinement:
     permeability_threshold: 500.0    # mD threshold
     refined_cell_size: 15.0          # ft
   
-  # Optimization Validation (Phase 3 - Recalibrated)
-  optimization:
+  # Grid Refinement Strategy Control
+  refinement_control:
     target_coverage_percent: 25.0    # Target refined cell coverage percentage
-    previous_coverage_percent: 82.1  # Actual coverage from Phase 2 testing
     coverage_tolerance: 5.0          # ±5% acceptable deviation from target
-    recalibration_notes:
-      - "PHASE 3: Aggressive recalibration from 82.1% to target 20-30%"
-      - "Critical wells: 3x3→2x2 refinement, radius 250→185 ft (5 wells)"
-      - "Standard wells: 2x2→1.5x1.5 refinement, radius 175→125 ft (4 wells)" 
-      - "Marginal wells: Removed refinement entirely (6 wells)"
-      - "Major faults: 3x3→2x2 refinement, buffer 275→125 ft (3 faults: A,C,D)"
-      - "Minor faults: 2x2→1.5x1.5 refinement, buffer 150→100 ft (2 faults: B,E)"
-    validation_checkpoints:
-      - "Well critical features maintain >2 cell radius minimum"
-      - "Fault representation focused on high-sealing capacity boundaries"
-      - "Computational efficiency improves by >70% vs. 82.1% coverage"
-      - "Total refined cells <6,000 (vs. previous ~16,600 at 82.1%)"
-    optimization_reference: "Grid refinement recalibration analysis 2025-08-14"
+    load_well_tiers_from: "wells_config.yaml"  # CANONICAL SOURCE for well classifications
+    load_fault_tiers_from: "fault_config.yaml" # CANONICAL SOURCE for fault classifications
+    optimization_notes:
+      - "CANON-FIRST: Well classifications loaded from wells_config.yaml"
+      - "CANON-FIRST: Fault classifications loaded from fault_config.yaml"  
+      - "Grid refinement parameters distributed to appropriate config files"
+      - "No duplication of domain-specific information in grid config"
 
+# PEBI Grid Configuration (NEW - for s05_create_pebi_grid.m)
+pebi_grid:
+  enable: true                             # Enable PEBI grid generation
+  grid_type: "fault_conforming"            # Type: fault_conforming, well_optimized, hybrid
+  
+  # Domain Definition
+  domain_bounds:
+    x_min: 0.0                             # ft (Western boundary)
+    x_max: 3280.0                          # ft (Eastern boundary) 
+    y_min: 0.0                             # ft (Southern boundary)
+    y_max: 2950.0                          # ft (Northern boundary)
+  
+  # Background Grid Size
+  background_cell_size: 150.0              # ft (far-field cell size)
+  
+  # Well Size-Field Configuration loaded from wells_config.yaml
+  # CANONICAL SOURCE: wells_config.yaml -> grid_refinement.well_tiers
+  # PEBI grid generation loads well parameters from wells config
+  
+  # Fault Size-Field Configuration (Tiered Approach)  
+  fault_zones:
+    major:
+      faults: ["Fault_A", "Fault_C", "Fault_D"]
+      cell_size: 25.0                      # ft (fine resolution for sealing faults)
+      buffer_distance: 130.0               # ft (±buffer around fault)
+      anisotropy_ratio: 2.0                # along:across fault ratio
+      priority: 1                          # Highest priority
+      
+    minor:
+      faults: ["Fault_B", "Fault_E"]  
+      cell_size: 40.0                      # ft (standard resolution)
+      buffer_distance: 100.0               # ft (±buffer around fault)
+      anisotropy_ratio: 2.0                # along:across fault ratio
+      priority: 2                          # Medium priority
+  
+  # Size-Field Blending Parameters
+  size_blending:
+    method: "minimum"                      # How to combine size fields: minimum, weighted, max
+    smooth_transitions: true               # Enable smooth size transitions
+    max_size_gradient: 1.3                 # Maximum size change between neighbors
+    
+  # Grid Quality Control
+  quality_control:
+    min_angle: 25.0                        # degrees (minimum polygon angle)
+    max_aspect_ratio: 4.0                  # Maximum cell aspect ratio in refined areas
+    target_cell_count: 25000               # Approximate target cell count
+    max_cell_count: 30000                  # Maximum allowed cell count
+  
+  # UPR Module Parameters
+  upr_settings:
+    CCFactor_multiplier: 1.0               # Well constraint cell size multiplier
+    FCFactor_multiplier: 1.0               # Fault constraint cell size multiplier
+    mlqt_max_level: 0                      # Multi-level quadtree refinement levels
+    
 grid:
   # Basic Grid Dimensions (CANON from 01_Structural_Geology.md Section 3.1)
   nx: 41                               # I-direction cells
@@ -124,13 +154,14 @@ grid:
   cell_size_x: 82.0                    # ft (E-W direction)
   cell_size_y: 74.0                    # ft (N-S direction)
   
-  # Layer Thicknesses (CANON - 12 layers, total 100 ft)
-  layer_thicknesses: [8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.3, 8.7]  # ft per layer
+  # Layer Thicknesses (CANON - 12 layers, total 340 ft Eagle West)
+  layer_thicknesses: [28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.4]  # ft per layer
   
   # Field Extent (CANON from 01_Structural_Geology.md)
   field_extent_x: 3280.0               # ft (E-W total field extent)
   field_extent_y: 2950.0               # ft (N-S total field extent)
-  total_thickness: 100.0               # ft (total reservoir thickness)
+  total_thickness: 340.0               # ft (Eagle West canonical reservoir thickness: 8240-7900 TVDSS)
+  thickness_tolerance: 10.0            # ft (validation tolerance for thickness)
   
   # Grid Origin and Orientation (CANON)
   origin_utm_x: 745280.0               # UTM Zone 15N Easting (m)

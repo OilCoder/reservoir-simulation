@@ -116,6 +116,56 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Setup MRST startup and module initialization
+RUN echo "% MRST startup configuration" > /opt/mrst_startup.m && \
+    echo "addpath('/opt/mrst');" >> /opt/mrst_startup.m && \
+    echo "startup;" >> /opt/mrst_startup.m && \
+    echo "% Pre-load all required modules for Eagle West Field simulation" >> /opt/mrst_startup.m && \
+    echo "try" >> /opt/mrst_startup.m && \
+    echo "    % Core modules required by s01 and s03" >> /opt/mrst_startup.m && \
+    echo "    mrstModule('add', 'ad-core', 'ad-blackoil', 'ad-props');" >> /opt/mrst_startup.m && \
+    echo "    fprintf('✅ Core modules loaded: ad-core, ad-blackoil, ad-props\\n');" >> /opt/mrst_startup.m && \
+    echo "    " >> /opt/mrst_startup.m && \
+    echo "    % Grid and refinement modules required by s06" >> /opt/mrst_startup.m && \
+    echo "    mrstModule('add', 'agglom');" >> /opt/mrst_startup.m && \
+    echo "    fprintf('✅ Grid refinement module loaded: agglom\\n');" >> /opt/mrst_startup.m && \
+    echo "    " >> /opt/mrst_startup.m && \
+    echo "    % Additional useful modules" >> /opt/mrst_startup.m && \
+    echo "    mrstModule('add', 'coarsegrid', 'diagnostics', 'incomp', 'mimetic', 'linearsolvers');" >> /opt/mrst_startup.m && \
+    echo "    fprintf('✅ Additional modules loaded: coarsegrid, diagnostics, incomp, mimetic, linearsolvers\\n');" >> /opt/mrst_startup.m && \
+    echo "    " >> /opt/mrst_startup.m && \
+    echo "    % Optional modules (may not be available in all MRST versions)" >> /opt/mrst_startup.m && \
+    echo "    try" >> /opt/mrst_startup.m && \
+    echo "        mrstModule('add', 'geomechanics');" >> /opt/mrst_startup.m && \
+    echo "        fprintf('✅ Geomechanics module loaded\\n');" >> /opt/mrst_startup.m && \
+    echo "    catch" >> /opt/mrst_startup.m && \
+    echo "        fprintf('⚠️  Geomechanics module not available\\n');" >> /opt/mrst_startup.m && \
+    echo "    end" >> /opt/mrst_startup.m && \
+    echo "    " >> /opt/mrst_startup.m && \
+    echo "    try" >> /opt/mrst_startup.m && \
+    echo "        mrstModule('add', 'mrst-gui');" >> /opt/mrst_startup.m && \
+    echo "        fprintf('✅ GUI module loaded\\n');" >> /opt/mrst_startup.m && \
+    echo "    catch" >> /opt/mrst_startup.m && \
+    echo "        fprintf('⚠️  GUI module not available\\n');" >> /opt/mrst_startup.m && \
+    echo "    end" >> /opt/mrst_startup.m && \
+    echo "    " >> /opt/mrst_startup.m && \
+    echo "    fprintf('\\n✅ MRST modules initialization complete\\n');" >> /opt/mrst_startup.m && \
+    echo "catch ME" >> /opt/mrst_startup.m && \
+    echo "    warning('Failed to load some MRST modules: %s', ME.message);" >> /opt/mrst_startup.m && \
+    echo "end" >> /opt/mrst_startup.m
+
+# Set MRST environment variables
+ENV MATLABPATH=/opt/mrst:$MATLABPATH
+ENV OCTAVE_PATH=/opt/mrst:$OCTAVE_PATH
+
+# Create Octave startup file to automatically initialize MRST
+RUN mkdir -p /root && \
+    echo "% Octave startup file" > /root/.octaverc && \
+    echo "addpath('/opt/mrst');" >> /root/.octaverc && \
+    echo "if exist('/opt/mrst/startup.m', 'file')" >> /root/.octaverc && \
+    echo "    run('/opt/mrst/startup.m');" >> /root/.octaverc && \
+    echo "end" >> /root/.octaverc
+
 # Test that PyTorch still works after Octave installation
 RUN python -c "import torch; print(f'✅ PyTorch {torch.__version__} - GPU: {torch.cuda.is_available()}')"
 

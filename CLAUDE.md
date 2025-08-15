@@ -6,13 +6,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Eagle West Field MRST Reservoir Simulation Project** - A comprehensive reservoir simulation project using MRST (MATLAB Reservoir Simulation Toolbox) with complete documentation coverage and AI-assisted development.
 
-**CANONICAL STATUS: This documentation is authoritative and reflects the current project state as of 2025-08-12.**
+**CANONICAL STATUS: This documentation is authoritative and reflects the current project state as of 2025-08-15.**
 
 ### Key Achievements
 
 - **100% YAML-Documentation Coverage** - All 9 configuration files fully documented
 - **900+ Variable Inventory** - LLM-optimized organization in VARIABLE_INVENTORY.md
-- **Complete MRST Workflow** - 25+ integrated simulation scripts (23/25 phases working)
+- **Complete MRST Workflow** - 25+ integrated simulation scripts (25/25 phases working)
+- **Canonical Data Organization** - Native .mat format with by_type/by_usage/by_phase structure
+- **Enhanced Analytics & Diagnostics** - ML-ready features and solver diagnostics
+- **Comprehensive Testing Framework** - 38+ test files covering all workflow phases
 - **Eagle West Field Model** - Realistic offshore field with 41×41×12 grid, 15 wells
 - **Multi-Agent Architecture** - Specialized agents for efficient development
 
@@ -130,19 +133,50 @@ All agents must use MCP tools when available instead of native tools:
 
 ### MRST/Octave Workflow (CANONICAL)
 
-**Eagle West Field Simulation - 25-Step Workflow**
+**Eagle West Field Simulation - 25-Step Workflow** 
+**CORRECTED SEQUENCE: s01→s02→s05→s03→s04→s06→s07→s08**
 
 ```bash
 # Run complete MRST workflow (recommended)
 octave mrst_simulation_scripts/s99_run_workflow.m
 
-# Run individual workflow steps (for development/debugging)
+# Run individual workflow steps (corrected sequence)
 octave mrst_simulation_scripts/s01_initialize_mrst.m
-octave mrst_simulation_scripts/s02_create_grid.m     # 41×41×12 grid
-octave mrst_simulation_scripts/s07_define_rock_types.m
-octave mrst_simulation_scripts/s17_well_completions.m  # 15 wells
-octave mrst_simulation_scripts/s22_run_simulation.m
-octave mrst_simulation_scripts/s25_reservoir_analysis.m
+octave mrst_simulation_scripts/s02_define_fluids.m
+octave mrst_simulation_scripts/s05_create_pebi_grid.m # PEBI grid construction FIRST
+octave mrst_simulation_scripts/s03_structural_framework.m
+octave mrst_simulation_scripts/s04_add_faults.m
+octave mrst_simulation_scripts/s06_create_base_rock_structure.m
+octave mrst_simulation_scripts/s07_add_layer_metadata.m
+octave mrst_simulation_scripts/s08_apply_spatial_heterogeneity.m
+# ... continuing through s25
+
+# Enhanced diagnostics and analytics
+octave mrst_simulation_scripts/s22_run_simulation_with_diagnostics.m
+octave mrst_simulation_scripts/s24_advanced_analytics.m
+```
+
+### Canonical Data Organization (FASE 5 IMPLEMENTATION)
+
+**Native .mat Format for Oct2py Compatibility**
+
+- **by_type/**: Static, dynamic, derived, visualization data organization
+- **by_usage/**: Modeling, simulation, analysis, validation data streams
+- **by_phase/**: Initialization, execution, post-processing data flows
+- **Metadata Integration**: Complete provenance tracking and ML-ready features
+
+**Enhanced Data Streams:**
+```
+data/simulation_data/static/
+├── base_grid.mat                     # PEBI grid foundation
+├── pebi_grid.mat                     # Enhanced PEBI with size-field
+├── structural_framework.mat          # Geological structure
+├── fault_system.mat                  # Fault conforming geometry
+├── final_simulation_rock.mat         # Complete rock properties
+└── fluid/
+    ├── native_fluid_properties.mat  # Base fluid properties
+    ├── fluid_with_relperm.mat        # Enhanced with rel perm
+    └── fluid_with_capillary_pressure.mat
 ```
 
 ### Workflow Stages (From VARIABLE_INVENTORY.md)
@@ -470,7 +504,7 @@ Automatic validation on file operations:
 - **Wells**: 15 total (10 producers EW-001 to EW-010, 5 injectors IW-001 to IW-005)
 - **Development**: 6-phase plan over 10 years (3,650 days)
 - **Grid**: 41×41×12 cells, 2,600 acres, 5 major faults
-- **Current Status**: 23/25 workflow phases operational
+- **Current Status**: 25/25 workflow phases operational
 
 # important-instruction-reminders
 

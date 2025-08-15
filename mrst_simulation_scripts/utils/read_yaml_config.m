@@ -60,6 +60,9 @@ function config = read_yaml_config(config_file, silent_mode)
         error('Empty configuration file: %s', config_file);
     end
     
+    % FIXED: Add validation for nested structure parsing
+    validate_nested_structures(config, config_file);
+    
     % Display success message unless in silent mode
     if ~silent_mode
         fprintf('Successfully loaded configuration from: %s\n', config_file);
@@ -152,6 +155,7 @@ function config = parse_simple_yaml(filename)
                     if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
                         config.(current_section).(current_subsection) = parse_value(strtrim(tokens{2}));
                     else
+                        % Initialize as struct for nested content - FIXED FOR NESTED STRUCTURES
                         config.(current_section).(current_subsection) = struct();
                     end
                     
@@ -178,13 +182,25 @@ function config = parse_simple_yaml(filename)
                             config.(current_section).(current_subsection).(current_well) = struct();
                         end
                     else
-                        % Regular parameter (includes well_tiers, fault_tiers as containers)
-                        if length(tokens) > 1
-                            param_value = strtrim(tokens{2});
-                            config.(current_section).(current_subsection).(param_name) = parse_value(param_value);
+                        % CRITICAL FIX: Handle zone names at same indentation level
+                        % Check if this is a new zone definition (empty value after colon)
+                        if length(tokens) > 1 && ~isempty(strtrim(tokens{2}))
+                            % Has a value - this is a parameter for current zone
+                            if ~isempty(current_well)
+                                % Add parameter to current nested structure (e.g., layers to upper_zone)
+                                param_value = strtrim(tokens{2});
+                                config.(current_section).(current_subsection).(current_well).(param_name) = parse_value(param_value);
+                            else
+                                % Regular parameter at this level
+                                param_value = strtrim(tokens{2});
+                                config.(current_section).(current_subsection).(param_name) = parse_value(param_value);
+                            end
                         else
-                            % Empty value - initialize as struct for nested content
+                            % Empty value - this is a new zone definition
+                            % FIXED: Reset context for new zone at same level
                             config.(current_section).(current_subsection).(param_name) = struct();
+                            current_well = param_name;
+                            current_subwell = '';
                         end
                     end
                     
@@ -397,4 +413,60 @@ function value = parse_value(value_str)
     % Default to string
     value = value_str;
 
+end
+
+function validate_nested_structures(config, config_file)
+% VALIDATE_NESTED_STRUCTURES - Check for common nested structure parsing issues
+%
+% This function validates that nested structures were parsed correctly,
+% specifically checking for empty arrays where structures should be.
+
+    % Check rock_properties.layer_architecture if present
+    if isfield(config, 'rock_properties') && isfield(config.rock_properties, 'layer_architecture')
+        layer_arch = config.rock_properties.layer_architecture;
+        
+        if isstruct(layer_arch)
+            zone_names = fieldnames(layer_arch);
+            for i = 1:length(zone_names)
+                zone_name = zone_names{i};
+                zone_data = layer_arch.(zone_name);
+                
+                % Check for the bug: empty array instead of structure
+                if isempty(zone_data) && ~isstruct(zone_data)
+                    error(['YAML Parser Error: Zone "%s" in layer_architecture is empty.\n' ...
+                           'This indicates nested structure parsing failed.\n' ...
+                           'Expected: structure with fields like layers, description\n' ...
+                           'Got: empty array\n' ...
+                           'File: %s'], zone_name, config_file);
+                end
+                
+                % Warn if structure exists but is missing expected fields
+                if isstruct(zone_data) && ~isfield(zone_data, 'layers')
+                    warning('Zone "%s" missing expected "layers" field in %s', zone_name, config_file);
+                end
+                
+                % CRITICAL: Check for the zone merging bug
+                % Detect if other zones are nested as fields within this zone
+                if isstruct(zone_data)
+                    zone_fields = fieldnames(zone_data);
+                    known_zone_names = {'upper_zone', 'shale_barrier_1', 'middle_zone', 'shale_barrier_2', 'lower_zone'};
+                    other_zones = setdiff(known_zone_names, {zone_name});
+                    
+                    % Check if any field matches another zone name
+                    nested_zones = intersect(zone_fields, other_zones);
+                    if ~isempty(nested_zones)
+                        error(['YAML Parser Error: Zone merging bug detected in zone "%s".\n' ...
+                               'Found other zones nested as fields: %s\n' ...
+                               'This indicates incorrect zone context tracking.\n' ...
+                               'Expected: Each zone as separate struct in layer_architecture\n' ...
+                               'Got: Zones merged into first zone\n' ...
+                               'File: %s'], zone_name, strjoin(nested_zones, ', '), config_file);
+                    end
+                end
+            end
+        end
+    end
+    
+    % Can add more validation for other nested structures as needed
+    
 end

@@ -1,6 +1,6 @@
 # Fault System Configuration for Eagle West Field MRST Simulation
 # Source: 01_Structural_Geology.md (CANON)
-# Compatible with s05_add_faults.m requirements
+# Compatible with s04_add_faults.m requirements
 # Date: 2025-08-07
 # Fixed: 2025-08-10 - Converted mixed YAML format to consistent structure format
 
@@ -106,6 +106,13 @@ fault_system:
     well_control_validation: true
     pressure_data_support: true
     fault_seal_analysis_complete: true
+    
+# Fault Processing Thresholds (Canon-First S05 Requirements)
+processing_parameters:
+  # Fault detection and classification thresholds
+  sealing_threshold: 0.01              # Transmissibility multiplier below which fault is considered sealing
+  fault_influence_threshold: 1.0       # Transmissibility multiplier below which fault affects flow
+  minimum_geometric_factor: 2.0        # Minimum geometric factor for numerical stability (ln value)
 
 # Historical Context (CANON Documentation)
 documentation_source:

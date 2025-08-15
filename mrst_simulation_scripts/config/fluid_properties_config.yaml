@@ -1,6 +1,6 @@
 # Fluid Properties Configuration for Eagle West Field MRST Simulation
 # Source: 03_Fluid_Properties.md (CANON)
-# Compatible with s03_define_fluids.m requirements
+# Compatible with s02_define_fluids.m requirements
 # Date: 2025-08-07
 
 fluid_properties:
