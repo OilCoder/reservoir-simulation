@@ -8,7 +8,7 @@ function fluid = s09_relative_permeability()
     if ~success
         error('MRST validation failed: %s', message);
     end
-% S10_RELATIVE_PERMEABILITY - Define relative permeability curves (MRST Native)
+% S09_RELATIVE_PERMEABILITY - Define relative permeability curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
 %
@@ -24,7 +24,7 @@ function fluid = s09_relative_permeability()
 % Author: Claude Code AI System
 % Date: 2025-08-08 (Updated with warning fixes)
 
-    print_step_header('S10', 'Define Relative Permeability Curves (MRST Native)');
+    print_step_header('S09', 'Define Relative Permeability Curves (MRST Native)');
     
     total_start_time = tic;
     
@@ -59,7 +59,7 @@ function fluid = s09_relative_permeability()
         step_4_export_fluid_structure(fluid, G, scal_config);
         print_step_result(4, 'Validate & Export Fluid Structure', 'success', toc(step_start));
         
-        print_step_footer('S10', 'Relative Permeability Functions Ready for Simulation', toc(total_start_time));
+        print_step_footer('S09', 'Relative Permeability Functions Ready for Simulation', toc(total_start_time));
         
     catch ME
         print_error_step(0, 'Relative Permeability', ME.message);
@@ -72,19 +72,34 @@ function [rock, G] = step_1_load_rock_data()
 % Step 1 - Load rock structure from previous steps
     script_dir = fileparts(mfilename('fullpath'));
 
-    % Substep 1.1 – Locate final rock file ____________________________
-    script_path = fileparts(mfilename('fullpath'));
+    % Substep 1.1 – Load from canonical by_type structure (CANON-FIRST)
     addpath(fullfile(script_dir, 'utils'));
-    data_dir = get_data_path('static');
-    rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
     
-    if ~exist(rock_file, 'file')
-        error('Final rock structure not found. Run s09_spatial_heterogeneity.m first.');
+    % Use canonical data organization pattern (same as s13)
+    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+    canonical_data_dir = fullfile(base_data_path, 'by_type', 'static');
+    rock_file = fullfile(canonical_data_dir, 'final_simulation_rock.mat');
+    
+    if exist(rock_file, 'file')
+        fprintf('   ✅ Loading rock structure from canonical location\n');
+        load(rock_file, 'rock', 'G');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        data_dir = get_data_path('static');
+        legacy_rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
+        
+        if exist(legacy_rock_file, 'file')
+            fprintf('   ⚠️  Loading rock structure from legacy location\n');
+            load(legacy_rock_file, 'final_rock', 'G');
+            rock = final_rock;  % Convert legacy variable name
+        else
+            error(['CANON-FIRST ERROR: Final rock structure not found.\n' ...
+                   'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+                   'Expected files:\n' ...
+                   '  Canonical: %s\n' ...
+                   '  Legacy: %s'], rock_file, legacy_rock_file);
+        end
     end
-    
-    % Substep 1.2 – Load rock structure ________________________________
-    load(rock_file, 'final_rock', 'G');
-    rock = final_rock;
     
 end
 
@@ -780,7 +795,7 @@ end
 % Main execution when called as script
 if ~nargout
     % If called as script (not function), create relative permeability functions
-    fluid = s10_relative_permeability();
+    fluid = s09_relative_permeability();
     
     fprintf('MRST fluid with relative permeability ready!\\n');
     fprintf('Implementation: 100%% MRST Native with CANON SCAL data\\n');

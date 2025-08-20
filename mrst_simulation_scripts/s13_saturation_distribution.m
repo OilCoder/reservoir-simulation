@@ -6,6 +6,13 @@ function output_data = s13_saturation_distribution()
 %   from Phase 4 SCAL data. Establishes oil-water contact with transition zone
 %   and 3-phase saturation initialization for reservoir simulation.
 %
+% DATA ORGANIZATION (CANON-FIRST):
+%   INPUT:  data/by_type/static/final_simulation_rock.mat (from s08)
+%           data/by_type/static/grid_with_pressure_s12.mat (from s12)
+%           data/by_type/static/fluid_capillary_s10.mat (from s10)
+%   OUTPUT: data/by_type/static/saturation_distribution_s13.mat
+%           data/by_type/static/grid_with_pressure_saturation_s13.mat
+%
 % CANON REFERENCE: 
 %   [[07_Initialization]] - Saturation initialization section
 %   - OWC: 8150 ft TVDSS with 100 ft transition zone (8100-8200 ft)
@@ -14,12 +21,12 @@ function output_data = s13_saturation_distribution()
 %   - Brooks-Corey parameters by rock type from SCAL data
 %
 % WORKFLOW:
-%   1. Load pressure field and capillary pressure functions
+%   1. Load pressure field and capillary pressure functions from canonical by_type structure
 %   2. Calculate height above OWC for each grid cell
 %   3. Apply capillary-gravity equilibrium by rock type
 %   4. Set 3-phase saturations (oil-water-gas)
 %   5. Validate saturation constraints and physical bounds
-%   6. Export saturation field for simulation
+%   6. Export saturation field to canonical by_type structure
 %
 % RETURNS:
 %   output_data - Structure with saturation distribution results
@@ -89,23 +96,47 @@ function output_data = s13_saturation_distribution()
             error('Capillary pressure functions not found. Run s10_capillary_pressure.m first');
         end
         
-        % Load rock properties with types
-        % Use legacy path for rock properties (until S08 is updated to canonical)
-        legacy_data_dir = fullfile(fileparts(script_path), 'data', 'simulation_data', 'static');
-        rock_file = fullfile(legacy_data_dir, 'enhanced_rock.mat');
-        if exist(rock_file, 'file')
-            fprintf('   ✅ Loading enhanced rock properties from s07\n');
-            load(rock_file, 'enhanced_rock', 'G');
-            rock = enhanced_rock;
+        % Load rock properties from canonical by_type structure (CANON-FIRST)
+        % Use canonical data organization pattern from FASE 5 implementation
+        canonical_rock_file = fullfile(canonical_data_dir, 'final_simulation_rock.mat');
+        if exist(canonical_rock_file, 'file')
+            fprintf('   ✅ Loading final rock properties from canonical by_type/static structure\n');
+            
+            % ROBUST LOADING: Handle both 'rock' and 'final_rock' variable names for compatibility
+            file_vars = whos('-file', canonical_rock_file);
+            var_names = {file_vars.name};
+            
+            if ismember('rock', var_names)
+                % New canonical format with 'rock' variable name
+                load(canonical_rock_file, 'rock', 'G');
+            elseif ismember('final_rock', var_names)
+                % Legacy format with 'final_rock' variable name
+                load_data = load(canonical_rock_file, 'final_rock', 'G');
+                rock = load_data.final_rock;  % Rename for consistency
+                if isfield(load_data, 'G')
+                    G = load_data.G;
+                end
+                clear load_data;
+            else
+                error(['CANON-FIRST ERROR: Neither ''rock'' nor ''final_rock'' variables found in canonical file.\n' ...
+                       'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+                       'File: %s\n' ...
+                       'Available variables: %s'], canonical_rock_file, strjoin(var_names, ', '));
+            end
+            
             % Validate required rock type assignments (FAIL_FAST)
             if ~isfield(rock, 'meta') || ~isfield(rock.meta, 'rock_type_assignments')
-                error('Missing rock_type_assignments in enhanced_rock. Check s07_add_layer_metadata.m output.');
+                error(['CANON-FIRST ERROR: Missing rock_type_assignments in canonical rock data.\n' ...
+                       'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+                       'Expected structure: rock.meta.rock_type_assignments\n' ...
+                       'File: %s'], canonical_rock_file);
             end
             rock_types = rock.meta.rock_type_assignments;
         else
-            error(['CANON-FIRST ERROR: Rock properties not found at legacy location.\n' ...
-                   'REQUIRED: Run s08_assign_layer_properties.m first.\n' ...
-                   'Expected file: %s'], rock_file);
+            error(['CANON-FIRST ERROR: Final rock properties not found at canonical location.\n' ...
+                   'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+                   'Expected file: %s\n' ...
+                   'Canonical structure: data/by_type/static/final_simulation_rock.mat'], canonical_rock_file);
         end
         
         %% 2. Extract Configuration-Driven Parameters
@@ -184,18 +215,24 @@ function output_data = s13_saturation_distribution()
             if i <= 4  % First 4 types: sandstone-dominated
                 swi_by_type(i) = sandstone_ow.connate_water_saturation + (i-1) * 0.01;  % Slight variation
                 sor_by_type(i) = sandstone_ow.residual_oil_saturation + (i-1) * 0.01;
-                if isfield(scal_props, 'sandstone_go')
+                if isfield(scal_props, 'sandstone_go') && isfield(scal_props.sandstone_go, 'critical_gas_saturation')
                     sgr_by_type(i) = scal_props.sandstone_go.critical_gas_saturation;
                 else
-                    sgr_by_type(i) = 0.05;  % Default for sandstone
+                    error(['CANON-FIRST ERROR: Missing critical gas saturation in SCAL configuration.\n' ...
+                           'REQUIRED: Update obsidian-vault/Planning/Reservoir_Definition/04_SCAL_Properties.md\n' ...
+                           'to define sandstone_go.critical_gas_saturation for Eagle West Field.\n' ...
+                           'Canon must specify exact value, no defaults allowed.']);
                 end
             else  % Last 2 types: shale-influenced
                 swi_by_type(i) = shale_ow.connate_water_saturation - (i-5) * 0.02;  % Slightly lower
                 sor_by_type(i) = shale_ow.residual_oil_saturation - (i-5) * 0.02;
-                if isfield(scal_props, 'shale_go')
+                if isfield(scal_props, 'shale_go') && isfield(scal_props.shale_go, 'critical_gas_saturation')
                     sgr_by_type(i) = scal_props.shale_go.critical_gas_saturation;
                 else
-                    sgr_by_type(i) = 0.08;  % Default for shale
+                    error(['CANON-FIRST ERROR: Missing critical gas saturation in SCAL configuration.\n' ...
+                           'REQUIRED: Update obsidian-vault/Planning/Reservoir_Definition/04_SCAL_Properties.md\n' ...
+                           'to define shale_go.critical_gas_saturation for Eagle West Field.\n' ...
+                           'Canon must specify exact value, no defaults allowed.']);
                 end
             end
         end
@@ -240,20 +277,16 @@ function output_data = s13_saturation_distribution()
         cell_centers = G.cells.centroids;
         cell_depths = cell_centers(:, 3);
         
-        % Convert to feet using CANON unit conversion factor
-        if ~isfield(init_params, 'unit_conversions') || ~isfield(init_params.unit_conversions.length, 'm_to_ft')
-            error(['CANON-FIRST ERROR: Missing m_to_ft conversion factor in initialization_config.yaml\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Initial_Conditions.md\n' ...
-                   'Must define exact unit conversion factors for Eagle West Field.']);
-        end
-        m_to_ft = init_params.unit_conversions.length.m_to_ft;
-        cell_depths = abs(cell_depths) * m_to_ft;
+        % Grid coordinates are already in feet - just take absolute value for depth
+        cell_depths = abs(cell_depths);  % Grid Z is negative subsurface, make positive for depth
         
         % Calculate height above OWC (negative below OWC)
         height_above_owc = owc_depth - cell_depths;
         
         fprintf('   📊 Height range above OWC: %.1f to %.1f ft\n', min(height_above_owc), max(height_above_owc));
         fprintf('   📊 Cells above OWC: %d/%d\n', sum(height_above_owc > 0), length(height_above_owc));
+        fprintf('   📊 Cells in oil zone (>50ft above OWC): %d/%d\n', sum(height_above_owc > 50), length(height_above_owc));
+        fprintf('   📊 Cell depth range: %.1f to %.1f ft\n', min(cell_depths), max(cell_depths));
         
         %% 4. Initialize 3-Phase Saturations
         fprintf('💧 Calculating 3-phase saturation distribution...\n');
@@ -269,10 +302,17 @@ function output_data = s13_saturation_distribution()
             height = height_above_owc(i);
             
             if height > 50  % Well above transition zone (oil zone)
-                % Use initial saturations from YAML with rock type adjustments
-                sw(i) = max(swi_by_type(cell_rock_type), min(initial_sw * 1.25, initial_sw)); 
-                so(i) = 1.0 - sw(i);  % No free gas initially
-                sg(i) = 0.0;
+                % Use initial saturations from YAML configuration (CANON-FIRST)
+                % initial_sw and initial_so from config (e.g., sw=0.20, so=0.80)
+                sw_target = max(swi_by_type(cell_rock_type), initial_sw); 
+                so_target = max(sor_by_type(cell_rock_type), initial_so);  % Use configured oil saturation
+                sg_target = initial_sg;  % Typically 0.0 initially
+                
+                % Normalize saturations to sum to 1.0
+                total_sat = sw_target + so_target + sg_target;
+                sw(i) = sw_target / total_sat;
+                so(i) = so_target / total_sat;
+                sg(i) = sg_target / total_sat;
                 
             elseif height < -50  % Well below transition zone (water zone)
                 % Pure water zone
@@ -318,6 +358,22 @@ function output_data = s13_saturation_distribution()
                     sg(i) = 0.0;
                 end
             end
+        end
+        
+        % Add saturation summary after calculation
+        fprintf('💧 Saturation calculation completed. Summary:\n');
+        fprintf('   📊 Oil saturation range: %.3f to %.3f\n', min(so), max(so));
+        fprintf('   📊 Water saturation range: %.3f to %.3f\n', min(sw), max(sw));
+        fprintf('   📊 Gas saturation range: %.3f to %.3f\n', min(sg), max(sg));
+        fprintf('   📊 Oil zone cells (>50ft above OWC): %d\n', sum(height_above_owc > 50));
+        fprintf('   📊 Water zone cells (<-50ft below OWC): %d\n', sum(height_above_owc < -50));
+        fprintf('   📊 Transition zone cells: %d\n', sum(height_above_owc >= -50 & height_above_owc <= 50));
+        
+        % Check if we have oil in the reservoir
+        total_oil_cells = sum(so > 0.1);  % Cells with significant oil
+        fprintf('   📊 Cells with significant oil (>10%%): %d/%d\n', total_oil_cells, num_cells);
+        if total_oil_cells == 0
+            fprintf('   ⚠️  WARNING: No oil found in reservoir - check OWC depth and cell depths\n');
         end
         
         % Ensure saturation constraints
@@ -439,38 +495,30 @@ function output_data = s13_saturation_distribution()
                                            'count', sum(water_zone_mask));
         end
         
-        %% 8. Export Results
-        fprintf('📁 Exporting saturation distribution data...\n');
+        %% 8. Export Results to Canonical By-Type Structure
+        fprintf('📁 Exporting saturation distribution data to canonical by_type structure...\n');
         
-        % Ensure output directory exists
-        % Use same path construction as other working phases
-        script_path = fileparts(mfilename('fullpath'));
-        output_dir = get_data_path('static');
-        if ~exist(output_dir, 'dir')
-            mkdir(output_dir);
+        % Use canonical data organization pattern (FASE 5 implementation)
+        base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+        canonical_static_dir = fullfile(base_data_path, 'by_type', 'static');
+        
+        % Ensure canonical directory exists
+        if ~exist(canonical_static_dir, 'dir')
+            mkdir(canonical_static_dir);
         end
         
-        % Create basic canonical directory structure
-        static_path = fullfile(output_dir, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
-        end
-        
-        % Save directly with native .mat format
-        saturation_file = fullfile(static_path, 'saturation_distribution_s13.mat');
+        % Save saturation distribution to canonical location with native .mat format
+        saturation_file = fullfile(canonical_static_dir, 'saturation_distribution_s13.mat');
         save(saturation_file, 'sw', 'so', 'sg', 'sat_stats', 'sat_by_zone', 'state', ...
              'height_above_owc', 'owc_depth', 'pc_params');
-        fprintf('     Canonical data saved: %s\n', saturation_file);
+        fprintf('   ✅ Canonical saturation data saved: %s\n', saturation_file);
         
-        % Save combined grid with pressure and saturations for next phase (backward compatibility)
+        % Save combined grid with pressure and saturations for next phase
         G_with_pressure_sat = G;
-        save(fullfile(output_dir, 'grid_with_pressure_saturation.mat'), ...
-             'G_with_pressure_sat', 'state', 'rock', 'rock_types');
+        grid_sat_file = fullfile(canonical_static_dir, 'grid_with_pressure_saturation_s13.mat');
+        save(grid_sat_file, 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
+        fprintf('   ✅ Grid with pressure/saturations saved: %s\n', grid_sat_file);
         
-        % Also save in canonical location
-        save(fullfile(static_path, 'grid_with_pressure_saturation_s13.mat'), ...
-             'G_with_pressure_sat', 'state', 'rock', 'rock_types');
-        fprintf('     Grid with pressure/saturations saved: %s\n', fullfile(static_path, 'grid_with_pressure_saturation_s13.mat'));
         
         %% 9. Create Output Summary
         output_data.saturations = struct('sw', sw, 'so', so, 'sg', sg);

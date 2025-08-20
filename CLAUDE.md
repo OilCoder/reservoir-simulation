@@ -96,7 +96,7 @@ The project uses an **optimized multi-agent architecture** for efficient code ge
    - **Role**: Creates and maintains documentation in `obsidian-vault/`
    - **Activation**: On-demand when documentation keywords detected
    - **Keywords**: document, documentation, readme, guide, tutorial, explain, describe, writeup
-   - **Tools**: Read, Write, Edit, mcp**obsidian**\*
+   - **Tools**: Read, Write, Edit, mcp__filesystem__*, Grep, Glob
 
 ### How Agent Routing Works
 
@@ -122,7 +122,6 @@ The project uses an **optimized multi-agent architecture** for efficient code ge
 All agents must use MCP tools when available instead of native tools:
 - `mcp__filesystem__*` instead of Read/Write/Edit
 - `mcp__memory__*` for storing patterns and context
-- `mcp__obsidian__*` for documentation operations
 
 ### Usage Tips
 

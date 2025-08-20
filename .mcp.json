@@ -2,19 +2,25 @@
   "mcpServers": {
     "memory": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ]
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspaces/claudeclean"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/workspaces/claudeclean"
+      ]
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
-    },
-    "obsidian": {
-      "command": "npx",
-      "args": ["-y", "obsidian-mcp", "/workspaces/claudeclean/obsidian-vault"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
     },
     "todo": {
       "command": "/workspaces/claudeclean/obsidian-vault/Planning/Todo_Lists/todo-wrapper.sh",
@@ -22,7 +28,10 @@
     },
     "ref": {
       "command": "npx",
-      "args": ["-y", "ref-tools-mcp@latest"]
+      "args": [
+        "-y",
+        "ref-tools-mcp@latest"
+      ]
     }
   }
 }

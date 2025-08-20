@@ -145,11 +145,28 @@ function save_final_rock_structure(final_rock, G)
         mkdir(data_dir);
     end
     
-    % Save final rock structure with canonical naming
+    % Save final rock structure with canonical naming (legacy compatibility)
     final_rock_file = fullfile(data_dir, 'final_rock.mat');
     save(final_rock_file, 'final_rock', 'G');
     
     fprintf('   ✅ Final rock structure saved to %s\n', final_rock_file);
+    
+    % CANON-FIRST: Also save to canonical by_type structure with correct variable naming
+    % Use canonical data organization pattern (FASE 5 implementation)
+    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+    canonical_static_dir = fullfile(base_data_path, 'by_type', 'static');
+    
+    % Ensure canonical directory exists
+    if ~exist(canonical_static_dir, 'dir')
+        mkdir(canonical_static_dir);
+    end
+    
+    % Save to canonical location with variable name 'rock' (not 'final_rock') for downstream compatibility
+    rock = final_rock;  % Rename for downstream scripts that expect 'rock' variable
+    canonical_rock_file = fullfile(canonical_static_dir, 'final_simulation_rock.mat');
+    save(canonical_rock_file, 'rock', 'G');
+    
+    fprintf('   ✅ Canonical rock structure saved to %s\n', canonical_rock_file);
     
 end
 
@@ -273,7 +290,7 @@ function final_rock = add_field_statistics(final_rock)
 end
 
 function export_final_rock_structure(final_rock, G)
-% Export final simulation-ready rock structure (legacy compatibility)
+% Export final simulation-ready rock structure (legacy compatibility + canonical)
     
     script_path = fileparts(mfilename('fullpath'));
     data_dir = get_data_path('static');
@@ -282,7 +299,7 @@ function export_final_rock_structure(final_rock, G)
         mkdir(data_dir);
     end
     
-    % Export final rock structure (alternative name for compatibility)
+    % Export final rock structure (alternative name for legacy compatibility)
     final_rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
     save(final_rock_file, 'final_rock', 'G');
     

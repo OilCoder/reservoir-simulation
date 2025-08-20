@@ -1,0 +1,6 @@
+EAGLE WEST FIELD - SIMULATION SUMMARY
+=====================================
+Date: 20-Aug-2025 01:31:15
+Simulator: Standalone Octave Reservoir Simulator
+
+FIELD CHARACTERISTICS:

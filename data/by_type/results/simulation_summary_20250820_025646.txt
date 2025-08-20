@@ -1,0 +1,14 @@
+Eagle West Field - MRST Simulation Results Summary
+Generated: 20-Aug-2025 02:56:46
+================================================
+
+SIMULATION OVERVIEW:
+  Status: initializing
+  Total Timesteps: 61
+  Simulation Duration: 3650 days (10.0 years)
+
+FIELD PERFORMANCE:
+  Peak Oil Rate: 0 STB/day
+  Ultimate Recovery: 0.0 MMstb
+  Average Oil Rate: 0 STB/day
+  Recovery Factor: 0.0%

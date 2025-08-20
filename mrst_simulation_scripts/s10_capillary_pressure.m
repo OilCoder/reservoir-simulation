@@ -8,7 +8,7 @@ function fluid_with_pc = s10_capillary_pressure()
     if ~success
         error('MRST validation failed: %s', message);
     end
-% S11_CAPILLARY_PRESSURE - Define capillary pressure curves (MRST Native)
+% S10_CAPILLARY_PRESSURE - Define capillary pressure curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
 % Requires: MRST ad-blackoil, ad-props
 %
@@ -18,7 +18,7 @@ function fluid_with_pc = s10_capillary_pressure()
 % Author: Claude Code AI System
 % Date: 2025-08-07
 
-    print_step_header('S11', 'Define Capillary Pressure Curves (MRST Native)');
+    print_step_header('S10', 'Define Capillary Pressure Curves (MRST Native)');
     
     total_start_time = tic;
     
@@ -53,7 +53,7 @@ function fluid_with_pc = s10_capillary_pressure()
         step_4_export_fluid_with_pc(fluid_with_pc, G, scal_config);
         print_step_result(4, 'Validate & Export Enhanced Fluid', 'success', toc(step_start));
         
-        print_step_footer('S11', 'Capillary Pressure Functions Ready for Simulation', toc(total_start_time));
+        print_step_footer('S10', 'Capillary Pressure Functions Ready for Simulation', toc(total_start_time));
         
     catch ME
         print_error_step(0, 'Capillary Pressure', ME.message);
@@ -63,7 +63,7 @@ function fluid_with_pc = s10_capillary_pressure()
 end
 
 function [fluid, G] = step_1_load_fluid_data()
-% Step 1 - Load fluid structure from s10
+% Step 1 - Load fluid structure from s09
     script_dir = fileparts(mfilename('fullpath'));
 
     % Substep 1.1 – Locate fluid file __________________________________
@@ -76,7 +76,7 @@ function [fluid, G] = step_1_load_fluid_data()
     fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
     
     if ~exist(fluid_file, 'file')
-        error('Fluid with relative permeability not found. Run s10_relative_permeability.m first.');
+        error('Fluid with relative permeability not found. Run s09_relative_permeability.m first.');
     end
     
     % Substep 1.2 – Load fluid structure ________________________________
@@ -85,7 +85,7 @@ function [fluid, G] = step_1_load_fluid_data()
 end
 
 function scal_config = step_1_load_scal_config()
-% Step 1 - Load SCAL configuration (reuse from s10)
+% Step 1 - Load SCAL configuration (reuse from s09)
     script_dir = fileparts(mfilename('fullpath'));
 
     try
@@ -405,13 +405,13 @@ function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
         save(enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
         fprintf('     Canonical fluid with capillary pressure saved: %s\n', enhanced_fluid_file);
         
-        % Maintain legacy compatibility during transition
+        % Maintain legacy compatibility with canonical naming only
         legacy_data_dir = get_data_path('static', 'fluid');
         if ~exist(legacy_data_dir, 'dir')
             mkdir(legacy_data_dir);
         end
         
-        legacy_enhanced_fluid_file = fullfile(legacy_data_dir, 'fluid_with_capillary_pressure.mat');
+        legacy_enhanced_fluid_file = fullfile(legacy_data_dir, 'fluid_capillary_s10.mat');
         save(legacy_enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
         
         fprintf('     Legacy compatibility maintained: %s\n', legacy_enhanced_fluid_file);
@@ -431,8 +431,8 @@ function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
             mkdir(data_dir);
         end
         
-        % Save enhanced fluid structure
-        enhanced_fluid_file = fullfile(data_dir, 'fluid_with_capillary_pressure.mat');
+        % Save enhanced fluid structure using canonical naming
+        enhanced_fluid_file = fullfile(data_dir, 'fluid_capillary_s10.mat');
         save(enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
         
         fprintf('     Fallback: Enhanced fluid structure saved to %s\n', enhanced_fluid_file);
@@ -551,7 +551,7 @@ end
 % Main execution when called as script
 if ~nargout
     % If called as script (not function), create capillary pressure functions
-    fluid_with_pc = s11_capillary_pressure();
+    fluid_with_pc = s10_capillary_pressure();
     
     fprintf('MRST fluid with capillary pressure ready!\\n');
     fprintf('Implementation: 100%% MRST Native with CANON SCAL data\\n');

@@ -37,16 +37,13 @@ solver_configuration:
       timestep_days: 30
       description: 'Monthly timesteps for detailed history'
       
-    # Forecast period (quarterly to yearly)
+    # Forecast period (quarterly to yearly)  
     forecast_period:
       duration_days: 2555  # Remaining 7 years
-      timestep_schedule:
-        - period_days: 1460  # Years 4-7
-          timestep_days: 90  # Quarterly
-          description: 'Quarterly timesteps for forecast'
-        - period_days: 1095  # Years 8-10
-          timestep_days: 180  # Semi-annual
-          description: 'Semi-annual timesteps for long-term'
+      period_1_days: 1460  # Years 4-7 period
+      period_1_timestep: 90  # Quarterly timesteps
+      period_2_days: 1095  # Years 8-10 period  
+      period_2_timestep: 180  # Semi-annual timesteps
           
   # ----------------------------------------
   # Progress Monitoring

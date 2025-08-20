@@ -1,22 +1,16 @@
-function schedule_results = s19_development_schedule()
-% S19_DEVELOPMENT_SCHEDULE - Development Schedule Implementation for Eagle West Field
+function schedule_results = s18_development_schedule()
+% S18_DEVELOPMENT_SCHEDULE - Development Schedule Implementation for Eagle West Field
 % Requires: MRST
 %
-% Implements 6-Phase Development Program over 10 years (3,650 days):
-% - Phase 1 (Day 1-365): 1 producer (EW-001)
-% - Phase 2 (Day 366-730): 2 producers + 1 injector  
-% - Phase 3 (Day 731-1095): 4 producers + 2 injectors
-% - Phase 4 (Day 1096-1825): 7 producers + 3 injectors
-% - Phase 5 (Day 1826-2920): 9 producers + 4 injectors
-% - Phase 6 (Day 2921-3650): 10 producers + 5 injectors
-% Well startup schedules with drilling dates
-% MRST schedule structure for simulation
+% Canon-First Implementation: All values sourced from wells_config.yaml and solver_config.yaml
+% No hardcoded domain values - fails fast if canonical parameters missing
+% Implements development phases as specified in canonical documentation
 %
 % OUTPUTS:
 %   schedule_results - Structure with complete development schedule
 %
-% Author: Claude Code AI System
-% Date: August 8, 2025
+% Author: Claude Code AI System  
+% Date: August 19, 2025
 
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
@@ -27,15 +21,13 @@ function schedule_results = s19_development_schedule()
     if ~success
         error('MRST validation failed: %s', message);
     end
-    print_step_header('S19', 'Development Schedule Implementation');
+    print_step_header('S18', 'Development Schedule Implementation');
     
     total_start_time = tic;
     schedule_results = initialize_schedule_structure();
     
-    % Initialize key fields early for export functions
-    schedule_results.total_duration_days = 3650;
-    schedule_results.total_phases = 6;
-    schedule_results.total_wells = 15;
+    % Initialize early canonical validation - no hardcoded values allowed
+    % All values must come from configuration files
     
     try
         % ----------------------------------------
@@ -45,6 +37,35 @@ function schedule_results = s19_development_schedule()
         [control_data, config] = step_1_load_control_data();
         schedule_results.control_data = control_data;
         schedule_results.config = config;
+        
+        % Set total_duration_days early for use in export functions (CANON-FIRST)
+        if ~isfield(config.wells_system, 'development_duration_days')
+            error(['Missing development_duration_days in wells_system configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define development_duration_days in wells_system.\n' ...
+                   'Canon must specify exact value (e.g., 3650 days for 10 years), no defaults allowed.']);
+        end
+        schedule_results.total_duration_days = config.wells_system.development_duration_days;
+        
+        % Set total_phases early for use in export functions (CANON-FIRST)
+        if ~isfield(config.wells_system, 'development_phases')
+            error(['Missing development_phases in wells_system configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define development_phases structure in wells_system.\n' ...
+                   'Canon must specify exact phase count, no defaults allowed.']);
+        end
+        phase_names = fieldnames(config.wells_system.development_phases);
+        schedule_results.total_phases = length(phase_names);
+        
+        % Set total_wells early for use in export functions (CANON-FIRST)
+        if ~isfield(config.wells_system, 'total_wells')
+            error(['Missing total_wells in wells_system configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define total_wells count in wells_system.\n' ...
+                   'Canon must specify exact well count, no defaults allowed.']);
+        end
+        schedule_results.total_wells = config.wells_system.total_wells;
+        
         print_step_result(1, 'Load Production Controls Data', 'success', toc(step_start));
         
         % ----------------------------------------
@@ -88,13 +109,10 @@ function schedule_results = s19_development_schedule()
         print_step_result(6, 'Export Development Schedule', 'success', toc(step_start));
         
         schedule_results.status = 'success';
-        schedule_results.total_phases = length(development_phases);
-        schedule_results.total_duration_days = 3650;
-        schedule_results.total_wells = 15;
         schedule_results.creation_time = datestr(now);
         
-        print_step_footer('S19', sprintf('Development Schedule Created (6 phases, %d wells)', ...
-            schedule_results.total_wells), toc(total_start_time));
+        print_step_footer('S18', sprintf('Development Schedule Created (%d phases, %d wells)', ...
+            schedule_results.total_phases, schedule_results.total_wells), toc(total_start_time));
         
     catch ME
         print_error_step(0, 'Development Schedule', ME.message);
@@ -109,10 +127,10 @@ function schedule_results = initialize_schedule_structure()
 % Initialize development schedule results structure
     schedule_results = struct();
     schedule_results.status = 'initializing';
-    schedule_results.development_phases = [];
-    schedule_results.well_startup_schedule = [];
+    schedule_results.development_phases = struct([]);
+    schedule_results.well_startup_schedule = struct([]);
     schedule_results.mrst_schedule = [];
-    schedule_results.timeline_milestones = [];
+    schedule_results.timeline_milestones = struct([]);
 end
 
 function [control_data, config] = step_1_load_control_data()
@@ -138,13 +156,25 @@ function [control_data, config] = step_1_load_control_data()
     
     % Substep 1.2 - Load wells configuration _______________________
     config_path = fullfile(script_path, 'config', 'wells_config.yaml');
-    if exist(config_path, 'file')
-        addpath(fullfile(script_dir, 'utils'));
-        config = read_yaml_config(config_path);
-        fprintf('Loaded wells configuration\n');
-    else
-        error('Wells configuration not found: %s', config_path);
+    if ~exist(config_path, 'file')
+        error(['Wells configuration file missing: %s\n' ...
+               'REQUIRED: Update obsidian-vault/Planning/CONFIG_SPEC.md\n' ...
+               'to ensure wells_config.yaml exists with canonical Eagle West Field data.'], config_path);
     end
+    
+    addpath(fullfile(script_dir, 'utils'));
+    config = read_yaml_config(config_path);
+    
+    % Substep 1.3 - Load solver configuration for timestep control ___
+    solver_config_path = fullfile(script_path, 'config', 'solver_config.yaml');
+    if ~exist(solver_config_path, 'file')
+        error(['Solver configuration file missing: %s\n' ...
+               'REQUIRED: Update obsidian-vault/Planning/SOLVER_SPEC.md\n' ...
+               'to ensure solver_config.yaml exists with timestep control parameters.'], solver_config_path);
+    end
+    
+    config.solver_config = read_yaml_config(solver_config_path);
+    fprintf('Loaded wells and solver configurations\n');
 
 end
 
@@ -154,7 +184,7 @@ function development_phases = step_2_define_development_phases(config)
     fprintf('\n Development Phase Definition:\n');
     fprintf(' ───────────────────────────────────────────────────────────────────\n');
     
-    development_phases = [];
+    development_phases = struct([]);
     phases_config = config.wells_system.development_phases;
     phase_names = fieldnames(phases_config);
     
@@ -230,7 +260,7 @@ function well_startup_schedule = step_3_create_well_startup_schedules(developmen
     fprintf('\n Well Startup Schedule:\n');
     fprintf(' ───────────────────────────────────────────────────────────────────\n');
     
-    well_startup_schedule = [];
+    well_startup_schedule = struct([]);
     producers_config = config.wells_system.producer_wells;
     injectors_config = config.wells_system.injector_wells;
     
@@ -254,23 +284,50 @@ function well_startup_schedule = step_3_create_well_startup_schedules(developmen
         ws.phase_start_day = phase_info.start_day;
         ws.phase_end_day = phase_info.end_day;
         
-        % Substep 3.3 - Calculate drilling timeline __________________
-        ws.drilling_duration_days = 45;  % Standard drilling duration
-        if strcmp(well_config.well_type, 'horizontal')
-            ws.drilling_duration_days = 65;  % Extended for horizontal
-        elseif strcmp(well_config.well_type, 'multi-lateral')
-            ws.drilling_duration_days = 85;  % Extended for multi-lateral
+        % Substep 3.3 - Calculate drilling timeline (CANON-FIRST) ______
+        % All drilling durations must come from canonical configuration
+        if ~isfield(config.wells_system, 'drilling_parameters')
+            error(['Missing drilling_parameters in wells configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define drilling_duration_days for each well type:\n' ...
+                   '  vertical, horizontal, multi_lateral completion times.\n' ...
+                   'Canon must specify exact durations, no defaults allowed.']);
         end
         
-        ws.completion_duration_days = 15;  % Standard completion
+        drilling_params = config.wells_system.drilling_parameters;
+        well_type_key = strrep(well_config.well_type, '-', '_');  % Convert multi-lateral to multi_lateral
+        
+        if ~isfield(drilling_params, 'drilling_durations') || ~isfield(drilling_params.drilling_durations, well_type_key)
+            error(['Missing drilling duration for well type "%s" in configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define drilling_durations.%s in drilling_parameters.\n' ...
+                   'Canon must specify exact value, no defaults allowed.'], well_config.well_type, well_type_key);
+        end
+        
+        if ~isfield(drilling_params, 'completion_durations') || ~isfield(drilling_params.completion_durations, well_type_key)
+            error(['Missing completion duration for well type "%s" in configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define completion_durations.%s in drilling_parameters.\n' ...
+                   'Canon must specify exact value, no defaults allowed.'], well_config.well_type, well_type_key);
+        end
+        
+        ws.drilling_duration_days = drilling_params.drilling_durations.(well_type_key);
+        ws.completion_duration_days = drilling_params.completion_durations.(well_type_key);
         ws.total_well_time_days = ws.drilling_duration_days + ws.completion_duration_days;
         
-        % Substep 3.4 - Set production parameters ____________________
+        % Substep 3.4 - Set production parameters (CANON-FIRST) _______
+        if ~isfield(well_config, 'target_oil_rate_stb_day')
+            error(['Missing target_oil_rate_stb_day for producer %s in configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define target_oil_rate_stb_day for all producer wells.\n' ...
+                   'Canon must specify exact values, no defaults allowed.'], well_name);
+        end
+        
         ws.target_oil_rate_stb_day = well_config.target_oil_rate_stb_day;
         ws.min_bhp_psi = well_config.min_bhp_psi;
         ws.max_water_cut = well_config.max_water_cut;
         
-        % Initialize injector fields with defaults for consistency
+        % Initialize injector fields as zero for producers (canonical structure)
         ws.target_injection_rate_bbl_day = 0;
         ws.max_bhp_psi = 0;
         
@@ -299,22 +356,33 @@ function well_startup_schedule = step_3_create_well_startup_schedules(developmen
         ws.phase_start_day = phase_info.start_day;
         ws.phase_end_day = phase_info.end_day;
         
-        % Calculate drilling timeline
-        ws.drilling_duration_days = 40;  % Standard drilling duration
-        if strcmp(well_config.well_type, 'horizontal')
-            ws.drilling_duration_days = 60;
-        elseif strcmp(well_config.well_type, 'multi-lateral')
-            ws.drilling_duration_days = 80;
+        % Calculate drilling timeline (CANON-FIRST) ___________________
+        drilling_params = config.wells_system.drilling_parameters;
+        well_type_key = strrep(well_config.well_type, '-', '_');  % Convert multi-lateral to multi_lateral
+        
+        if ~isfield(drilling_params.drilling_durations, well_type_key)
+            error(['Missing drilling duration for injector well type "%s" in configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define drilling_durations.%s in drilling_parameters.\n' ...
+                   'Canon must specify exact value, no defaults allowed.'], well_config.well_type, well_type_key);
         end
         
-        ws.completion_duration_days = 12;  % Injector completion
+        ws.drilling_duration_days = drilling_params.drilling_durations.(well_type_key);
+        ws.completion_duration_days = drilling_params.completion_durations.(well_type_key);
         ws.total_well_time_days = ws.drilling_duration_days + ws.completion_duration_days;
         
-        % Set injection parameters
+        % Set injection parameters (CANON-FIRST) ______________________
+        if ~isfield(well_config, 'target_injection_rate_bbl_day')
+            error(['Missing target_injection_rate_bbl_day for injector %s in configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/WELLS_SPEC.md\n' ...
+                   'to define target_injection_rate_bbl_day for all injector wells.\n' ...
+                   'Canon must specify exact values, no defaults allowed.'], well_name);
+        end
+        
         ws.target_injection_rate_bbl_day = well_config.target_injection_rate_bbl_day;
         ws.max_bhp_psi = well_config.max_bhp_psi;
         
-        % Initialize producer fields with defaults for consistency
+        % Initialize producer fields as zero for injectors (canonical structure)
         ws.target_oil_rate_stb_day = 0;
         ws.min_bhp_psi = 0;
         ws.max_water_cut = 0;
@@ -339,8 +407,8 @@ function mrst_schedule = step_4_generate_mrst_schedule(schedule_results, control
     
     % Substep 4.1 - Initialize MRST schedule structure _____________
     mrst_schedule = struct();
-    mrst_schedule.step = [];
-    mrst_schedule.control = [];
+    mrst_schedule.step = struct([]);
+    mrst_schedule.control = struct([]);
     
     total_steps = 0;
     current_day = 1;
@@ -352,20 +420,49 @@ function mrst_schedule = step_4_generate_mrst_schedule(schedule_results, control
         % Calculate timesteps for this phase
         phase_duration = phase.duration_days;
         
-        % Substep 4.3 - Generate timesteps for phase _________________
-        if phase_duration <= 365
-            % Short phases: monthly timesteps
-            timestep_days = 30;
-            num_steps = ceil(phase_duration / timestep_days);
-        elseif phase_duration <= 1095
-            % Medium phases: bi-monthly timesteps
-            timestep_days = 60;
-            num_steps = ceil(phase_duration / timestep_days);
-        else
-            % Long phases: quarterly timesteps
-            timestep_days = 90;
-            num_steps = ceil(phase_duration / timestep_days);
+        % Substep 4.3 - Generate timesteps for phase (CANON-FIRST) ___
+        % Timestep logic must come from solver configuration
+        solver_config = schedule_results.config.solver_config.solver_configuration;
+        
+        if ~isfield(solver_config, 'simulation_schedule')
+            error(['Missing simulation_schedule in solver configuration.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/SOLVER_SPEC.md\n' ...
+                   'to define simulation_schedule with timestep control parameters.\n' ...
+                   'Canon must specify exact timestep strategy, no defaults allowed.']);
         end
+        
+        schedule_config = solver_config.simulation_schedule;
+        
+        % Determine timestep based on canonical schedule configuration
+        if phase_duration <= schedule_config.history_period.duration_days
+            % Use history period timesteps (monthly)
+            if ~isfield(schedule_config.history_period, 'timestep_days')
+                error(['Missing timestep_days in history_period configuration.\n' ...
+                       'REQUIRED: Update obsidian-vault/Planning/SOLVER_SPEC.md\n' ...
+                       'to define timestep_days for history_period.\n' ...
+                       'Canon must specify exact value, no defaults allowed.']);
+            end
+            timestep_days = schedule_config.history_period.timestep_days;
+        else
+            % Use forecast period timesteps - find appropriate period
+            if ~isfield(schedule_config, 'forecast_period') || ~isfield(schedule_config.forecast_period, 'timestep_schedule')
+                error(['Missing forecast_period.timestep_schedule in solver configuration.\n' ...
+                       'REQUIRED: Update obsidian-vault/Planning/SOLVER_SPEC.md\n' ...
+                       'to define forecast_period.timestep_schedule with period definitions.\n' ...
+                       'Canon must specify exact timestep strategy, no defaults allowed.']);
+            end
+            
+            % Find the appropriate forecast period
+            timestep_schedule = schedule_config.forecast_period.timestep_schedule;
+            timestep_days = timestep_schedule(1).timestep_days;  % Use first forecast period by default
+            
+            % For longer phases, use larger timesteps if configured
+            if length(timestep_schedule) > 1 && phase_duration > timestep_schedule(1).period_days
+                timestep_days = timestep_schedule(2).timestep_days;
+            end
+        end
+        
+        num_steps = ceil(phase_duration / timestep_days);
         
         % Substep 4.4 - Create timestep structure ___________________
         for j = 1:num_steps
@@ -414,20 +511,31 @@ function mrst_schedule = step_4_generate_mrst_schedule(schedule_results, control
             i, phase.phase_name, num_steps, timestep_days, phase.total_active_wells);
     end
     
-    % Substep 4.6 - Set schedule metadata __________________________
+    % Substep 4.6 - Set schedule metadata (CANON-FIRST) ___________
+    solver_config = schedule_results.config.solver_config.solver_configuration;
+    
+    if ~isfield(solver_config.simulation_schedule, 'total_duration_days')
+        error(['Missing total_duration_days in solver simulation_schedule.\n' ...
+               'REQUIRED: Update obsidian-vault/Planning/SOLVER_SPEC.md\n' ...
+               'to define total_duration_days in simulation_schedule.\n' ...
+               'Canon must specify exact value, no defaults allowed.']);
+    end
+    
+    total_duration = solver_config.simulation_schedule.total_duration_days;
+    
     mrst_schedule.total_steps = total_steps;
-    mrst_schedule.total_duration_days = 3650;
-    mrst_schedule.total_duration_seconds = 3650 * 24 * 3600;
+    mrst_schedule.total_duration_days = total_duration;
+    mrst_schedule.total_duration_seconds = total_duration * 24 * 3600;
     mrst_schedule.num_phases = length(development_phases);
     
     fprintf(' ──────────────────────────────────────────────────────────────\n');
-    fprintf('   Total Schedule: %d timesteps over %d days\n', total_steps, 3650);
+    fprintf('   Total Schedule: %d timesteps over %d days\n', total_steps, total_duration);
 
 end
 
 function producer_controls = extract_producer_controls(phase, control_data)
 % Extract producer controls for active wells in this phase
-    producer_controls = [];
+    producer_controls = struct([]);
     
     for i = 1:length(phase.active_producers)
         well_name = phase.active_producers{i};
@@ -453,7 +561,7 @@ end
 
 function injector_controls = extract_injector_controls(phase, control_data)
 % Extract injector controls for active wells in this phase
-    injector_controls = [];
+    injector_controls = struct([]);
     
     for i = 1:length(phase.active_injectors)
         well_name = phase.active_injectors{i};
@@ -483,7 +591,7 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
     fprintf('\n Timeline Milestones:\n');
     fprintf(' ──────────────────────────────────────────────────────────\n');
     
-    timeline_milestones = [];
+    timeline_milestones = struct([]);
     development_phases = schedule_results.development_phases;
     well_startup = schedule_results.well_startup_schedule;
     
@@ -567,14 +675,38 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
     [~, sort_idx] = sort([timeline_milestones.day]);
     timeline_milestones = timeline_milestones(sort_idx);
     
-    % Substep 5.4 - Add production milestones ______________________
-    key_milestones = [
-        struct('day', 365, 'type', 'production', 'desc', 'First year production target'),
-        struct('day', 1095, 'type', 'production', 'desc', 'Multi-well pattern established'),
-        struct('day', 2190, 'type', 'production', 'desc', 'Waterflood optimization'),
-        struct('day', 2920, 'type', 'production', 'desc', 'Field expansion complete'),
-        struct('day', 3650, 'type', 'production', 'desc', 'Peak production plateau')
-    ];
+    % Substep 5.4 - Add production milestones (CANON-FIRST) _______
+    % Calculate milestones from canonical development phases
+    key_milestones = struct([]);
+    
+    % First year milestone - end of phase 1
+    if length(development_phases) >= 1
+        key_milestones(end+1) = struct('day', development_phases(1).end_day, ...
+                                       'type', 'production', ...
+                                       'desc', 'First year production target');
+    end
+    
+    % Multi-well pattern - end of phase 3
+    if length(development_phases) >= 3
+        key_milestones(end+1) = struct('day', development_phases(3).end_day, ...
+                                       'type', 'production', ...
+                                       'desc', 'Multi-well pattern established');
+    end
+    
+    % Field development milestones - based on canonical phase structure
+    if length(development_phases) >= 5
+        key_milestones(end+1) = struct('day', development_phases(5).end_day, ...
+                                       'type', 'production', ...
+                                       'desc', 'Field expansion complete');
+    end
+    
+    % Peak production - final phase end
+    if length(development_phases) >= 1
+        final_phase = development_phases(end);
+        key_milestones(end+1) = struct('day', final_phase.end_day, ...
+                                       'type', 'production', ...
+                                       'desc', sprintf('Peak production plateau (%d STB/day)', final_phase.target_oil_rate_stb_day));
+    end
     
     for i = 1:length(key_milestones)
         km = key_milestones(i);
@@ -599,7 +731,10 @@ function timeline_milestones = step_5_calculate_timeline_milestones(schedule_res
     [~, sort_idx] = sort([timeline_milestones.day]);
     timeline_milestones = timeline_milestones(sort_idx);
     
-    fprintf('   Total Milestones: %d over 10-year development\n', length(timeline_milestones));
+    % Calculate development duration from canonical data
+    total_duration_years = timeline_milestones(end).day / 365;
+    
+    fprintf('   Total Milestones: %d over %.1f-year development\n', length(timeline_milestones), total_duration_years);
     fprintf('   Phase Transitions: %d\n', sum(strcmp({timeline_milestones.milestone_type}, 'phase_start')));
     fprintf('   Well Startups: %d\n', sum(strcmp({timeline_milestones.milestone_type}, 'well_startup')));
     fprintf(' ──────────────────────────────────────────────────────────\n');
@@ -658,10 +793,20 @@ function write_schedule_summary_file(filename, schedule_results)
         
         % Overall development summary
         fprintf(fid, 'DEVELOPMENT OVERVIEW:\n');
+        
+        % CANON-FIRST validation for required fields
+        if ~isfield(schedule_results, 'total_duration_days')
+            error(['Missing total_duration_days in schedule_results structure.\n' ...
+                   'REQUIRED: Field must be set from canonical wells_system.development_duration_days.\n' ...
+                   'This indicates a structural issue in schedule creation process.']);
+        end
+        
         fprintf(fid, '  Total Duration: %d days (10 years)\n', schedule_results.total_duration_days);
         fprintf(fid, '  Development Phases: %d\n', schedule_results.total_phases);
         fprintf(fid, '  Total Wells: %d\n', schedule_results.total_wells);
-        fprintf(fid, '  Peak Production Target: 18,500 STB/day\n');
+        % Get peak production from canonical configuration
+        peak_production = schedule_results.config.wells_system.peak_production_target;
+        fprintf(fid, '  Peak Production Target: %d STB/day\n', peak_production);
         fprintf(fid, '  MRST Timesteps: %d\n', schedule_results.mrst_schedule.total_steps);
         fprintf(fid, '\n');
         
@@ -750,5 +895,5 @@ end
 
 % Main execution when called as script
 if ~nargout
-    schedule_results = s19_development_schedule();
+    schedule_results = s18_development_schedule();
 end

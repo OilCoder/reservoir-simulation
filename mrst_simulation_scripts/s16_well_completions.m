@@ -59,7 +59,7 @@ function completion_results = s16_well_completions()
         % Step 4 - Define Completion Intervals
         % ----------------------------------------
         step_start = tic;
-        completion_intervals = step_4_define_completion_intervals(wells_data, G);
+        completion_intervals = step_4_define_completion_intervals(wells_data, G, wells_config);
         completion_results.completion_intervals = completion_intervals;
         print_step_result(4, 'Define Completion Intervals', 'success', toc(step_start));
         
@@ -67,7 +67,7 @@ function completion_results = s16_well_completions()
         % Step 5 - Create MRST Well Structures
         % ----------------------------------------
         step_start = tic;
-        mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init_config);
+        mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init_config, wells_config);
         completion_results.mrst_wells = mrst_wells;
         print_step_result(5, 'Create MRST Well Structures', 'success', toc(step_start));
         
@@ -121,91 +121,84 @@ function [wells_data, rock_props, G, wells_config, init_config] = step_1_load_we
     
     data_dir = get_data_path('static');
     
-    % Substep 1.1 - Load well placement data ________________________
-    well_file = fullfile(data_dir, 'well_placement.mat');
-    if exist(well_file, 'file')
-        load(well_file, 'wells_results');
+    % Substep 1.1 - Load well placement data from S15 (CANON-FIRST: exact predecessor output)
+    % S15 generates well_placement_s15.mat - use exact file from predecessor
+    required_s15_file = fullfile(data_dir, 'well_placement_s15.mat');
+    if exist(required_s15_file, 'file')
+        load(required_s15_file, 'wells_results');
         wells_data = wells_results;
-        fprintf('Loaded well placement: %d wells\n', wells_data.total_wells);
+        % Wells loaded successfully from canonical S15 output
     else
-        error('Well placement file not found. Run s15_well_placement.m first.');
+        error(['CANON-FIRST ERROR: Missing required S15 well placement data.\n' ...
+               'REQUIRED: Run s15_well_placement.m first.\n' ...
+               'Expected file: %s\n' ...
+               'Canon specification: S16 requires exact S15 output with well coordinates and cell indices.\n' ...
+               'No fallbacks allowed - predecessor must generate complete placement data.'], required_s15_file);
     end
     
-    % Substep 1.2 - Load rock properties ___________________________
-    % Try multiple possible rock properties files
-    rock_files = {'final_simulation_rock.mat', 'enhanced_rock_with_layers.mat', 'native_rock_properties.mat'};
-    rock_props = [];
+    % Substep 1.2 - Load rock properties from canonical structure (CANON-FIRST)
+    % Use same canonical data organization pattern as s13 and s09
+    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+    canonical_data_dir = fullfile(base_data_path, 'by_type', 'static');
+    canonical_rock_file = fullfile(canonical_data_dir, 'final_simulation_rock.mat');
     
-    for i = 1:length(rock_files)
-        rock_file = fullfile(data_dir, rock_files{i});
-        if exist(rock_file, 'file')
-            try
-                load(rock_file);
-                
-                % Check for different rock property variables
-                if exist('final_rock', 'var')
-                    rock_props = final_rock;
-                    fprintf('Loaded rock properties from %s: %d cells\n', rock_files{i}, length(rock_props.poro));
-                    % Check if grid is also in this file
-                    if exist('G', 'var')
-                        grid_from_rock_file = G;
-                        fprintf('Also found grid in %s: %d cells\n', rock_files{i}, G.cells.num);
-                    end
-                    break;
-                elseif exist('rock_enhanced', 'var')
-                    rock_props = rock_enhanced;
-                    fprintf('Loaded rock properties from %s: %d cells\n', rock_files{i}, length(rock_props.poro));
-                    break;
-                elseif exist('rock', 'var')
-                    rock_props = rock;
-                    fprintf('Loaded rock properties from %s: %d cells\n', rock_files{i}, length(rock_props.poro));
-                    break;
-                elseif exist('rock_props', 'var')
-                    fprintf('Loaded rock properties from %s: %d cells\n', rock_files{i}, length(rock_props.poro));
-                    break;
-                else
-                    fprintf('File %s exists but contains no recognized rock properties variable\n', rock_files{i});
-                end
-            catch ME
-                fprintf('Error loading %s: %s\n', rock_files{i}, ME.message);
+    if exist(canonical_rock_file, 'file')
+        % Loading rock properties from canonical structure
+        
+        % ROBUST LOADING: Handle both 'rock' and 'final_rock' variable names for compatibility
+        file_vars = whos('-file', canonical_rock_file);
+        var_names = {file_vars.name};
+        
+        if ismember('rock', var_names)
+            % New canonical format with 'rock' variable name
+            load(canonical_rock_file, 'rock', 'G');
+            rock_props = rock;
+        elseif ismember('final_rock', var_names)
+            % Legacy format with 'final_rock' variable name
+            load_data = load(canonical_rock_file, 'final_rock', 'G');
+            rock_props = load_data.final_rock;  % Rename for consistency
+            if isfield(load_data, 'G') && ~exist('G', 'var')
+                grid_from_rock_file = load_data.G;
             end
+            clear load_data;
+        else
+            error(['CANON-FIRST ERROR: Neither ''rock'' nor ''final_rock'' variables found in canonical file.\n' ...
+                   'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+                   'File: %s\n' ...
+                   'Available variables: %s'], canonical_rock_file, strjoin(var_names, ', '));
         end
+        % Rock properties loaded successfully
+    else
+        % CANON-FIRST ERROR: No fallbacks allowed, must use canonical structure
+        error(['CANON-FIRST ERROR: Final rock structure not found at canonical location.\n' ...
+               'REQUIRED: Update obsidian-vault/Planning/Rock_Properties.md\n' ...
+               'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
+               'CANON LOCATION: %s\n' ...
+               'No legacy fallbacks allowed - data must be in by_type/static structure.'], canonical_rock_file);
     end
     
-    if isempty(rock_props)
-        error('Rock properties file not found. Run rock property scripts first.');
-    end
-    
-    % Substep 1.3 - Load grid structure ____________________________
+    % Substep 1.3 - Load grid structure (CANON-FIRST) ______________
     % First check if we already loaded grid with rock properties
     if exist('grid_from_rock_file', 'var')
         G = grid_from_rock_file;
-        fprintf('Using grid from rock file: %d cells\n', G.cells.num);
+        % Grid loaded with rock properties
+    elseif exist('G', 'var')
+        % Grid was loaded together with rock properties above
+        % Grid available from rock properties loading
     else
-        % Try separate grid files
-        refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
-        base_grid_file = fullfile(data_dir, 'base_grid.mat');
-        
-        if exist(refined_grid_file, 'file')
-            data = load(refined_grid_file);
-            if isfield(data, 'G_refined')
-                G = data.G_refined;
-            elseif isfield(data, 'G')
-                G = data.G;
-            else
-                error('No grid structure found in refined_grid.mat');
-            end
-            fprintf('Loaded refined grid: %d cells\n', G.cells.num);
-        elseif exist(base_grid_file, 'file')
-            data = load(base_grid_file);
-            if isfield(data, 'G')
-                G = data.G;
-            else
-                error('No grid structure found in base_grid.mat');
-            end
-            fprintf('Loaded base grid: %d cells\n', G.cells.num);
+        % Load grid from canonical structure or fallback to legacy locations
+        canonical_grid_file = fullfile(canonical_data_dir, 'pebi_grid.mat');
+        if exist(canonical_grid_file, 'file')
+            % Loading grid from canonical structure
+            load(canonical_grid_file, 'G');
+            % Grid loaded from canonical structure
         else
-            error('Grid structure file not found. Run s03_create_pebi_grid.m first.');
+            % CANON-FIRST ERROR: No fallbacks allowed, must use canonical structure
+            error(['CANON-FIRST ERROR: Grid structure not found at canonical location.\n' ...
+                   'REQUIRED: Update obsidian-vault/Planning/Grid_Configuration.md\n' ...
+                   'REQUIRED: Run s05_create_pebi_grid.m first.\n' ...
+                   'CANON LOCATION: %s\n' ...
+                   'No legacy fallbacks allowed - data must be in by_type/static structure.'], canonical_grid_file);
         end
     end
 
@@ -216,8 +209,7 @@ function wellbore_design = step_2_design_wellbore_completions(wells_data, wells_
 
     wellbore_design = struct();
     
-    fprintf('\n Wellbore Completion Design:\n');
-    fprintf(' ─────────────────────────────────────────────────────────\n');
+    % Wellbore completion design phase
     
     all_wells = [wells_data.producer_wells; wells_data.injector_wells];
     
@@ -258,27 +250,41 @@ function wellbore_design = step_2_design_wellbore_completions(wells_data, wells_
         % Completion design based on well type
         switch well.well_type
             case 'vertical'
-                wb = design_vertical_completion(wb, well);
+                wb = design_vertical_completion(wb, well, wells_config);
             case 'horizontal'
-                wb = design_horizontal_completion(wb, well);
+                wb = design_horizontal_completion(wb, well, wells_config);
             case 'multi_lateral'
-                wb = design_multilateral_completion(wb, well);
+                wb = design_multilateral_completion(wb, well, wells_config);
         end
         
         wellbore_design.wells = [wellbore_design.wells; wb];
         
-        fprintf('   %-8s │ %-12s │ R=%.3fm │ S=%+5.1f │ %d layers\n', ...
-            wb.name, wb.well_type, wb.radius_m, wb.skin_factor, length(wb.completion_layers));
+        % Display detailed completion design (CANON-FIRST: Always show consistent output)
+        fprintf('   ■ %s: %s completion (radius: %.2f ft, skin: %.1f, stages: %d, length: %.0f ft)\n', ...
+                wb.name, wb.completion_type, wb.radius_ft, wb.skin_factor, wb.completion_stages, wb.completion_length_ft);
     end
     
-    fprintf(' ─────────────────────────────────────────────────────────\n');
+    % Step section complete
+    
+    % Display wellbore design table (CANON-FIRST: Always show detailed completion information)
+    fprintf('\n   WELLBORE COMPLETION DESIGN SUMMARY:\n');
+    fprintf('   ┌─────────┬────────────┬─────────┬────────┬────────┬──────────┐\n');
+    fprintf('   │ Well    │ Type       │ Radius  │ Skin   │ Stages │ Length   │\n');
+    fprintf('   │         │            │ (ft)    │        │        │ (ft)     │\n');
+    fprintf('   ├─────────┼────────────┼─────────┼────────┼────────┼──────────┤\n');
+    for i = 1:length(wellbore_design.wells)
+        wb = wellbore_design.wells(i);
+        fprintf('   │ %-7s │ %-10s │ %6.2f  │ %6.1f │ %6d │ %8.0f │\n', ...
+                wb.name, wb.well_type, wb.radius_ft, wb.skin_factor, wb.completion_stages, wb.completion_length_ft);
+    end
+    fprintf('   └─────────┴────────────┴─────────┴────────┴────────┴──────────┘\n');
     
     % Substep 2.3 - Completion statistics __________________________
     wellbore_design.statistics = calculate_completion_statistics(wellbore_design.wells);
 
 end
 
-function wb = design_vertical_completion(wb, well)
+function wb = design_vertical_completion(wb, well, wells_config)
 % Design vertical well completion
 
     wb.trajectory = 'vertical';
@@ -310,8 +316,14 @@ function wb = design_vertical_completion(wb, well)
     % Use default penetration (this is typically equipment-specific constant)
     wb.perforation_penetration = 12;  % inches - equipment specification
     
-    % Completion intervals (assume 30 ft per layer)
-    wb.completion_length_ft = length(well.completion_layers) * 30;
+    % Completion length from CANON configuration (CANON-FIRST)
+    if ~isfield(wells_config.wells_system.completion_parameters, 'horizontal_completion') || ~isfield(wells_config.wells_system.completion_parameters.horizontal_completion, 'vertical_completion_length_ft')
+        error(['CANON-FIRST ERROR: Missing vertical_completion_length_ft in wells_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+               'Must define exact completion length for vertical wells in Eagle West Field.']);
+    end
+    vertical_completion_length = wells_config.wells_system.completion_parameters.horizontal_completion.vertical_completion_length_ft;
+    wb.completion_length_ft = length(well.completion_layers) * vertical_completion_length;
     
     % Sand control for vertical wells
     wb.sand_control = 'gravel_pack';
@@ -319,7 +331,7 @@ function wb = design_vertical_completion(wb, well)
 
 end
 
-function wb = design_horizontal_completion(wb, well)
+function wb = design_horizontal_completion(wb, well, wells_config)
 % Design horizontal well completion
 
     wb.trajectory = 'horizontal';
@@ -330,8 +342,14 @@ function wb = design_horizontal_completion(wb, well)
     wb.lateral_length_ft = well.lateral_length;
     wb.lateral_tvd = well.total_depth_tvd_ft;
     
-    % Multi-stage completion
-    wb.completion_stages = ceil(wb.lateral_length_ft / 250);  % ~250 ft per stage
+    % Multi-stage completion from CANON configuration (CANON-FIRST)
+    if ~isfield(wells_config.wells_system.completion_parameters, 'horizontal_completion') || ~isfield(wells_config.wells_system.completion_parameters.horizontal_completion, 'stage_length_ft')
+        error(['CANON-FIRST ERROR: Missing stage_length_ft in wells_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+               'Must define exact stage length for horizontal wells in Eagle West Field.']);
+    end
+    stage_length = wells_config.wells_system.completion_parameters.horizontal_completion.stage_length_ft;
+    wb.completion_stages = ceil(wb.lateral_length_ft / stage_length);
     wb.stage_length_ft = wb.lateral_length_ft / wb.completion_stages;
     
     % Multi-lateral fields (initialized for horizontal wells)
@@ -342,11 +360,16 @@ function wb = design_horizontal_completion(wb, well)
     wb.lateral_2_stages = 0;
     wb.total_stages = wb.completion_stages;
     
-    % Perforation design for horizontals
-    % Use CANON perforation parameters with horizontal adjustment
-    wb.perforation_density = wells_config.wells_system.completion_parameters.perforation_density * 0.5;  % Reduced for horizontals
-    wb.perforation_diameter = wells_config.wells_system.completion_parameters.perforation_diameter_inch * 1.16;  % Larger for horizontals
-    wb.perforation_penetration = 18;  % inches
+    % Perforation design for horizontals from CANON configuration (CANON-FIRST)
+    if ~isfield(wells_config.wells_system.completion_parameters, 'perforation_factors')
+        error(['CANON-FIRST ERROR: Missing perforation_factors in wells_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+               'Must define exact perforation factors for horizontal wells in Eagle West Field.']);
+    end
+    perf_factors = wells_config.wells_system.completion_parameters.perforation_factors;
+    wb.perforation_density = wells_config.wells_system.completion_parameters.perforation_density * perf_factors.horizontal_density_factor;
+    wb.perforation_diameter = wells_config.wells_system.completion_parameters.perforation_diameter_inch * perf_factors.horizontal_diameter_factor;
+    wb.perforation_penetration = 18;  % inches - equipment specification
     
     % Sand control for horizontal wells
     wb.sand_control = 'premium_screens';
@@ -356,7 +379,7 @@ function wb = design_horizontal_completion(wb, well)
 
 end
 
-function wb = design_multilateral_completion(wb, well)
+function wb = design_multilateral_completion(wb, well, wells_config)
 % Design multi-lateral well completion
 
     wb.trajectory = 'multi_lateral';
@@ -372,18 +395,29 @@ function wb = design_multilateral_completion(wb, well)
     wb.lateral_length_ft = wb.lateral_1_length_ft + wb.lateral_2_length_ft;  % Total lateral length
     wb.lateral_tvd = well.total_depth_tvd_ft;
     
-    % Multi-stage completion for each lateral
-    wb.lateral_1_stages = ceil(wb.lateral_1_length_ft / 200);
-    wb.lateral_2_stages = ceil(wb.lateral_2_length_ft / 200);
+    % Multi-stage completion for each lateral from CANON configuration (CANON-FIRST)
+    if ~isfield(wells_config.wells_system.completion_parameters, 'horizontal_completion') || ~isfield(wells_config.wells_system.completion_parameters.horizontal_completion, 'multilateral_stage_length_ft')
+        error(['CANON-FIRST ERROR: Missing multilateral_stage_length_ft in wells_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+               'Must define exact stage length for multilateral wells in Eagle West Field.']);
+    end
+    multilateral_stage_length = wells_config.wells_system.completion_parameters.horizontal_completion.multilateral_stage_length_ft;
+    wb.lateral_1_stages = ceil(wb.lateral_1_length_ft / multilateral_stage_length);
+    wb.lateral_2_stages = ceil(wb.lateral_2_length_ft / multilateral_stage_length);
     wb.total_stages = wb.lateral_1_stages + wb.lateral_2_stages;
     wb.completion_stages = wb.total_stages;  % For consistency with horizontal
     wb.stage_length_ft = wb.lateral_length_ft / wb.total_stages;
     
-    % Perforation design
-    % Use CANON perforation parameters with multilateral adjustment
-    wb.perforation_density = wells_config.wells_system.completion_parameters.perforation_density * 0.67;  % Moderate for multilaterals
-    wb.perforation_diameter = wells_config.wells_system.completion_parameters.perforation_diameter_inch * 1.09;  % Slightly larger
-    wb.perforation_penetration = 15;
+    % Perforation design for multilaterals from CANON configuration (CANON-FIRST)
+    if ~isfield(wells_config.wells_system.completion_parameters, 'perforation_factors')
+        error(['CANON-FIRST ERROR: Missing perforation_factors in wells_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+               'Must define exact perforation factors for multilateral wells in Eagle West Field.']);
+    end
+    perf_factors = wells_config.wells_system.completion_parameters.perforation_factors;
+    wb.perforation_density = wells_config.wells_system.completion_parameters.perforation_density * perf_factors.multilateral_density_factor;
+    wb.perforation_diameter = wells_config.wells_system.completion_parameters.perforation_diameter_inch * perf_factors.multilateral_diameter_factor;
+    wb.perforation_penetration = perf_factors.multilateral_penetration_inch;
     
     % Advanced sand control
     wb.sand_control = 'expandable_screens';
@@ -420,8 +454,7 @@ end
 function well_indices = step_3_calculate_well_indices(wells_data, rock_props, G, init_config)
 % Step 3 - Calculate well indices using Peaceman model
 
-    fprintf('\n Calculating Well Indices (Peaceman Model):\n');
-    fprintf(' ───────────────────────────────────────────────────────────\n');
+    % Calculating well indices using Peaceman model
     
     all_wells = [wells_data.producer_wells; wells_data.injector_wells];
     well_indices = [];
@@ -439,17 +472,27 @@ function well_indices = step_3_calculate_well_indices(wells_data, rock_props, G,
         cell_idx = well.cell_index;
         
         % Substep 3.2 - Get rock properties for well cell _____________
-        if isfield(rock_props, 'permeability') && length(rock_props.permeability) >= cell_idx
-            perm_x = rock_props.permeability(cell_idx, 1) * 1000;  % Convert to mD
-            perm_y = rock_props.permeability(cell_idx, 2) * 1000;
-            perm_z = rock_props.permeability(cell_idx, 3) * 1000;
+        if isfield(rock_props, 'perm') && size(rock_props.perm, 1) >= cell_idx
+            % rock.perm is in m² from MRST, convert to mD for calculations
+            perm_x = rock_props.perm(cell_idx, 1) / 9.869e-16;  % Convert m² to mD
+            if size(rock_props.perm, 2) >= 2
+                perm_y = rock_props.perm(cell_idx, 2) / 9.869e-16;  % Convert m² to mD
+            else
+                perm_y = perm_x;  % Isotropic case
+            end
+            if size(rock_props.perm, 2) >= 3
+                perm_z = rock_props.perm(cell_idx, 3) / 9.869e-16;  % Convert m² to mD
+            else
+                perm_z = perm_x * 0.1;  % Default kv/kh ratio of 0.1
+            end
         else
             % CANON-FIRST ERROR: Rock properties must be available for well index calculation
             error(['CANON-FIRST ERROR: Missing rock permeability for well %s (cell %d)\n' ...
                    'UPDATE CANON: obsidian-vault/Planning/Rock_Properties.md\n' ...
                    'Must load complete rock properties from s08 before well completion.\n' ...
-                   'No fallback permeabilities allowed - all values must come from YAML/simulator.'], ...
-                   well.name, cell_idx);
+                   'No fallback permeabilities allowed - all values must come from YAML/simulator.\n' ...
+                   'Expected field: rock_props.perm with dimensions [%d x 3]'], ...
+                   well.name, cell_idx, size(rock_props.perm, 1));
         end
         
         % Substep 3.3 - Calculate equivalent radius (Peaceman) ________
@@ -525,22 +568,35 @@ function well_indices = step_3_calculate_well_indices(wells_data, rock_props, G,
         
         well_indices = [well_indices; wi];
         
-        fprintf('   %-8s │ WI=%.2e │ r_eq=%.2f │ perm=%.0f mD\n', ...
-            wi.name, wi.well_index, wi.equivalent_radius_m, perm_x);
+        % Display well index calculation details (CANON-FIRST: Always show consistent output)
+        fprintf('   ■ %s: WI=%.2e, Perm=[%.0f,%.0f,%.0f] mD, r_eq=%.3f m, skin=%.1f\n', ...
+                wi.name, wi.well_index, wi.permeability_md(1), wi.permeability_md(2), wi.permeability_md(3), ...
+                wi.equivalent_radius_m, wi.skin_factor);
     end
+    
+    % Display well indices table (CANON-FIRST: Always show detailed WI calculation results)
+    fprintf('\n   WELL INDICES (PEACEMAN MODEL) CALCULATION RESULTS:\n');
+    fprintf('   ┌─────────┬────────────┬────────────┬───────────┬──────────┬────────┐\n');
+    fprintf('   │ Well    │ Well Index │ Perm (mD) │ r_eq (m)  │ Skin     │ Type   │\n');
+    fprintf('   ├─────────┼────────────┼────────────┼───────────┼──────────┼────────┤\n');
+    for i = 1:length(well_indices)
+        wi = well_indices(i);
+        fprintf('   │ %-7s │ %10.2e │ %9.0f  │ %9.3f  │ %8.1f │ %-6s │\n', ...
+                wi.name, wi.well_index, wi.permeability_md(1), wi.equivalent_radius_m, wi.skin_factor, wi.well_type);
+    end
+    fprintf('   └─────────┴────────────┴────────────┴───────────┴──────────┴────────┘\n');
     
     fprintf(' ───────────────────────────────────────────────────────────\n');
 
 end
 
-function completion_intervals = step_4_define_completion_intervals(wells_data, G)
+function completion_intervals = step_4_define_completion_intervals(wells_data, G, wells_config)
 % Step 4 - Define layer-specific completion intervals
 
-    fprintf('\n Completion Intervals by Layer:\n');
-    fprintf(' ─────────────────────────────────────────────────────────────\n');
+    % Defining completion intervals by layer
     
     completion_intervals = struct();
-    completion_intervals.layer_definitions = define_layer_intervals();
+    completion_intervals.layer_definitions = define_layer_intervals(wells_config);
     
     all_wells = [wells_data.producer_wells; wells_data.injector_wells];
     completion_intervals.wells = [];
@@ -563,20 +619,28 @@ function completion_intervals = step_4_define_completion_intervals(wells_data, G
             interval.layer = layer;
             interval.layer_name = get_layer_name(layer);
             
-            % Calculate depth interval for this layer
+            % Calculate depth interval using CANON configuration (CANON-FIRST)
+            if ~isfield(wells_config.wells_system.completion_parameters, 'layer_completion_parameters')
+                error(['CANON-FIRST ERROR: Missing layer_completion_parameters in wells_config.yaml\n' ...
+                       'UPDATE CANON: obsidian-vault/Planning/Wells_Configuration.md\n' ...
+                       'Must define exact layer offsets and thicknesses for Eagle West Field.\n' ...
+                       'No hardcoded depth calculations allowed - all values must come from YAML specification.']);
+            end
+            layer_params = wells_config.wells_system.completion_parameters.layer_completion_parameters;
+            
             base_depth = well.total_depth_tvd_ft;
             if layer <= 3
                 % Upper Sand (layers 1-3)
-                interval.top_depth_ft = base_depth - 250 + (layer-1) * 30;
-                interval.bottom_depth_ft = interval.top_depth_ft + 25;
+                interval.top_depth_ft = base_depth - layer_params.upper_sand_offset_ft + (layer-1) * layer_params.layer_spacing_ft;
+                interval.bottom_depth_ft = interval.top_depth_ft + layer_params.layer_thickness_ft;
             elseif layer <= 7
                 % Middle Sand (layers 4-7)  
-                interval.top_depth_ft = base_depth - 150 + (layer-4) * 30;
-                interval.bottom_depth_ft = interval.top_depth_ft + 25;
+                interval.top_depth_ft = base_depth - layer_params.middle_sand_offset_ft + (layer-4) * layer_params.layer_spacing_ft;
+                interval.bottom_depth_ft = interval.top_depth_ft + layer_params.layer_thickness_ft;
             else
                 % Lower Sand (layers 8-12)
-                interval.top_depth_ft = base_depth - 50 + (layer-8) * 30;
-                interval.bottom_depth_ft = interval.top_depth_ft + 25;
+                interval.top_depth_ft = base_depth - layer_params.lower_sand_offset_ft + (layer-8) * layer_params.layer_spacing_ft;
+                interval.bottom_depth_ft = interval.top_depth_ft + layer_params.layer_thickness_ft;
             end
             
             interval.net_pay_ft = interval.bottom_depth_ft - interval.top_depth_ft;
@@ -587,10 +651,40 @@ function completion_intervals = step_4_define_completion_intervals(wells_data, G
         ci.total_net_pay_ft = sum([ci.intervals.net_pay_ft]);
         completion_intervals.wells = [completion_intervals.wells; ci];
         
-        fprintf('   %-8s │ %d layers │ %.0f ft net pay │ %s\n', ...
-            ci.name, length(ci.intervals), ci.total_net_pay_ft, ...
-            strjoin({ci.intervals.layer_name}, ', '));
+        % Display completion intervals details (CANON-FIRST: Always show consistent output)
+        fprintf('   ■ %s: %d layers, total pay: %.0f ft', ci.name, length(ci.intervals), ci.total_net_pay_ft);
+        for k = 1:length(ci.intervals)
+            fprintf(' [L%d:%.0f-%.0f ft]', ci.intervals(k).layer, ci.intervals(k).top_depth_ft, ci.intervals(k).bottom_depth_ft);
+        end
+        fprintf('\n');
     end
+    
+    % Display completion intervals table (CANON-FIRST: Always show layer completion details)
+    fprintf('\n   COMPLETION INTERVALS BY LAYER:\n');
+    fprintf('   ┌─────────┬─────────────┬───────────┬────────────┬──────────┐\n');
+    fprintf('   │ Well    │ Sand Unit    │ Layers    │ Depth (ft)  │ Pay (ft) │\n');
+    fprintf('   ├─────────┼─────────────┼───────────┼────────────┼──────────┤\n');
+    for i = 1:length(completion_intervals.wells)
+        ci = completion_intervals.wells(i);
+        for j = 1:length(ci.intervals)
+            interval = ci.intervals(j);
+            if j == 1
+                fprintf('   │ %-7s │ %-11s │ Layer %-2d │ %5.0f-%-5.0f │ %8.0f │\n', ...
+                        ci.name, interval.layer_name, interval.layer, interval.top_depth_ft, interval.bottom_depth_ft, interval.net_pay_ft);
+            else
+                fprintf('   │         │ %-11s │ Layer %-2d │ %5.0f-%-5.0f │ %8.0f │\n', ...
+                        interval.layer_name, interval.layer, interval.top_depth_ft, interval.bottom_depth_ft, interval.net_pay_ft);
+            end
+        end
+        if length(ci.intervals) > 1
+            fprintf('   ├─────────┼─────────────┼───────────┼────────────┼──────────┤\n');
+            fprintf('   │ TOTAL   │             │ %d Layers │             │ %8.0f │\n', length(ci.intervals), ci.total_net_pay_ft);
+        end
+        if i < length(completion_intervals.wells)
+            fprintf('   ├─────────┼─────────────┼───────────┼────────────┼──────────┤\n');
+        end
+    end
+    fprintf('   └─────────┴─────────────┴───────────┴────────────┴──────────┘\n');
     
     fprintf(' ─────────────────────────────────────────────────────────────\n');
     
@@ -599,12 +693,30 @@ function completion_intervals = step_4_define_completion_intervals(wells_data, G
 
 end
 
-function layer_def = define_layer_intervals()
-% Define standard layer intervals
+function layer_def = define_layer_intervals(wells_config)
+% Define standard layer intervals using CANON rock properties configuration
+    
+    % Load rock properties configuration (CANON-FIRST)
+    script_path = fileparts(mfilename('fullpath'));
+    addpath(fullfile(script_path, 'utils'));
+    rock_config = read_yaml_config('config/rock_properties_config.yaml', true);
+    
+    if ~isfield(rock_config, 'rock_properties') || ~isfield(rock_config.rock_properties, 'rock_type_definitions')
+        error(['CANON-FIRST ERROR: Missing rock_type_definitions in rock_properties_config.yaml\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Rock_Properties.md\n' ...
+               'Must define exact rock type definitions and average permeabilities for Eagle West Field.\n' ...
+               'No hardcoded permeability values allowed - all values must come from YAML specification.']);
+    end
+    
+    rock_types = rock_config.rock_properties.rock_type_definitions;
+    
     layer_def = struct();
-    layer_def.upper_sand = struct('layers', [1, 2, 3], 'name', 'Upper Sand', 'avg_perm_md', 200);
-    layer_def.middle_sand = struct('layers', [4, 5, 6, 7], 'name', 'Middle Sand', 'avg_perm_md', 150);
-    layer_def.lower_sand = struct('layers', [8, 9, 10, 11, 12], 'name', 'Lower Sand', 'avg_perm_md', 100);
+    layer_def.upper_sand = struct('layers', [1, 2, 3], 'name', 'Upper Sand', ...
+                                  'avg_perm_md', rock_types.RT2_medium_perm_sandstone.average_permeability_md);
+    layer_def.middle_sand = struct('layers', [5, 6, 7], 'name', 'Middle Sand', ...
+                                   'avg_perm_md', rock_types.RT1_high_perm_sandstone.average_permeability_md);
+    layer_def.lower_sand = struct('layers', [9, 10, 11, 12], 'name', 'Lower Sand', ...
+                                  'avg_perm_md', rock_types.RT3_low_perm_sandstone.average_permeability_md);
 end
 
 function name = get_layer_name(layer)
@@ -653,11 +765,10 @@ function summary = calculate_completion_summary(wells)
 
 end
 
-function mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init_config)
+function mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init_config, wells_config)
 % Step 5 - Create MRST-compatible well structures
 
-    fprintf('\n Creating MRST Well Structures:\n');
-    fprintf(' ───────────────────────────────────────────────────────────\n');
+    % Creating MRST-compatible well structures
     
     mrst_wells = [];
     all_wells = [wells_data.producer_wells; wells_data.injector_wells];
@@ -702,9 +813,15 @@ function mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init
                 combined_distance = xy_distances + 10 * z_distances;  % Weight z-distance more
                 [~, cell_idx] = min(combined_distance);
                 
-                if cell_idx <= G.cells.num
+                % CANON-FIRST validation: ensure cell index is valid
+                if cell_idx <= G.cells.num && cell_idx >= 1
                     completion_cells = [completion_cells; cell_idx];
                     completion_WI = [completion_WI; wi.well_index / length(well.completion_layers)];
+                else
+                    error(['CANON-FIRST ERROR: Invalid cell index %d for well %s layer %d (grid has %d cells)\n' ...
+                           'UPDATE CANON: obsidian-vault/Planning/Well_Completion_Logic.md\n' ...
+                           'Multi-layer completion algorithm generated invalid cell index.'], ...
+                           cell_idx, well.name, j, G.cells.num);
                 end
             end
             mwell.cells = completion_cells;
@@ -749,9 +866,46 @@ function mrst_wells = step_5_create_mrst_wells(wells_data, well_indices, G, init
         
         mrst_wells = [mrst_wells; mwell];
         
-        fprintf('   %-8s │ %-9s │ %d cells │ WI=%.2e\n', ...
-            mwell.name, mwell.type, length(mwell.cells), mean(mwell.WI));
+        % Display MRST well structure details (CANON-FIRST: Always show consistent output)
+        fprintf('   ■ %s: MRST well (cells: %d, WI: %.2e, BHP: %.0f-%.0f psi, rate: %.0f m³/day)\n', ...
+                mwell.name, length(mwell.cells), mean(mwell.WI), mwell.min_bhp/6895, mwell.max_bhp/6895, mwell.target_rate);
     end
+    
+    % Substep 5.2 - Add required MRST well control fields _______________
+    % CRITICAL FIX: Add missing val and sign fields for MRST well flow calculations
+    % Wells have target_rate but MRST requires val and sign for proper flow calculation
+    for i = 1:length(mrst_wells)
+        % Set rate control value from target_rate
+        mrst_wells(i).val = mrst_wells(i).target_rate;
+        
+        % Set well control sign and type based on well type
+        if strcmp(mrst_wells(i).type, 'producer')
+            mrst_wells(i).sign = 1;     % Positive for producers (fluid out)
+            mrst_wells(i).type = 'rate'; % Rate-controlled well
+        elseif strcmp(mrst_wells(i).type, 'injector')
+            mrst_wells(i).sign = -1;    % Negative for injectors (fluid in)
+            mrst_wells(i).type = 'rate'; % Rate-controlled well
+        end
+        
+        % MRST well control validation
+        fprintf('   ■ %s: MRST controls (val: %.2f m³/day, sign: %d, type: %s)\n', ...
+                mrst_wells(i).name, mrst_wells(i).val, mrst_wells(i).sign, mrst_wells(i).type);
+    end
+    
+    % Display MRST wells summary table (CANON-FIRST: Always show MRST structure details)
+    fprintf('\n   MRST WELL STRUCTURES SUMMARY:\n');
+    fprintf('   ┌─────────┬──────────┬─────────┬────────────┬────────────┬────────────┐\n');
+    fprintf('   │ Well    │ Type     │ Cells   │ Well Index │ BHP Range  │ Rate       │\n');
+    fprintf('   │         │          │         │            │ (psi)      │ (m³/day)   │\n');
+    fprintf('   ├─────────┼──────────┼─────────┼────────────┼────────────┼────────────┤\n');
+    for i = 1:length(mrst_wells)
+        mwell = mrst_wells(i);
+        bhp_min_psi = mwell.min_bhp / 6895;  % Pa to psi
+        bhp_max_psi = mwell.max_bhp / 6895;  % Pa to psi
+        fprintf('   │ %-7s │ %-8s │ %7d │ %10.2e │ %4.0f-%4.0f │ %10.0f │\n', ...
+                mwell.name, mwell.type, length(mwell.cells), mean(mwell.WI), bhp_min_psi, bhp_max_psi, mwell.target_rate);
+    end
+    fprintf('   └─────────┴──────────┴─────────┴────────────┴────────────┴────────────┘\n');
     
     fprintf(' ───────────────────────────────────────────────────────────\n');
 
@@ -770,32 +924,30 @@ function export_path = step_6_export_completion_data(completion_results)
         mkdir(data_dir);
     end
     
-    % Create basic canonical directory structure
-    static_path = fullfile(data_dir, 'by_type', 'static');
-    if ~exist(static_path, 'dir')
-        mkdir(static_path);
+    % Substep 6.1 - Save to canonical by_type structure (CANON-FIRST)
+    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+    canonical_static_path = fullfile(base_data_path, 'by_type', 'static');
+    if ~exist(canonical_static_path, 'dir')
+        mkdir(canonical_static_path);
     end
     
-    % Substep 6.1 - Save MATLAB structure with canonical pattern
-    export_path = fullfile(static_path, 'well_completions_s16.mat');
+    % Primary canonical data file
+    export_path = fullfile(canonical_static_path, 'well_completions_s16.mat');
     save(export_path, 'completion_results');
-    fprintf('     Canonical data saved: %s\n', export_path);
+    % Canonical data saved successfully
     
-    % Backward compatibility
-    legacy_path = fullfile(data_dir, 'well_completions.mat');
-    save(legacy_path, 'completion_results');
+    % CANON-FIRST: No legacy compatibility saves allowed
+    % Data must be accessed from canonical by_type/static structure only
     
-    % Substep 6.2 - Create completion summary ______________________
-    summary_file = fullfile(data_dir, 'completion_summary.txt');
+    % Substep 6.2 - Create completion summary (CANONICAL NAMING)
+    summary_file = fullfile(canonical_static_path, 'completion_summary_s16.txt');
     write_completion_summary_file(summary_file, completion_results);
     
-    % Substep 6.3 - Create well indices table ______________________
-    wi_file = fullfile(data_dir, 'well_indices.txt');
+    % Substep 6.3 - Create well indices table (CANONICAL NAMING)
+    wi_file = fullfile(canonical_static_path, 'well_indices_s16.txt');
     write_well_indices_file(wi_file, completion_results);
     
-    fprintf('   Exported to: %s\n', export_path);
-    fprintf('   Summary: %s\n', summary_file);
-    fprintf('   Well Indices: %s\n', wi_file);
+    % Export completed to canonical locations
 
 end
 

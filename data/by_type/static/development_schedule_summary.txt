@@ -1,0 +1,39 @@
+Eagle West Field - Development Schedule Summary
+Generated: 20-Aug-2025 02:48:15
+=============================================
+
+DEVELOPMENT OVERVIEW:
+  Total Duration: 3650 days (10 years)
+  Development Phases: 6
+  Total Wells: 15
+  Peak Production Target: 18500 STB/day
+  MRST Timesteps: 126
+
+DEVELOPMENT PHASES:
+Phase    Name         Timeline     Wells    Oil_STB  Inj_BWD  VRR   
+---------------------------------------------------------------------------
+1        phase_1      D1-365       1        2500     0        0.00  
+2        phase_2      D366-730     3        5200     5100     1.10  
+3        phase_3      D731-1095    6        8500     9500     1.12  
+4        phase_4      D1096-1825   10       12500    14200    1.14  
+5        phase_5      D1826-2920   13       16200    18500    1.16  
+6        phase_6      D2921-3650   15       18500    21500    1.18  
+
+WELL STARTUP SCHEDULE:
+Well     Type       Phase  Drill_Day  Start_Day  Target  
+-----------------------------------------------------------------
+EW-001   vertical   1      180        1          1500 STB
+EW-002   vertical   2      550        366        1800 STB
+EW-003   horizontal 3      820        731        2200 STB
+EW-004   vertical   3      900        731        1600 STB
+EW-005   horizontal 4      1200       1096       2500 STB
+EW-006   vertical   4      1350       1096       1400 STB
+EW-007   multi_lateral 4      1500       1096       2800 STB
+EW-008   horizontal 5      2000       1826       2300 STB
+EW-009   vertical   5      2200       1826       1700 STB
+EW-010   multi_lateral 6      3100       2921       2600 STB
+IW-001   vertical   2      450        366        5100 BWD
+IW-002   vertical   3      1000       731        4400 BWD
+IW-003   horizontal 4      1600       1096       4700 BWD
+IW-004   vertical   5      2300       1826       4300 BWD
+IW-005   multi_lateral 6      3200       2921       4000 BWD

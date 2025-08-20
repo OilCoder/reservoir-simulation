@@ -58,6 +58,10 @@ function mrst_env = s01_initialize_mrst()
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
+    
+    % Suppress isdir deprecation warnings from MRST internal functions
+    suppress_isdir_warnings();
+    
     print_step_header('S01', 'Initialize MRST Session');
     
     total_start_time = tic;
@@ -203,6 +207,10 @@ function add_mrst_paths(mrst_root)
         fullfile(mrst_root, 'core', 'plotting'),         % FOR boundaryFaces
         fullfile(mrst_root, 'core', 'utils', 'gridtools'), % FOR gridLogicalIndices  
         fullfile(mrst_root, 'core', 'utils', 'units'),     % FOR ft, stb, psia
+        fullfile(mrst_root, 'core', 'solvers'),            % FOR getFaceTransmissibility
+        fullfile(mrst_root, 'core', 'utils', 'settings_manager'), % FOR mrstSettings
+        fullfile(mrst_root, 'core', 'params'),            % FOR permTensor and rock parameters
+        fullfile(mrst_root, 'core', 'params', 'rock'),     % FOR rock-specific parameters
         mrst_root
     };
     
@@ -257,7 +265,12 @@ function modules_loaded = step_2_load_required_modules()
         fullfile(base_path, 'core', 'gridprocessing'),
         fullfile(base_path, 'core', 'plotting'),
         fullfile(base_path, 'core', 'utils', 'gridtools'),
-        fullfile(base_path, 'core', 'utils', 'units')
+        fullfile(base_path, 'core', 'utils', 'units'),
+        fullfile(base_path, 'core', 'solvers'),            % FOR getFaceTransmissibility
+        fullfile(base_path, 'core', 'utils', 'settings_manager'), % FOR mrstSettings
+        fullfile(base_path, 'core', 'params'),            % FOR permTensor and rock parameters
+        fullfile(base_path, 'core', 'params', 'rock'),    % FOR rock-specific parameters
+        fullfile(base_path, 'core', 'params', 'wells_and_bc')  % FOR addWell and well functions
     };
     
     % Add specific module directories with correct paths

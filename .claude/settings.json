@@ -26,7 +26,6 @@
       "LS",
       "mcp__filesystem__*",
       "mcp__memory__*",
-      "mcp__obsidian__*",
       "mcp__ref__*",
       "mcp__sequential-thinking__*",
       "mcp__todo__*"
@@ -67,14 +66,13 @@
       ]
     },
     "doc-writer": {
-      "description": "Documentation specialist for obsidian-vault",
+      "description": "Documentation specialist for markdown files",
       "folders": ["obsidian-vault/"],
       "rules": [0, 7],
-      "mcp_servers": ["filesystem", "obsidian"],
+      "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
-        "mcp__obsidian__*",
-        "Read", "Write", "Edit", "Grep", "Glob"
+          "Read", "Write", "Edit", "Grep", "Glob"
       ]
     }
   },
@@ -113,7 +111,6 @@
     "servers": {
       "filesystem": "Optimized file operations - use instead of native Read/Write/Edit",
       "memory": "Persistent knowledge graph for code patterns and context", 
-      "obsidian": "Project documentation and notes management",
       "ref": "External documentation and best practices lookup",
       "sequential-thinking": "Complex problem analysis and step-by-step reasoning",
       "todo": "Task and progress tracking"

@@ -1,0 +1,33 @@
+Eagle West Field - Final Simulation Rock Summary
+=================================================
+
+SIMULATION STATUS: READY
+WORKFLOW COMPLETED: YES
+CREATION CHAIN: s06_base_structure → s07_layer_metadata → s08_spatial_heterogeneity
+
+Field Characteristics:
+  Total Cells: 10392
+  Grid Type: PEBI (Unstructured)
+  Layers: 12
+
+Porosity Statistics:
+  Range: 0.048 - 0.247
+  Mean: 0.162 ± 0.061
+  Median: 0.169
+
+Permeability Statistics (kx):
+  Range: 9.00e-03 - 1.92e+02 mD
+  Mean: 7.14e+01 ± 6.35e+01 mD
+  Median: 5.25e+01 mD
+
+Rock Type Distribution:
+  RT1: 5196 cells (50.0%)
+  RT2: 3464 cells (33.3%)
+  RT6: 1732 cells (16.7%)
+
+Heterogeneity Applied:
+  Type: Layer_Based_with_Spatial_Variation
+  Method: YAML_Parameter_Based
+  Source: YAML_Configuration
+
+=== READY FOR MRST RESERVOIR SIMULATION ===

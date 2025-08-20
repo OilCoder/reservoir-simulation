@@ -96,10 +96,17 @@ function G = load_grid_structure()
     G = load_data.G_pebi;
     fprintf('   ✅ Loading canonical PEBI grid from s05\n');
     
-    % Ensure geometry is computed
-    if ~isfield(G, 'cells') || ~isfield(G.cells, 'volumes')
-        G = computeGeometry(G);
+    % CRITICAL FIX: Always recompute geometry to ensure valid volumes
+    fprintf('   🔧 Recomputing geometry to ensure valid volumes...\n');
+    G = computeGeometry(G);  % ALWAYS recompute
+
+    % FAIL_FAST: Validate volumes immediately  
+    if any(G.cells.volumes <= 0)
+        error(['CRITICAL: Grid has %d cells with negative/zero volumes\n' ...
+               'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
+               'Grid generation must produce valid positive volumes.'], sum(G.cells.volumes <= 0));
     end
+    fprintf('   ✅ Grid geometry validated: %d cells, all volumes > 0\n', G.cells.num);
     
 end
 

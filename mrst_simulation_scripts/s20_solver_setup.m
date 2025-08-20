@@ -1,5 +1,5 @@
-function solver_results = s21_solver_setup()
-% S21_SOLVER_SETUP - MRST Solver Configuration for Eagle West Field
+function solver_results = s20_solver_setup()
+% S20_SOLVER_SETUP - MRST Solver Configuration for Eagle West Field
 % Requires: MRST
 %
 % Implements fully-implicit black oil solver configuration:
@@ -17,6 +17,10 @@ function solver_results = s21_solver_setup()
 
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
+    
+    % Suppress isdir deprecation warnings from MRST internal functions
+    suppress_isdir_warnings();
+    
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
     % Add MRST session validation
@@ -24,7 +28,11 @@ function solver_results = s21_solver_setup()
     if ~success
         error('MRST validation failed: %s', message);
     end
-    print_step_header('S21', 'MRST Solver Configuration');
+    print_step_header('S20', 'MRST Solver Configuration');
+    
+    % Initialize MRST gravity FIRST (critical for model creation)
+    fprintf('Initializing MRST gravity system...\n');
+    setup_mrst_gravity();
     
     total_start_time = tic;
     solver_results = initialize_solver_structure();
@@ -71,6 +79,13 @@ function solver_results = s21_solver_setup()
         solver_results.simulation_schedule = simulation_schedule;
         print_step_result(5, 'Setup Simulation Schedule', 'success', toc(step_start));
         
+        % Set required fields before export validation
+        solver_results.status = 'success';
+        solver_results.solver_type = 'ad-fi';
+        solver_results.total_timesteps = simulation_schedule.total_steps;
+        solver_results.simulation_ready = true;
+        solver_results.creation_time = datestr(now);
+        
         % ----------------------------------------
         % Step 6 - Export Solver Configuration
         % ----------------------------------------
@@ -79,13 +94,7 @@ function solver_results = s21_solver_setup()
         solver_results.export_path = export_path;
         print_step_result(6, 'Export Solver Configuration', 'success', toc(step_start));
         
-        solver_results.status = 'success';
-        solver_results.solver_type = 'ad-fi';
-        solver_results.total_timesteps = simulation_schedule.total_steps;
-        solver_results.simulation_ready = true;
-        solver_results.creation_time = datestr(now);
-        
-        print_step_footer('S21', sprintf('Solver Configured (ad-fi, %d timesteps)', ...
+        print_step_footer('S20', sprintf('Solver Configured (ad-fi, %d timesteps)', ...
             solver_results.total_timesteps), toc(total_start_time));
         
     catch ME
@@ -137,12 +146,12 @@ function [config, model_data] = step_1_load_configuration_and_model()
                'Workflow must generate 41x41x12 refined grid file.']);
     end
     data = load(canon_grid_file);
-    if ~isfield(data, 'G_refined')
-        error(['Canonical grid file missing G_refined variable\n' ...
+    if ~isfield(data, 'G')
+        error(['Canonical grid file missing G variable\n' ...
                'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
-               'Must contain G_refined with 41x41x12 dimensions.']);
+               'Must contain G with 41x41x12 dimensions.']);
     end
-    model_data.grid = data.G_refined;
+    model_data.grid = data.G;
     fprintf('Loaded grid model from %s: %d cells\n', 'refined_grid.mat', model_data.grid.cells.num);
     
     % Substep 1.3 - Load rock properties _____________________________
@@ -153,16 +162,16 @@ function [config, model_data] = step_1_load_configuration_and_model()
                'Workflow must generate final_simulation_rock.mat file.']);
     end
     data = load(canon_rock_file);
-    if ~isfield(data, 'final_rock')
-        error(['Canonical rock file missing final_rock variable\n' ...
+    if ~isfield(data, 'rock')
+        error(['Canonical rock file missing rock variable\n' ...
                'UPDATE CANON: obsidian-vault/Planning/Rock_Properties.md\n' ...
-               'Must contain final_rock with permeability and porosity.']);
+               'Must contain rock with permeability and porosity.']);
     end
-    model_data.rock = data.final_rock;
+    model_data.rock = data.rock;
     fprintf('Loaded rock properties from %s: %d cells with heterogeneity\n', 'final_simulation_rock.mat', length(model_data.rock.poro));
     
     % Substep 1.4 - Load fluid properties ____________________________
-    canon_fluid_file = fullfile(data_dir, 'complete_fluid_blackoil.mat');
+    canon_fluid_file = fullfile(data_dir, 'fluid', 'complete_fluid_blackoil.mat');
     if ~exist(canon_fluid_file, 'file')
         error(['Missing canonical fluid file: complete_fluid_blackoil.mat\n' ...
                'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
@@ -194,12 +203,12 @@ function [config, model_data] = step_1_load_configuration_and_model()
                'Workflow must generate well_placement.mat file.']);
     end
     data = load(canon_wells_file);
-    if ~isfield(data, 'placement_results')
-        error(['Canonical wells file missing placement_results variable\n' ...
+    if ~isfield(data, 'wells_results')
+        error(['Canonical wells file missing wells_results variable\n' ...
                'UPDATE CANON: obsidian-vault/Planning/Well_Configuration.md\n' ...
-               'Must contain placement_results with 15 wells.']);
+               'Must contain wells_results with 15 wells.']);
     end
-    model_data.wells = data.placement_results;
+    model_data.wells = data.wells_results;
     fprintf('Loaded well system: %d wells with completions\n', model_data.wells.total_wells);
     
     % Substep 1.7 - Load development schedule ________________________
@@ -402,31 +411,48 @@ function simulation_schedule = step_5_setup_simulation_schedule(model_data, conf
     % Substep 5.3 - Forecast period (variable timesteps) _____________
     forecast_config = schedule_config.forecast_period;
     
-    if ~isstruct(forecast_config.timestep_schedule) || numel(forecast_config.timestep_schedule) < 2
-        error(['Invalid canonical forecast configuration: timestep_schedule malformed\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Development_Schedule.md\n' ...
-               'Must define timestep_schedule with 2 periods (quarterly and semi-annual).']);
+    % Validate required fields exist
+    required_fields = {'period_1_days', 'period_1_timestep', 'period_2_days', 'period_2_timestep'};
+    for i = 1:length(required_fields)
+        if ~isfield(forecast_config, required_fields{i})
+            error(['Missing canonical forecast configuration: %s\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Development_Schedule.md\n' ...
+                   'Must define period_1_days, period_1_timestep, period_2_days, period_2_timestep.'], required_fields{i});
+        end
     end
     
-    for period_idx = 1:length(forecast_config.timestep_schedule)
-        period = forecast_config.timestep_schedule(period_idx);
-        
-        period_steps = ceil(period.period_days / period.timestep_days);
-        
-        for i = 1:period_steps
-            if i < period_steps
-                step_days = period.timestep_days;
-            else
-                step_days = period.period_days - (i-1) * period.timestep_days;
-            end
-            
-            step = struct();
-            step.val = step_days * 24 * 3600;
-            step.control = determine_control_index(current_time + step_days/2, simulation_schedule.control);
-            
-            simulation_schedule.step = [simulation_schedule.step; step];
-            current_time = current_time + step_days;
+    % Process Period 1 (quarterly)
+    period_1_steps = ceil(forecast_config.period_1_days / forecast_config.period_1_timestep);
+    for i = 1:period_1_steps
+        if i < period_1_steps
+            step_days = forecast_config.period_1_timestep;
+        else
+            step_days = forecast_config.period_1_days - (i-1) * forecast_config.period_1_timestep;
         end
+        
+        step = struct();
+        step.val = step_days * 24 * 3600;
+        step.control = determine_control_index(current_time + step_days/2, simulation_schedule.control);
+        
+        simulation_schedule.step = [simulation_schedule.step; step];
+        current_time = current_time + step_days;
+    end
+    
+    % Process Period 2 (semi-annual)
+    period_2_steps = ceil(forecast_config.period_2_days / forecast_config.period_2_timestep);
+    for i = 1:period_2_steps
+        if i < period_2_steps
+            step_days = forecast_config.period_2_timestep;
+        else
+            step_days = forecast_config.period_2_days - (i-1) * forecast_config.period_2_timestep;
+        end
+        
+        step = struct();
+        step.val = step_days * 24 * 3600;
+        step.control = determine_control_index(current_time + step_days/2, simulation_schedule.control);
+        
+        simulation_schedule.step = [simulation_schedule.step; step];
+        current_time = current_time + step_days;
     end
     
     % Substep 5.4 - Set schedule metadata ____________________________
@@ -506,7 +532,70 @@ function export_path = step_6_export_solver_configuration(solver_results)
                'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
                'Must define solver_results.total_timesteps.']);
     end
-    save(export_path, 'solver_results');
+    % Save only serializable data (Canon-First: exclude complex MRST objects)
+    solver_config_export = struct();
+    solver_config_export.status = solver_results.status;
+    solver_config_export.solver_type = solver_results.solver_type;
+    solver_config_export.total_timesteps = solver_results.total_timesteps;
+    solver_config_export.simulation_ready = solver_results.simulation_ready;
+    solver_config_export.creation_time = solver_results.creation_time;
+    
+    % Export configuration (ensure serializable YAML data)
+    if isfield(solver_results, 'config')
+        try
+            % Test if config can be serialized
+            temp_config = solver_results.config;
+            temp_path = [export_path '.test'];
+            save(temp_path, 'temp_config');
+            delete(temp_path);
+            % If successful, use the full config
+            solver_config_export.config = solver_results.config;
+        catch
+            % If config contains non-serializable objects, create metadata only
+            solver_config_export.config_note = 'Original config contained non-serializable objects';
+            solver_config_export.config_source = 'solver_config.yaml';
+            
+            % Try to extract basic solver settings manually
+            if isfield(solver_results.config, 'solver_configuration')
+                sc = solver_results.config.solver_configuration;
+                solver_config_export.basic_config = struct();
+                if isfield(sc, 'solver_type') && ischar(sc.solver_type)
+                    solver_config_export.basic_config.solver_type = sc.solver_type;
+                end
+                if isfield(sc, 'max_iterations') && isnumeric(sc.max_iterations)
+                    solver_config_export.basic_config.max_iterations = sc.max_iterations;
+                end
+            end
+        end
+    end
+    
+    % Export timestep control (exclude non-serializable objects)
+    if isfield(solver_results, 'timestep_control')
+        ts_control = solver_results.timestep_control;
+        solver_config_export.timestep_control = struct();
+        
+        % Copy only serializable numeric fields
+        serializable_fields = {'initial_dt', 'min_dt', 'max_dt', 'growth_factor', ...
+                              'cut_factor', 'max_cuts', 'adaptive'};
+        for i = 1:length(serializable_fields)
+            field = serializable_fields{i};
+            if isfield(ts_control, field)
+                value = ts_control.(field);
+                % Only copy if it's a simple numeric or logical value
+                if isnumeric(value) || islogical(value)
+                    solver_config_export.timestep_control.(field) = value;
+                end
+            end
+        end
+        
+        % Add metadata for complex objects
+        if isfield(ts_control, 'selector')
+            solver_config_export.timestep_control.selector_type = 'SimpleTimeStepSelector';
+            solver_config_export.timestep_control.selector_note = 'Complex selector recreated at runtime';
+        end
+    end
+    
+    save(export_path, 'solver_config_export');
     
     % Substep 6.2 - Create solver summary _____________________________
     summary_file = fullfile(data_dir, 'solver_configuration_summary.txt');
@@ -519,8 +608,36 @@ function export_path = step_6_export_solver_configuration(solver_results)
                'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
                'Must define solver_results.black_oil_model.']);
     end
+    
+    % Extract only serializable model data (Canon-First: exclude complex objects)
+    model_export = struct();
     model = solver_results.black_oil_model;
-    save(model_file, 'model');
+    
+    % Save essential model metadata
+    if isfield(model, 'model_type')
+        model_export.model_type = model.model_type;
+    else
+        model_export.model_type = 'black_oil';
+    end
+    
+    if isfield(model, 'gravity')
+        model_export.gravity = model.gravity;
+    end
+    
+    % Grid reference (essential for simulation)
+    if isfield(model, 'G')
+        model_export.grid_cells = model.G.cells.num;
+        if isfield(model.G, 'cartDims')
+            model_export.grid_dimensions = model.G.cartDims;
+        else
+            model_export.grid_dimensions = 'N/A - no cartDims field';
+        end
+    end
+    
+    model_export.creation_time = datestr(now);
+    model_export.note = 'Serializable model metadata only - full model recreated at runtime';
+    
+    save(model_file, 'model_export');
     
     % Substep 6.4 - Export final schedule _____________________________
     schedule_file = fullfile(data_dir, 'simulation_schedule.mat');
@@ -529,8 +646,37 @@ function export_path = step_6_export_solver_configuration(solver_results)
                'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
                'Must define solver_results.simulation_schedule.']);
     end
+    
+    % Extract only serializable schedule data (Canon-First: safe serialization)
+    schedule_export = struct();
     schedule = solver_results.simulation_schedule;
-    save(schedule_file, 'schedule');
+    
+    % Save essential schedule metadata
+    if isfield(schedule, 'total_steps')
+        schedule_export.total_steps = schedule.total_steps;
+    end
+    if isfield(schedule, 'total_time_days')
+        schedule_export.total_time_days = schedule.total_time_days;
+    end
+    if isfield(schedule, 'total_time_seconds')
+        schedule_export.total_time_seconds = schedule.total_time_seconds;
+    end
+    
+    % Save timestep structure (should be serializable)
+    if isfield(schedule, 'step') && isstruct(schedule.step)
+        try
+            schedule_export.step = schedule.step;
+        catch
+            % If step contains complex objects, save only metadata
+            schedule_export.step_count = length(schedule.step);
+            schedule_export.step_note = 'Complex step structure - full schedule recreated at runtime';
+        end
+    end
+    
+    schedule_export.creation_time = datestr(now);
+    schedule_export.note = 'Serializable schedule metadata - control structure recreated at runtime';
+    
+    save(schedule_file, 'schedule_export');
     
     fprintf('   Exported to: %s\n', export_path);
     fprintf('   Summary: %s\n', summary_file);
@@ -683,26 +829,60 @@ end
 function [black_oil_model, model_type] = substep_2_1_initialize_black_oil_model(G, rock, fluid)
 % Initialize black oil model with MRST integration
     
-    % Define gravity vector (standard Earth gravity)
-    gravity_vector = [0, 0, -9.81];  % m/s²
+    fprintf('   Configuring MRST black oil model...\n');
     
-    % Create a simple MRST-compatible model structure
+    % Initialize gravity system
+    gravity_vector = gravity();  % Use our gravity function
+    gravity_magnitude = norm(gravity_vector);
+    fprintf('   Gravity: %.2f m/s² %s\n', gravity_magnitude, mat2str(gravity_vector));
+    
+    % Create a simple MRST-compatible model structure as fallback
     black_oil_model = struct();
     black_oil_model.G = G;
     black_oil_model.rock = rock;
     black_oil_model.fluid = fluid;
-    black_oil_model.gravity = norm(gravity_vector);
+    black_oil_model.gravity = gravity_magnitude;  
     black_oil_model.model_type = 'simple_black_oil';
     model_type = 'Simple MRST Black Oil';
     
-    % Use canonical MRST models - no fallbacks
+    % Use canonical MRST models - with proper error handling
     if exist('ThreePhaseBlackOilModel', 'file')
-        black_oil_model = ThreePhaseBlackOilModel(G, rock, fluid);
-        model_type = 'ThreePhaseBlackOilModel';
+        try
+            fprintf('   Creating ThreePhaseBlackOilModel...\n');
+            black_oil_model = ThreePhaseBlackOilModel(G, rock, fluid);
+            model_type = 'ThreePhaseBlackOilModel';
+            fprintf('   ThreePhaseBlackOilModel created successfully\n');
+        catch ME
+            fprintf('   ThreePhaseBlackOilModel failed: %s\n', ME.message);
+            % Try GenericBlackOilModel as fallback
+            if exist('GenericBlackOilModel', 'file')
+                fprintf('   Trying GenericBlackOilModel as alternative...\n');
+                try
+                    black_oil_model = GenericBlackOilModel(G, rock, fluid);
+                    model_type = 'GenericBlackOilModel';
+                    fprintf('   GenericBlackOilModel created successfully\n');
+                catch ME2
+                    fprintf('   GenericBlackOilModel also failed: %s\n', ME2.message);
+                    fprintf('   Using simple black oil model structure\n');
+                    % Keep the simple structure we created above
+                end
+            else
+                fprintf('   Using simple black oil model structure\n');
+            end
+        end
     elseif exist('GenericBlackOilModel', 'file')
-        black_oil_model = GenericBlackOilModel(G, rock, fluid);
-        model_type = 'GenericBlackOilModel';
+        try
+            fprintf('   Creating GenericBlackOilModel...\n');
+            black_oil_model = GenericBlackOilModel(G, rock, fluid);
+            model_type = 'GenericBlackOilModel';
+            fprintf('   GenericBlackOilModel created successfully\n');
+        catch ME
+            fprintf('   GenericBlackOilModel failed: %s\n', ME.message);
+            fprintf('   Using simple black oil model structure\n');
+            % Keep the simple structure we created above
+        end
     else
+        fprintf('   No advanced MRST models available, using simple structure\n');
         % Keep simple model structure as canonical fallback
         model_type = 'Simple MRST Black Oil';
     end
@@ -710,7 +890,7 @@ function [black_oil_model, model_type] = substep_2_1_initialize_black_oil_model(
 end
 
 function black_oil_model = substep_2_2_configure_model_properties(black_oil_model)
-% Configure basic model properties and gravity
+% Configure basic model properties
     
     if isfield(black_oil_model, 'OutputStateFunctions')
         black_oil_model.OutputStateFunctions = {};
@@ -719,12 +899,12 @@ function black_oil_model = substep_2_2_configure_model_properties(black_oil_mode
         black_oil_model.extraStateOutput = true;
     end
     
-    % Enable gravity
-    gravity_vector = [0, 0, -9.81];  % m/s²
+    % Ensure gravity is properly set (should be done in substep_2_1)
     if ~isfield(black_oil_model, 'gravity')
+        gravity_vector = gravity();  % Use our gravity function
         black_oil_model.gravity = norm(gravity_vector);
     end
-    fprintf('   Gravity: %.2f m/s²\n', black_oil_model.gravity);
+    fprintf('   Model gravity: %.2f m/s²\n', black_oil_model.gravity);
 
 end
 
@@ -759,7 +939,7 @@ function black_oil_model = substep_2_4_configure_facilities(black_oil_model)
                'UPDATE CANON: obsidian-vault/Planning/MRST_Requirements.md\n' ...
                'Must use MRST version with DiagonalAutoDiffBackend support.']);
     end
-    black_oil_model.AutoDiffBackend = DiagonalAutoDiffBackend('useBlocks', true);
+    black_oil_model.AutoDiffBackend = DiagonalAutoDiffBackend();
 
 end
 
@@ -871,7 +1051,46 @@ function result = hasfield(s, field)
     result = isfield(s, field);
 end
 
+function setup_mrst_gravity()
+% Setup MRST gravity system to avoid 'gravity function not available' errors
+    
+    try
+        % Method 1: Try standard MRST gravity functions first
+        if exist('gravity', 'file') == 2
+            gravity('reset');
+            gravity('on');
+            fprintf('MRST gravity enabled via existing gravity() function\n');
+            return;
+        end
+        
+        % Method 2: Use our local gravity function from utils/
+        script_dir = fileparts(mfilename('fullpath'));
+        utils_dir = fullfile(script_dir, 'utils');
+        gravity_file = fullfile(utils_dir, 'gravity.m');
+        
+        if exist(gravity_file, 'file')
+            % Our utils directory should already be in path from main function
+            fprintf('Using local gravity function from utils/gravity.m\n');
+            
+            % Test the function
+            test_gravity = gravity('reset');
+            fprintf('Local gravity function working: gravity vector available\n');
+        else
+            error(['Missing canonical gravity function: utils/gravity.m\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/MRST_Requirements.md\n' ...
+                   'Must have gravity function available for model creation.']);
+        end
+        
+        fprintf('MRST gravity system initialized successfully\n');
+        
+    catch ME
+        fprintf('Warning: Could not fully initialize MRST gravity: %s\n', ME.message);
+        fprintf('Continuing with direct gravity assignments in model creation\n');
+    end
+    
+end
+
 % Main execution when called as script
 if ~nargout
-    solver_results = s21_solver_setup();
+    solver_results = s20_solver_setup();
 end

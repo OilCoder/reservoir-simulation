@@ -627,13 +627,47 @@ function G_pebi = step_4_generate_pebi_grid(well_points, fault_lines, size_funct
         % Step 1: Generate well-constrained point distribution
         points = generate_well_constrained_points(well_points, fault_lines, field_config, size_function);
         
+        % DIAGNOSTIC: Check point distribution bounds
+        fprintf('   Point distribution bounds: X=[%.1f, %.1f], Y=[%.1f, %.1f]\n', ...
+                min(points(:,1)), max(points(:,1)), min(points(:,2)), max(points(:,2)));
+        fprintf('   Expected field bounds: X=[0, %.1f], Y=[0, %.1f]\n', ...
+                field_config.field_extent_x, field_config.field_extent_y);
+        
+        % CRITICAL: Clip points to field bounds to prevent coordinate expansion
+        points(:,1) = max(0, min(points(:,1), field_config.field_extent_x));
+        points(:,2) = max(0, min(points(:,2), field_config.field_extent_y));
+        fprintf('   Points clipped to field bounds: X=[%.1f, %.1f], Y=[%.1f, %.1f]\n', ...
+                min(points(:,1)), max(points(:,1)), min(points(:,2)), max(points(:,2)));
+        
         % Step 2: Create Delaunay triangulation
         G_triangular = triangleGrid(points);
+        G_triangular = computeGeometry(G_triangular);  % CRITICAL: Compute geometry for diagnostics
         fprintf('   Triangular grid created: %d cells\n', G_triangular.cells.num);
+        
+        % DIAGNOSTIC: Check triangular grid areas
+        if isfield(G_triangular.cells, 'volumes')
+            min_tri_area = min(G_triangular.cells.volumes);
+            max_tri_area = max(G_triangular.cells.volumes);
+            fprintf('   Triangular areas: min=%.2e, max=%.2e ft²\n', min_tri_area, max_tri_area);
+            if min_tri_area <= 0
+                fprintf('   WARNING: Triangular grid has %d cells with non-positive areas!\n', sum(G_triangular.cells.volumes <= 0));
+            end
+        end
         
         % Step 3: Convert to PEBI (Voronoi dual)
         G_pebi = pebi(G_triangular);
+        G_pebi = computeGeometry(G_pebi);  % CRITICAL: Compute geometry for 2D PEBI
         fprintf('   PEBI grid generated successfully using triangleGrid + pebi: %d cells\n', G_pebi.cells.num);
+        
+        % DIAGNOSTIC: Check 2D PEBI grid geometry
+        if isfield(G_pebi.cells, 'volumes')
+            min_2d_area = min(G_pebi.cells.volumes);
+            max_2d_area = max(G_pebi.cells.volumes);
+            fprintf('   2D PEBI areas: min=%.2e, max=%.2e ft²\n', min_2d_area, max_2d_area);
+            if min_2d_area <= 0
+                fprintf('   WARNING: 2D PEBI grid has %d cells with non-positive areas!\n', sum(G_pebi.cells.volumes <= 0));
+            end
+        end
         
     catch ME
         % FAIL_FAST: No defensive fallbacks - proper PEBI grid required per canon
@@ -645,10 +679,7 @@ function G_pebi = step_4_generate_pebi_grid(well_points, fault_lines, size_funct
                'FAILURE REASON: %s'], ME.message, ME.message);
     end
     
-    % Compute geometry if not already computed
-    if ~isfield(G_pebi, 'cells') || ~isfield(G_pebi.cells, 'volumes')
-        G_pebi = computeGeometry(G_pebi);
-    end
+    % Geometry already computed in step 4 - no need to recompute
     
     fprintf('   PEBI grid generated: %d cells, %d faces\n', G_pebi.cells.num, G_pebi.faces.num);
     
@@ -793,12 +824,82 @@ function G_3D = step_6_extrude_to_3D(G_2D)
     end
     
     % Create layer boundaries at correct subsurface depths
-    layer_boundaries = linspace(top_depth, base_depth, n_layers + 1);
-    layer_thicknesses = diff(layer_boundaries);              % Calculate individual layer thicknesses
+    % CRITICAL FIX: Use absolute thickness values for makeLayeredGrid()
+    % 
+    % COORDINATE SYSTEM EXPLANATION:
+    %   - top_depth = -7900 ft (negative, subsurface)
+    %   - base_depth = -8240 ft (negative, deeper subsurface)  
+    %   - total_thickness = +340 ft (positive, absolute thickness)
+    %
+    % PROBLEM: linspace(top_depth, base_depth, n+1) = linspace(-7900, -8240, 13)
+    %          produces decreasing sequence → diff() gives NEGATIVE values
+    %          → makeLayeredGrid() gets negative thicknesses → NEGATIVE CELL VOLUMES
+    %
+    % SOLUTION: Use positive total_thickness directly
+    layer_thickness_per_layer = total_thickness / n_layers;  % +340/12 = +28.33 ft per layer
+    layer_thicknesses = ones(n_layers, 1) * layer_thickness_per_layer;  % All layers equal thickness
+    
+    % DIAGNOSTIC: Check 2D grid before extrusion
+    fprintf('   2D grid preparation for extrusion:\n');
+    fprintf('     Grid nodes range: X=[%.1f, %.1f], Y=[%.1f, %.1f]\n', ...
+            min(G_2D.nodes.coords(:,1)), max(G_2D.nodes.coords(:,1)), ...
+            min(G_2D.nodes.coords(:,2)), max(G_2D.nodes.coords(:,2)));
+    if size(G_2D.nodes.coords, 2) >= 3
+        fprintf('     2D grid Z-coordinates: min=%.2f, max=%.2f\n', ...
+                min(G_2D.nodes.coords(:,3)), max(G_2D.nodes.coords(:,3)));
+    else
+        fprintf('     2D grid has no Z-coordinates (purely 2D)\n');
+    end
+    fprintf('     Layer thicknesses: [%.2f, %.2f, ..., %.2f] ft (%d layers)\n', ...
+            layer_thicknesses(1), layer_thicknesses(2), layer_thicknesses(end), length(layer_thicknesses));
+    fprintf('     2D cell areas range: min=%.2e, max=%.2e ft²\n', ...
+            min(G_2D.cells.volumes), max(G_2D.cells.volumes));
+    
+    % CRITICAL TEST: Try makeLayeredGrid with minimal debugging
+    fprintf('     DEBUG: Testing makeLayeredGrid with 2D PEBI grid...\n');
+    try
+        % Test with a single layer first to isolate the issue
+        single_layer_thickness = layer_thickness_per_layer;
+        fprintf('     DEBUG: Single layer test thickness: %.2f ft\n', single_layer_thickness);
+        
+        G_test_single = makeLayeredGrid(G_2D, single_layer_thickness);
+        G_test_single = computeGeometry(G_test_single);
+        
+        if isfield(G_test_single.cells, 'volumes')
+            neg_count_single = sum(G_test_single.cells.volumes <= 0);
+            if neg_count_single > 0
+                fprintf('     DEBUG: Single layer already has %d negative volumes!\n', neg_count_single);
+                fprintf('     DEBUG: Min/Max single layer volumes: %.2e / %.2e\n', ...
+                        min(G_test_single.cells.volumes), max(G_test_single.cells.volumes));
+            else
+                fprintf('     DEBUG: Single layer SUCCESS - all volumes positive\n');
+            end
+        end
+    catch ME
+        fprintf('     DEBUG: makeLayeredGrid failed even with single layer: %s\n', ME.message);
+    end
     
     % Extrude using MRST's makeLayeredGrid (initially positioned at surface)
     G_3D = makeLayeredGrid(G_2D, layer_thicknesses);
     G_3D = computeGeometry(G_3D);
+    
+    % CRITICAL VALIDATION: Check for negative cell volumes immediately after grid creation
+    if isfield(G_3D.cells, 'volumes')
+        negative_volume_cells = G_3D.cells.volumes <= 0;
+        num_negative = sum(negative_volume_cells);
+        if num_negative > 0
+            min_volume = min(G_3D.cells.volumes);
+            error(['CRITICAL: PEBI grid has %d cells with negative/zero volumes (min=%.2e)\n' ...
+                   'ROOT CAUSE: Geometry error in makeLayeredGrid() call with layer_thicknesses.\n' ...
+                   'CANON-FIRST FAILURE: Cannot proceed with invalid grid geometry.\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
+                   'Layer thicknesses used: %.2f ft per layer (%d layers)\n' ...
+                   'All layer thicknesses must be positive for valid MRST grid.'], ...
+                   num_negative, min_volume, layer_thickness_per_layer, n_layers);
+        end
+        fprintf('   Volume validation passed: all %d cells have positive volumes\n', G_3D.cells.num);
+        fprintf('   Volume range: %.2e to %.2e ft³\n', min(G_3D.cells.volumes), max(G_3D.cells.volumes));
+    end
     
     % CRITICAL FIX: Translate grid from surface position to subsurface depths
     % makeLayeredGrid creates grid starting from 2D grid Z-coordinates (~0), 
@@ -951,6 +1052,21 @@ function validate_pebi_grid_structure(G_pebi, well_points, fault_lines)
                'REQUIRED: PEBI grid must have cell volumes and centroids.\n' ...
                'UPDATE CANON: obsidian-vault/Planning/PEBI_Grid_Requirements.md\n' ...
                'Grid geometry computation required for Eagle West workflow.']);
+    end
+    
+    % CRITICAL: Validate all cell volumes are positive (catch geometry errors)
+    if isfield(G_pebi.cells, 'volumes')
+        negative_volume_cells = G_pebi.cells.volumes <= 0;
+        num_negative = sum(negative_volume_cells);
+        if num_negative > 0
+            min_volume = min(G_pebi.cells.volumes);
+            error(['CRITICAL VALIDATION FAILURE: PEBI grid has %d cells with negative/zero volumes (min=%.2e)\n' ...
+                   'ROOT CAUSE: Invalid grid geometry - likely negative layer thicknesses.\n' ...
+                   'CANON-FIRST FAILURE: Cannot proceed with geometrically invalid grid.\n' ...
+                   'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
+                   'All MRST cells must have positive volumes for valid reservoir simulation.'], ...
+                   num_negative, min_volume);
+        end
     end
     
     fprintf('   PEBI grid validation passed: %d cells, %d faces\n', G_pebi.cells.num, G_pebi.faces.num);

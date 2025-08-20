@@ -7,13 +7,13 @@ initialization:
   equilibration_method:
     method: "gravity_capillary_equilibrium"
     approach: "analytical_height_function"
-    datum_depth_ft_tvdss: 8000.0        # Pressure reference depth
+    datum_depth_ft_tvdss: 8000.0        # Pressure reference depth (near reservoir top ~7914 ft)
     reference_phase: "oil"               # Primary phase for initialization
     
   # Initial Reservoir Conditions (CANON)
   initial_conditions:
-    initial_pressure_psi: 2900.0         # At datum depth (8000 ft TVDSS)
-    reservoir_temperature_f: 176.0       # Constant temperature
+    initial_pressure_psi: 3600.0         # At datum depth (8000 ft, ~0.45 psi/ft gradient)
+    reservoir_temperature_f: 176.0       # Constant temperature  
     bubble_point_pressure_psi: 2100.0    # From fluid properties
     
   # Pressure Gradients (CANON from 07_Initialization.md)
@@ -26,11 +26,11 @@ initialization:
     formation_water_salinity_ppm: 35000  # TDS in formation brine
     formation_water_density_sg: 1.025    # Specific gravity
     
-  # Fluid Contacts (CANON)
+  # Fluid Contacts (CANON) - Updated for actual reservoir depth
   fluid_contacts:
-    # Oil-Water Contact
+    # Oil-Water Contact  
     oil_water_contact:
-      depth_ft_tvdss: 8150.0            # Primary OWC depth
+      depth_ft_tvdss: 8100.0            # Primary OWC depth (middle of reservoir ~8070 ft)
       uncertainty_ft: 10.0              # ±10 ft uncertainty
       contact_type: "sharp_with_transition"
       
@@ -44,8 +44,8 @@ initialization:
     transition_zones:
       oil_water_transition:
         thickness_ft: 50.0              # Transition zone thickness
-        top_ft_tvdss: 8100.0           # Top of transition
-        bottom_ft_tvdss: 8200.0        # Bottom of transition
+        top_ft_tvdss: 8075.0            # Top of transition (OWC - 25 ft)
+        bottom_ft_tvdss: 8125.0         # Bottom of transition (OWC + 25 ft)
         saturation_model: "capillary_pressure_controlled"
         
   # Initial Saturation Distribution (CANON)
@@ -55,7 +55,7 @@ initialization:
       oil_saturation_range: [0.75, 0.85]    # So range
       water_saturation_range: [0.15, 0.25]  # Sw range (connate water)
       gas_saturation: 0.00                  # No initial gas
-      pressure_range_psi: [2830, 2900]      # Pressure in oil zone
+      pressure_range_psi: [3500, 3600]      # Pressure in oil zone
       
     # Transition Zone
     transition_zone:
@@ -68,7 +68,7 @@ initialization:
       water_saturation: 1.00            # 100% water
       oil_saturation: 0.00              # No oil
       gas_saturation: 0.00              # No gas
-      pressure_range_psi: [2900, 2995]  # Pressure in aquifer
+      pressure_range_psi: [3600, 3700]  # Pressure in aquifer
       
   # Compartment-Specific Initialization (CANON)
   compartmentalization:

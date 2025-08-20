@@ -13,6 +13,9 @@ function workflow_results = s99_run_workflow(varargin)
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
+    
+    % Suppress isdir deprecation warning from MRST internal functions
+    suppress_isdir_warnings();
 
     % ASCII Art Header
     fprintf('\n');

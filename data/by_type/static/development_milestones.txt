@@ -1,0 +1,52 @@
+Eagle West Field - Development Timeline Milestones
+Generated: 20-Aug-2025 02:48:15
+================================================
+
+Day    Year     Type            Description                                       
+-------------------------------------------------------------------------------------
+1      0.0      phase_start     Phase 1 Start: phase_1                            
+1      0.0      well_startup    Startup EW-001                                    
+180    0.5      well_drilling   Start drilling EW-001 (vertical)                  
+365    1.0      phase_end       Phase 1 End: phase_1                              
+365    1.0      production      First year production target                      
+366    1.0      phase_start     Phase 2 Start: phase_2                            
+366    1.0      well_startup    Startup EW-002                                    
+366    1.0      well_startup    Startup IW-001                                    
+450    1.2      well_drilling   Start drilling IW-001 (vertical)                  
+550    1.5      well_drilling   Start drilling EW-002 (vertical)                  
+730    2.0      phase_end       Phase 2 End: phase_2                              
+731    2.0      phase_start     Phase 3 Start: phase_3                            
+731    2.0      well_startup    Startup EW-003                                    
+731    2.0      well_startup    Startup EW-004                                    
+731    2.0      well_startup    Startup IW-002                                    
+820    2.2      well_drilling   Start drilling EW-003 (horizontal)                
+900    2.5      well_drilling   Start drilling EW-004 (vertical)                  
+1000   2.7      well_drilling   Start drilling IW-002 (vertical)                  
+1095   3.0      phase_end       Phase 3 End: phase_3                              
+1095   3.0      production      Multi-well pattern established                    
+1096   3.0      phase_start     Phase 4 Start: phase_4                            
+1096   3.0      well_startup    Startup EW-005                                    
+1096   3.0      well_startup    Startup EW-006                                    
+1096   3.0      well_startup    Startup EW-007                                    
+1096   3.0      well_startup    Startup IW-003                                    
+1200   3.3      well_drilling   Start drilling EW-005 (horizontal)                
+1350   3.7      well_drilling   Start drilling EW-006 (vertical)                  
+1500   4.1      well_drilling   Start drilling EW-007 (multi_lateral)             
+1600   4.4      well_drilling   Start drilling IW-003 (horizontal)                
+1825   5.0      phase_end       Phase 4 End: phase_4                              
+1826   5.0      phase_start     Phase 5 Start: phase_5                            
+1826   5.0      well_startup    Startup EW-008                                    
+1826   5.0      well_startup    Startup EW-009                                    
+1826   5.0      well_startup    Startup IW-004                                    
+2000   5.5      well_drilling   Start drilling EW-008 (horizontal)                
+2200   6.0      well_drilling   Start drilling EW-009 (vertical)                  
+2300   6.3      well_drilling   Start drilling IW-004 (vertical)                  
+2920   8.0      phase_end       Phase 5 End: phase_5                              
+2920   8.0      production      Field expansion complete                          
+2921   8.0      phase_start     Phase 6 Start: phase_6                            
+2921   8.0      well_startup    Startup EW-010                                    
+2921   8.0      well_startup    Startup IW-005                                    
+3100   8.5      well_drilling   Start drilling EW-010 (multi_lateral)             
+3200   8.8      well_drilling   Start drilling IW-005 (multi_lateral)             
+3650   10.0     phase_end       Phase 6 End: phase_6                              
+3650   10.0     production      Peak production plateau (18500 STB/day)           

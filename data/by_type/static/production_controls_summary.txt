@@ -1,0 +1,32 @@
+Eagle West Field - Production Controls Summary
+Generated: 19-Aug-2025 15:36:31
+==============================================
+
+PRODUCER CONTROLS:
+Well     Type       Oil_STB  Min_BHP  Max_WC   ESP       
+-----------------------------------------------------------------
+EW-001   vertical   1500     1500     95     % GC-6000   
+EW-002   vertical   1800     1450     95     % GC-8000   
+EW-003   horizontal 2200     1400     95     % GC-8000   
+EW-004   vertical   1600     1520     95     % GC-6000   
+EW-005   horizontal 2500     1350     95     % GC-10000  
+EW-006   vertical   1400     1480     95     % GC-4000   
+EW-007   multi_lateral 2800     1380     95     % GC-10000  
+EW-008   horizontal 2300     1420     95     % GC-8000   
+EW-009   vertical   1700     1550     95     % GC-6000   
+EW-010   multi_lateral 2600     1380     95     % GC-10000  
+
+INJECTOR CONTROLS:
+Well     Type       Inj_BWD  Max_BHP  Fluid          
+-------------------------------------------------------
+IW-001   vertical   5100     3200     formation_water
+IW-002   vertical   4400     3300     formation_water
+IW-003   horizontal 4700     3100     formation_water
+IW-004   vertical   4300     3400     formation_water
+IW-005   multi_lateral 4000     3600     formation_water
+
+CONTROL SWITCHING:
+  Switching Enabled: Yes
+  Check Frequency: 1 day(s)
+  Producer Wells: 10 with switching logic
+  Injector Wells: 5 with switching logic

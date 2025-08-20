@@ -54,15 +54,19 @@ function output_data = s14_aquifer_configuration()
         addpath(fullfile(script_dir, 'utils'));
         init_config = read_yaml_config('config/initialization_config.yaml', true);
         
-        % Load grid with pressure and saturations from s13
+        % Load grid with pressure and saturations from s13 (CANON-FIRST: exact file from predecessor)
         data_dir = get_data_path('static');
-        grid_file = fullfile(data_dir, 'grid_with_pressure_saturation.mat');
-        if exist(grid_file, 'file')
+        required_s13_file = fullfile(data_dir, 'grid_with_pressure_saturation_s13.mat');
+        if exist(required_s13_file, 'file')
             fprintf('   ✅ Loading grid with pressure and saturations from s13\n');
-            load(grid_file, 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
+            load(required_s13_file, 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
             G = G_with_pressure_sat;
         else
-            error('Grid with pressure/saturations not found. Run s13_saturation_distribution.m first');
+            error(['CANON-FIRST ERROR: Missing required S13 output data.\n' ...
+                   'REQUIRED: Run s13_saturation_distribution.m first.\n' ...
+                   'Expected file: %s\n' ...
+                   'Canon specification: S14 requires exact S13 output with pressure and saturations.\n' ...
+                   'No fallbacks allowed - predecessor must generate complete data.'], required_s13_file);
         end
         
         % Load fluid properties for aquifer

@@ -1,5 +1,5 @@
-function targets_results = s20_production_targets()
-% S20_PRODUCTION_TARGETS - Minimal working version for workflow testing
+function targets_results = s19_production_targets()
+% S19_PRODUCTION_TARGETS - Minimal working version for workflow testing
 % This is a simplified version to allow testing of phases s21-s26
 
     script_dir = fileparts(mfilename('fullpath'));
@@ -104,5 +104,5 @@ end
 
 % Main execution when called as script
 if ~nargout
-    targets_results = s20_production_targets();
+    targets_results = s19_production_targets();
 end

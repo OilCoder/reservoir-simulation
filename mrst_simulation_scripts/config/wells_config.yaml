@@ -354,6 +354,24 @@ wells_system:
       skin_factor: 1.5
       injection_fluid: "formation_water"
       
+  # Drilling Parameters (CANON-FIRST)
+  drilling_parameters:
+    # Drilling Durations by Well Type (days) - from Eagle West Field specifications
+    drilling_durations:
+      vertical: 45              # Standard vertical drilling
+      horizontal: 65            # Extended for horizontal wells
+      multi_lateral: 85         # Extended for multi-lateral wells
+      
+    # Completion Durations by Well Type (days) - from Eagle West Field specifications  
+    completion_durations:
+      vertical: 15              # Standard completion for vertical wells
+      horizontal: 12            # Reduced completion time for horizontal (less perforation)
+      multi_lateral: 18         # Extended completion for multi-lateral complexity
+      
+    # Drilling Schedule Control Parameters
+    drilling_schedule_buffer_days: 30   # Buffer time between drilling operations
+    weather_delay_contingency: 0.15     # 15% contingency for weather delays
+    
   # Well Completion Parameters (CANON)
   completion_parameters:
     # Wellbore Properties
@@ -364,22 +382,56 @@ wells_system:
     casing_size_inch: 7.0                # Standard casing size
     tubing_size_inch: 3.5                # Standard tubing size
     
+    # Perforation Factors by Well Type
+    perforation_factors:
+      vertical: 1.0                       # Standard perforation factor for vertical wells
+      horizontal: 1.5                     # Enhanced factor for horizontal wells
+      multi_lateral: 2.0                  # High factor for multi-lateral wells
+    
+    # Perforation Design Parameters
+    perforation_density: 12               # Perforations per foot
+    perforation_diameter_inch: 0.43       # Perforation hole diameter in inches
+    
     # Kickoff Depth Parameters (Canon-First from 05_Wells_Completions.md)
     default_kickoff_depth_offset_ft: 278  # Average offset from TVD for horizontal/multi-lateral wells
     
     # Completion Design
     completion_type: "open_hole_gravel_pack"
-    perforation_density: 12.0            # shots per foot
-    perforation_diameter_inch: 0.43      # Standard perforations
     gravel_pack_permeability_darcy: 5.0  # High perm gravel pack
     
+    # Well Spacing and Layout (CANON)
+    minimum_well_spacing_ft: 500.0       # Minimum well spacing for Eagle West Field
+
     # Sand Control
     sand_control_method: "gravel_pack_with_screen"
     screen_type: "premium_wire_wrap"
     screen_slot_size_inch: 0.008
     
-    # Well Spacing and Layout (CANON)
-    minimum_well_spacing_ft: 500.0       # Minimum well spacing for Eagle West Field
+    # Perforation Parameters (CANON-FIRST)
+    perforation_density: 12               # Perforations per foot
+    perforation_diameter_inch: 0.43       # Perforation hole diameter in inches
+    
+    # Perforation Factors (CANON-FIRST) - Proper structure for MRST compatibility
+    perforation_factors:
+      horizontal_density_factor: 0.5     # Density reduction for horizontal wells
+      horizontal_diameter_factor: 1.16   # Diameter increase for horizontal wells
+      multilateral_density_factor: 0.67  # Density reduction for multilateral wells
+      multilateral_diameter_factor: 1.09 # Diameter increase for multilateral wells
+      multilateral_penetration_inch: 15  # Perforation penetration for multilateral wells
+    
+    # Completion Interval Parameters (CANON-FIRST)
+    layer_completion_parameters:
+      layer_thickness_ft: 25             # Standard layer thickness for Eagle West Field
+      layer_spacing_ft: 30               # Standard layer spacing
+      upper_sand_offset_ft: 250          # Upper sand offset from total depth
+      middle_sand_offset_ft: 150         # Middle sand offset from total depth  
+      lower_sand_offset_ft: 50           # Lower sand offset from total depth
+    
+    # Multi-Stage Completion Parameters (CANON-FIRST) - Moved to end
+    horizontal_completion:
+      stage_length_ft: 250               # Standard stage length for horizontal wells
+      vertical_completion_length_ft: 30  # Standard completion length per layer for vertical wells
+      multilateral_stage_length_ft: 200  # Standard stage length for multilateral wells
     
   # Production Controls (CANON)
   production_controls:

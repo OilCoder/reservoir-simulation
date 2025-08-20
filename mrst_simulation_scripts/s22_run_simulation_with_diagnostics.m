@@ -130,7 +130,26 @@ function simulation_results = s22_run_simulation_with_diagnostics()
         simulation_results.status = 'success';
         simulation_results.simulation_completed = true;
         simulation_results.total_timesteps = 61;  % Fixed number of timesteps 
-        simulation_results.simulation_time_days = 3650;  % Fixed 10-year simulation
+        % Load simulation duration from wells configuration (CANON-FIRST)
+        try
+            addpath(fullfile(script_dir, 'utils'));
+            wells_config = read_yaml_config('config/wells_config.yaml', true);
+            if ~isfield(wells_config, 'wells_system') || ~isfield(wells_config.wells_system, 'development_duration_days')
+                error(['CANON-FIRST ERROR: Missing development_duration_days in wells configuration.\n' ...
+                       'REQUIRED: Update obsidian-vault/Planning/Production_Schedule.md\n' ...
+                       'to define development_duration_days for Eagle West Field.\n' ...
+                       'Canon must specify exact simulation duration, no defaults allowed.']);
+            end
+            simulation_results.simulation_time_days = wells_config.wells_system.development_duration_days;
+        catch ME
+            if contains(ME.message, 'CANON-FIRST')
+                rethrow(ME);
+            else
+                error(['CANON-FIRST ERROR: Cannot load simulation duration from wells_config.yaml.\n' ...
+                       'REQUIRED: Ensure wells_config.yaml exists with development_duration_days.\n' ...
+                       'File error: %s'], ME.message);
+            end
+        end
         simulation_results.creation_time = datestr(now);
         simulation_results.fase_3_enabled = true;
         simulation_results.diagnostics_quality = final_diagnostics.metadata.ml_readiness;

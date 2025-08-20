@@ -16,10 +16,10 @@ fault_system:
       is_sealing: true
       strike: 65.0                      # degrees (N65°E)
       dip: 70.0                         # degrees SE
-      length: 16896.0                   # ft (3.2 miles * 5280)
+      length: 2500.0                    # ft (scaled for field size: 3280×2950 ft)
       transmissibility_multiplier: 0.005
       position_offset_x: 0.0            # ft from bounds origin
-      position_offset_y: 1475.0         # ft north offset
+      position_offset_y: 800.0          # ft north offset (reduced to keep within field)
       throw_average: 150.0              # ft (120-180 range)
       sealing_character: "sealing"
       shale_gouge_ratio: 0.25           # >20% indicates sealing
@@ -31,9 +31,9 @@ fault_system:
       is_sealing: false
       strike: 20.0                      # degrees (N20°E)
       dip: 65.0                         # degrees NW
-      length: 14784.0                   # ft (2.8 miles * 5280)
+      length: 2200.0                    # ft (scaled for field size: 3280×2950 ft)
       transmissibility_multiplier: 0.05
-      position_offset_x: 1640.0         # ft east offset
+      position_offset_x: 900.0          # ft east offset (reduced to keep within field)
       position_offset_y: 0.0            # ft from center
       throw_average: 110.0              # ft (80-140 range)
       sealing_character: "partially_sealing"
@@ -46,10 +46,10 @@ fault_system:
       is_sealing: true
       strike: 285.0                     # degrees (N75°W = 360-75 = 285)
       dip: 62.0                         # degrees NE
-      length: 11088.0                   # ft (2.1 miles * 5280)
+      length: 1800.0                    # ft (scaled for field size: 3280×2950 ft)
       transmissibility_multiplier: 0.01
       position_offset_x: 0.0            # ft from center
-      position_offset_y: -1475.0        # ft south offset
+      position_offset_y: -800.0         # ft south offset (reduced to keep within field)
       throw_average: 127.5              # ft (95-160 range)
       sealing_character: "variable_sealing"
       shale_gouge_ratio: 0.20           # Central portion sealing
@@ -61,9 +61,9 @@ fault_system:
       is_sealing: true
       strike: 345.0                     # degrees (N15°W = 360-15 = 345)
       dip: 68.0                         # degrees NE
-      length: 13200.0                   # ft (2.5 miles * 5280)
+      length: 2100.0                    # ft (scaled for field size: 3280×2950 ft)
       transmissibility_multiplier: 0.005
-      position_offset_x: -1640.0        # ft west offset
+      position_offset_x: -900.0         # ft west offset (reduced to keep within field)
       position_offset_y: 0.0            # ft from center
       throw_average: 155.0              # ft (110-200 range)
       sealing_character: "sealing"
@@ -76,7 +76,7 @@ fault_system:
       is_sealing: false
       strike: 45.0                      # degrees (N45°E)
       dip: 72.0                         # degrees SE
-      length: 8448.0                    # ft (1.6 miles * 5280)
+      length: 1400.0                    # ft (scaled for field size: 3280×2950 ft)
       transmissibility_multiplier: 0.3
       position_offset_x: 410.0          # ft east offset (internal)
       position_offset_y: 370.0          # ft north offset

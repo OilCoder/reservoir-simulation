@@ -98,12 +98,18 @@ end
 % Implementation function for get_data_path
 function data_path = get_data_path_impl(subfolder)
     script_dir = fileparts(mfilename('fullpath'));
-    script_dir = fileparts(script_dir); % Go up one level from utils/
+    script_dir = fileparts(script_dir); % Go up one level from utils/ to mrst_simulation_scripts/
+    workspace_dir = fileparts(script_dir); % Go up to workspace root /workspaces/claudeclean/
     
     if nargin < 1 || isempty(subfolder)
-        data_path = fullfile(script_dir, 'data', 'mrst_simulation');
+        % Default: use by_type data directory
+        data_path = fullfile(workspace_dir, 'data', 'by_type');
+    elseif strcmp(subfolder, 'session')
+        % SPECIAL CASE: session directory directly in mrst_simulation_scripts/
+        data_path = fullfile(script_dir, 'session');
     else
-        data_path = fullfile(script_dir, 'data', 'mrst_simulation', subfolder);
+        % All other data: use by_type structure
+        data_path = fullfile(workspace_dir, 'data', 'by_type', subfolder);
     end
     
     % Create directory if it doesn't exist
