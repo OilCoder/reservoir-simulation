@@ -243,7 +243,7 @@ ENFORCEMENT_STRATEGY:
 
 ### Primary References for AI Assistants
 
-1. **VARIABLE_INVENTORY.md** (`/workspaces/claudeclean/obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`)
+1. **VARIABLE_INVENTORY.md** (`/workspaces/reservoir-simulation/obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`)
 
    - **900+ variables** organized by workflow stages and domains
    - **LLM-optimized structure** with decision trees and context helpers

@@ -116,31 +116,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install OPM Flow reservoir simulator for hybrid MRST-OPM workflow
-# This enables: MRST (data prep) → Eclipse format → OPM (simulation) → MRST (analysis)
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    gpg-agent \
-    && wget -O - https://opm-project.org/package/opm.asc | apt-key add - \
-    && echo "deb https://opm-project.org/package/ubuntu jammy main" > /etc/apt/sources.list.d/opm.list \
-    && apt-get update \
-    && apt-get install -y \
-        libopm-simulators-bin \
-        libopm-simulators-dev \
-        libopm-common-dev \
-        libecl-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install OPM Python bindings and Eclipse format tools
-RUN pip install --no-cache-dir --upgrade-strategy only-if-needed \
-    ecl \
-    ert \
-    opm
-
-# Test OPM installation
-RUN flow --version 2>/dev/null || echo "⚠️  OPM Flow installed but version check failed (normal)"
-
 # Setup MRST startup and module initialization
 RUN echo "% MRST startup configuration" > /opt/mrst_startup.m && \
     echo "addpath('/opt/mrst');" >> /opt/mrst_startup.m && \
