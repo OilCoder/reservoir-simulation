@@ -1,19 +1,25 @@
 {
-  "description": "Optimized Single-Agent System with Router for Maximum Prompt Efficiency",
+  "description": "Multi-Mode Policy-Aware Code Generation System with Natural Language Routing",
   
   "hooks": {
     "userPromptSubmit": {
-      "description": "Analyzes user prompts and distributes tasks to appropriate agents",
+      "description": "Enhanced router with natural intent detection and multi-mode policy injection",
       "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py"
     },
+    "postToolUse": {
+      "Write|Edit|MultiEdit": {
+        "description": "Multi-mode policy validation scanner with context awareness (suggest/warn/strict)",
+        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use.py"
+      }
+    },
     "subagentStop": {
-      "description": "Consolidates results when subagents complete their tasks",
+      "description": "Consolidates results when subagents complete their tasks", 
       "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py"
     }
   },
   
   "permissions": {
-    "description": "Tool permissions for the 3-agent system",
+    "description": "Tool permissions for the 4-agent multi-mode policy system",
     "allow": [
       "Task",
       "Read", 
@@ -34,11 +40,13 @@
   },
   
   "agents": {
-    "description": "Optimized single-agent configuration with minimal overhead",
+    "description": "Multi-agent configuration with policy-aware specialization and context awareness",
     "coder": {
-      "description": "Primary agent for all code tasks",
-      "folders": ["src/", "mrst_simulation_scripts/", "tests/", "debug/"],
-      "rules": [0, 10],
+      "description": "Production code writer following 5-policy system with context-aware validation",
+      "folders": ["src/", "mrst_simulation_scripts/", "scripts/"],
+      "policies": ["canon-first", "data-authority", "fail-fast", "exception-handling", "kiss-principle"],
+      "rules": [1, 2, 5, 6, 8],
+      "validation_modes": ["suggest", "warn", "strict"],
       "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
@@ -46,9 +54,11 @@
       ]
     },
     "tester": {
-      "description": "Test specialist (on-demand only)",
+      "description": "Test specialist with policy compliance validation across all modes",
       "folders": ["tests/"],
-      "rules": [0, 3],
+      "policies": ["canon-first", "data-authority", "fail-fast", "exception-handling", "kiss-principle"],
+      "rules": [1, 3, 5, 6, 8],
+      "validation_modes": ["suggest", "warn", "strict"],
       "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
@@ -56,9 +66,11 @@
       ]
     },
     "debugger": {
-      "description": "Debug specialist (on-demand only)",
+      "description": "Debug specialist with policy-aware investigation and mode context analysis",
       "folders": ["debug/"],
-      "rules": [0, 4],
+      "policies": ["canon-first", "data-authority", "fail-fast", "exception-handling", "kiss-principle"],
+      "rules": [1, 4, 5, 6, 8],
+      "validation_modes": ["suggest", "warn", "strict"],
       "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
@@ -66,9 +78,11 @@
       ]
     },
     "doc-writer": {
-      "description": "Documentation specialist for markdown files",
+      "description": "Documentation specialist with policy-aware technical writing and multi-mode guidance",
       "folders": ["obsidian-vault/"],
-      "rules": [0, 7],
+      "policies": ["canon-first", "data-authority", "fail-fast", "exception-handling", "kiss-principle"],
+      "rules": [1, 5, 6, 7, 8],
+      "validation_modes": ["suggest", "warn", "strict"],
       "mcp_servers": ["filesystem"],
       "allowed_tools": [
         "mcp__filesystem__*",
@@ -78,7 +92,7 @@
   },
   
   "workflow": {
-    "description": "Router-based single agent workflow for maximum efficiency",
+    "description": "Router-based multi-agent workflow with policy-aware context and validation modes",
     "auto_activation": {
       "coder_keywords": ["create", "implement", "write", "edit", "add", "build", "develop", "function", "class", "module", "script", "code", "algorithm"],
       "tester_keywords": ["test", "testing", "pytest", "unittest", "validation", "verify", "check", "assert", "coverage", "edge case"],
@@ -90,14 +104,27 @@
     "budget_management": {
       "conservative_threshold": 25,
       "disable_secondary_agents": true
+    },
+    "validation_modes": {
+      "suggest": "Prototyping: recommendations and guidance",
+      "warn": "Development: violations flagged but not blocking", 
+      "strict": "Production: full enforcement with blocking on errors"
+    },
+    "policy_enforcement": {
+      "context_aware": true,
+      "override_mechanisms": {
+        "file_level": "# @policy-override: suggest",
+        "environment": "CLAUDE_VALIDATION_MODE=strict"
+      }
     }
   },
   
   "project": {
     "description": "Project-specific settings",
-    "type": "geomechanical_ml",
+    "type": "reservoir_simulation",
     "languages": ["python", "octave"],
     "rules_path": ".claude/rules/",
+    "policies_path": ".claude/policies/",
     "documentation_path": "obsidian-vault/",
     "logging": {
       "enabled": true,

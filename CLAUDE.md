@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Eagle West Field MRST Reservoir Simulation Project** - A comprehensive reservoir simulation project using MRST (MATLAB Reservoir Simulation Toolbox) with complete documentation coverage and AI-assisted development.
 
-**CANONICAL STATUS: This documentation is authoritative and reflects the current project state as of 2025-08-15.**
+**CANONICAL STATUS: This documentation is authoritative and reflects the current project state as of 2025-08-22.**
 
 ### Key Achievements
 
@@ -17,13 +17,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Enhanced Analytics & Diagnostics** - ML-ready features and solver diagnostics
 - **Comprehensive Testing Framework** - 38+ test files covering all workflow phases
 - **Eagle West Field Model** - Realistic offshore field with 41×41×12 grid, 15 wells
-- **Multi-Agent Architecture** - Specialized agents for efficient development
+- **Multi-Agent Architecture** - 4 specialized agents with policy-aware coordination
+- **Multi-Mode Policy System** - Context-aware validation (suggest/warn/strict)
+- **5 Immutable Policies** - Canon-first, data authority, fail fast, exception handling, KISS
 
 ### Project Characteristics
 
 - **MRST-based reservoir simulation** for Eagle West offshore field
-- **Canon-First Development Philosophy** - Documentation as specification, zero fallbacks
-- **Strict coding standards** enforced automatically
+- **Multi-Mode Policy System** - Context-aware enforcement (suggest/warn/strict)
+- **Policy-aware coding standards** with flexible enforcement based on development phase
 - **Claude Code integration** for AI-assisted development
 - **Dual language support** (Python & Octave/MRST)
 - **Comprehensive documentation** with LLM optimization
@@ -32,10 +34,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 📦 workspace/
 ├── 🤖 .claude/ # Claude Code configuration
-│ ├── agents/ # Specialized agent definitions (coder, tester, debugger, doc-writer)
+│ ├── policies/ # 5 immutable principles (canon-first, data-authority, fail-fast, exception-handling, kiss-principle)
+│ ├── agents/ # 4 specialized agent definitions with policy awareness
 │ ├── commands/ # Custom slash commands
-│ ├── hooks/ # Validation hooks
-│ ├── rules/ # Project coding rules (8 comprehensive rules)
+│ ├── hooks/ # Multi-mode validation hooks (suggest/warn/strict)
+│ ├── rules/ # 8 coding standards (verifiable conventions)
 │ ├── templates/ # Code generation templates
 │ └── settings.json # Project settings
 ├── 🐍 src/ # Python source code
@@ -54,6 +57,62 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── 📊 data/ # Simulation data and results
 └── 🧠 CLAUDE.md # Main project memory (THIS FILE - CANONICAL)
 
+## Multi-Mode Policy System (IMMUTABLE)
+
+**CRITICAL**: All code generation follows a 5-policy system with context-aware enforcement:
+
+### 1. Canon-First Policy (Context-Aware)
+**Documentation IS the Specification** - but flexible based on development phase:
+- **Strict Mode** (Production): No hardcoding, immediate failure on missing config
+- **Warn Mode** (Development): Helpful defaults with warnings  
+- **Suggest Mode** (Prototype): Flexible interpretation for rapid iteration
+
+@.claude/policies/canon-first.md
+
+### 2. Data Authority Policy
+**Authoritative Sources Only** - No hardcoded domain values:
+- All domain data from simulators, config files, or documented computations
+- Include provenance metadata (timestamp, script, parameters)
+- No magic numbers or manual estimates
+
+@.claude/policies/data-authority.md
+
+### 3. Fail Fast Policy
+**No Defensive Programming** - Immediate failure on missing requirements:
+- Validate prerequisites explicitly before operations
+- Clear error messages directing to specific documentation updates
+- Context-aware: strict in production, helpful in development
+
+@.claude/policies/fail-fast.md
+
+### 4. Exception Handling Policy
+**Explicit Validation Over Exception Handling**:
+- Exceptions only for unpredictable external failures (file I/O, network, dependencies)
+- Explicit validation for predictable application logic
+- No exception-based flow control
+
+@.claude/policies/exception-handling.md
+
+### 5. KISS Principle Policy
+**Simplicity and Minimalism**:
+- Single responsibility functions (ideally <40 lines)
+- No speculative abstractions unless explicitly requested
+- Clarity over cleverness in all implementations
+
+@.claude/policies/kiss-principle.md
+
+## Validation Modes
+
+### 🎯 Context-Aware Enforcement
+- **suggest** - Prototyping: Recommendations and guidance
+- **warn** - Development: Violations flagged but not blocking
+- **strict** - Production: Full enforcement with blocking on errors
+
+### 🔧 Override Mechanisms
+- **File-level**: `# @policy-override: suggest`
+- **Environment**: `CLAUDE_VALIDATION_MODE=strict`
+- **Context-based**: Automatic detection from file paths and project structure
+
 ## Claude Code Agent System (CANONICAL)
 
 **CRITICAL**: Claude Code acts as a **Manager/Orquestador** that delegates tasks to specialized agents rather than executing tasks directly.
@@ -65,36 +124,38 @@ Claude Code (this AI) functions as:
 - **Work Delegator** - Uses Task tool to assign work to appropriate agents  
 - **Coordinator** - Facilitates communication between agents when needed
 - **Progress Supervisor** - Ensures agents use MCP tools and follow project rules
+- **Policy Enforcer** - Injects all 5 policies with context-aware mode into agent tasks
 
-**Key Principle**: Claude Code NEVER executes tasks directly - always delegates to specialized agents.
+**Key Principle**: Claude Code NEVER executes tasks directly - always delegates to specialized agents with policy context.
 
 The project uses an **optimized multi-agent architecture** for efficient code generation and task management:
 
 ### Available Agents
 
 1. **`coder`** (Default Agent)
-
-   - **Role**: Production code writer for `src/` and `mrst_simulation_scripts/`
+   - **Role**: Production code writer following 5-policy system with context-aware validation
+   - **Policies**: All 5 policies with suggest/warn/strict mode awareness
    - **Activation**: Default for all code-related tasks
    - **Keywords**: create, implement, write, edit, add, build, develop, function, class, module
-   - **Tools**: Read, Write, Edit, MultiEdit, Grep, Glob, Bash
+   - **Tools**: Read, Write, Edit, MultiEdit, Grep, Glob, Bash, mcp__filesystem__*
 
 2. **`tester`** (Test Specialist)
-
-   - **Role**: Creates comprehensive test suites in `tests/`
+   - **Role**: Creates comprehensive test suites with policy compliance validation across all modes
+   - **Policies**: Tests policy compliance for suggest/warn/strict validation modes
    - **Activation**: On-demand when test keywords detected
    - **Keywords**: test, pytest, unittest, validation, verify, check, assert, coverage
-   - **Tools**: Read, Write, Bash
+   - **Tools**: Read, Write, Bash, mcp__filesystem__*
 
 3. **`debugger`** (Debug Specialist)
-
-   - **Role**: Creates investigation scripts in `debug/`
+   - **Role**: Policy-aware investigation with mode context analysis
+   - **Policies**: Debug policy violations and mode mismatches
    - **Activation**: On-demand when debug keywords detected
    - **Keywords**: debug, fix, error, bug, issue, problem, investigate, analyze, trace
-   - **Tools**: Read, Write, Bash
+   - **Tools**: Read, Write, Bash, mcp__filesystem__*
 
 4. **`doc-writer`** (Documentation Specialist)
-   - **Role**: Creates and maintains documentation in `obsidian-vault/`
+   - **Role**: Policy-aware technical writing with multi-mode guidance documentation
+   - **Policies**: Documents policy implementation and contextual application
    - **Activation**: On-demand when documentation keywords detected
    - **Keywords**: document, documentation, readme, guide, tutorial, explain, describe, writeup
    - **Tools**: Read, Write, Edit, mcp__filesystem__*, Grep, Glob
@@ -111,8 +172,9 @@ The project uses an **optimized multi-agent architecture** for efficient code ge
 **Manager → Agent Delegation:**
 1. Analyze user request for keywords and task type
 2. Select appropriate agent using Task tool
-3. Provide agent with minimal context (±30 lines git diff when relevant)
+3. Provide agent with minimal context (±30 lines git diff when relevant) and policy context
 4. Monitor agent progress and coordinate with other agents if needed
+5. Ensure policy compliance through multi-mode validation
 
 **Inter-Agent Communication:**
 - **CODER → TESTER**: "Code complete in [file]. Key functions: [list]. Ready for testing."
@@ -215,28 +277,37 @@ data/simulation_data/static/
 - `production_config.yaml` - Rate controls and constraints
 - `solver_config.yaml` - MRST solver settings
 
-## Rules
+## Rules and Policies (CANONICAL)
 
-RULE_INDEX: 0. 00-project-guidelines.md – Defines the role and scope of each rule in the codebase.
+### 8 Coding Rules (Verifiable Standards)
 
-1. 01-code-style.md – Enforces layout, naming, spacing, and step/substep structure in source files.
-2. 02-code-change.md – Limits edits to the exact requested scope; allows multi-file changes only when explicitly requested.
-3. 03-test-script.md – Defines naming conventions, isolation standards, and structure for Pytest-based tests.
-4. 04-debug-script.md – Isolates debug logic in debug/ folder, enforces cleanup and naming standards.
-5. 05-file-naming.md – Standardizes naming for all files: source, test, debug, docs, notebooks, simulation outputs.
-6. 06-doc-enforcement.md – Requires Google Style docstrings for all public and non-trivial private functions/classes.
-7. 07-docs-style.md – Defines required format and structure for Markdown documentation.
-8. 08-logging-policy.md – Allows temporary print/logging but enforces cleanup before commit.
+**RULE_INDEX**: 0. 00-project-guidelines.md – Defines the role and scope of each rule
 
-ENFORCEMENT_STRATEGY:
+1. **01-code-style.md** – Layout, naming, spacing, and step/substep structure
+2. **02-code-change.md** – Scope discipline for focused changes
+3. **03-test-script.md** – Test naming conventions and structure
+4. **04-debug-script.md** – Debug practices and cleanup standards
+5. **05-file-naming.md** – File naming patterns across project
+6. **06-doc-enforcement.md** – Docstring requirements and standards
+7. **07-docs-style.md** – Markdown documentation format
+8. **08-logging-policy.md** – Logging and output control
 
-- All source changes must comply with style (1) and scope (2) rules.
-- All committed code must use valid naming (5).
-- Code must comply with doc_enforcement (6) and logging_policy (8).
-- All error handling must follow Exception Handling Policy and FAIL_FAST_POLICY.
-- No defensive programming that hides missing requirements or generates incorrect defaults.
-- Debugging code (4) must be isolated in debug/ folder for development and removed before final delivery.
-- Testing code (3) must be isolated in tests/ folder and committed to ensure project quality.
+### 5 Immutable Policies (Fundamental Principles)
+
+Located in `.claude/policies/` with context-aware enforcement:
+
+1. **canon-first.md** – Context-aware specification enforcement
+2. **data-authority.md** – Authoritative data sources and anti-hardcoding
+3. **fail-fast.md** – Immediate failure on missing requirements
+4. **exception-handling.md** – Explicit validation over exception handling
+5. **kiss-principle.md** – Simplicity and minimalism in design
+
+### Policy Enforcement Strategy
+
+- **Context-Aware Validation**: suggest/warn/strict modes based on development phase
+- **Progressive Enforcement**: prototype → development → production
+- **Override Mechanisms**: File-level (`# @policy-override:`) and environment (`CLAUDE_VALIDATION_MODE`)
+- **Multi-Mode Support**: Flexible enforcement balancing principles with pragmatism
 
 ## LLM NAVIGATION GUIDE (CANONICAL)
 
@@ -304,129 +375,18 @@ PROJECT_STRUCTURE_REFERENCE:
 - **Tertiary**: Individual YAML configs for specific parameters
 - Structure follows 4-stage workflow: YAML→MATLAB→MRST→Results
 
-## CANON-FIRST DEVELOPMENT PHILOSOPHY (CANONICAL)
+## Development Policies (OBSOLETE - MIGRATED)
 
-**CRITICAL**: This project follows a revolutionary "Documentation-as-Specification" approach that eliminates defensive programming and ensures true minimalism.
+**DEPRECATED**: The following sections have been migrated to the new 5-policy system in `.claude/policies/`.
 
-### Core Principles
+For current policy information, see:
+- `.claude/policies/canon-first.md` - Context-aware specification enforcement
+- `.claude/policies/data-authority.md` - Anti-hardcoding and authoritative data sources  
+- `.claude/policies/fail-fast.md` - No defensive programming
+- `.claude/policies/exception-handling.md` - Explicit validation patterns
+- `.claude/policies/kiss-principle.md` - Simplicity and minimalism
 
-1. **Canon Documentation IS the Specification**
-   - Everything in `obsidian-vault/Planning/` is THE definitive specification
-   - Code implements ONLY what is explicitly documented in canon
-   - No assumptions, no defaults, no "helpful" fallbacks
-
-2. **Fail Fast to Documentation Updates**
-   - When data/behavior is missing → ERROR with specific documentation directive
-   - Example: `"ERROR: Update obsidian-vault/Planning/Grid_Definition.md to specify cell_size_x"`
-   - Never create "safe" fallbacks that hide specification gaps
-
-3. **Zero Defensive Programming**
-   - No try-catch for flow control
-   - No default values for domain parameters
-   - No "just in case" code for undocumented scenarios
-   - If canon doesn't specify it → fail immediately with actionable error
-
-4. **Documentation-Driven Development**
-   - Update canon documentation FIRST
-   - Then implement code to match specification exactly
-   - Code should be readable specification implementation
-   - Complex code = specification needs clarification
-
-### Implementation Pattern
-
-```matlab
-% CANON-FIRST PATTERN
-if ~isfield(config, 'canonical_parameter')
-    error(['Missing canonical parameter in config.\n' ...
-           'REQUIRED: Update obsidian-vault/Planning/CONFIG_SPEC.md\n' ...
-           'to define canonical_parameter for Eagle West Field.\n' ...
-           'Canon must specify exact value, no defaults allowed.']);
-end
-```
-
-### Benefits Achieved
-
-- **60-75% code reduction** by eliminating defensive patterns
-- **Crystal-clear specifications** in documentation
-- **Zero ambiguity** about system behavior
-- **Trivial debugging** (everything traceable to canon)
-- **True minimalism** with maximum clarity
-
-SIMPLE CODE POLICY ("Keep It Simple, Stupid")
-
-### KISS Core Enhanced with Canon-First
-
-- Write the most direct, readable solution that implements canon specification exactly
-- Break problems into small, single-purpose functions (see Rule 1 _FUNCTION_STRUCTURE_)
-- If complexity arises, clarify canon specification rather than adding code complexity
-
-### Exception Handling Policy
-
-#### ALLOWED: Unpredictable External Failures Only
-
-- File system operations where files may not exist or permissions may change
-- Network operations where external services may be unavailable
-- Optional dependency imports where libraries may not be installed
-- OS-level operations that depend on system state
-
-#### PROHIBITED: Predictable Application Logic
-
-- Flow control using exceptions instead of explicit validation
-- Input validation where you can check validity before processing
-- Data structure access where you can verify existence first
-- Type conversion where you can validate format before converting
-- Mathematical operations where you can validate inputs beforehand
-
-#### REQUIRED APPROACH:
-
-- Validate prerequisites explicitly before attempting operations
-- Fail immediately with specific, actionable error messages
-- Never use exception handling to bypass proper input validation
-- Never return default values when required data is missing
-
-### Enforcement
-
-- Manual code review should check for proper try/except usage.
-- Broad exception handling or silent failures should be flagged during development.
-- Follow explicit validation patterns instead of exception-based flow control.
-
-CODE_GENERATION_POLICY
-
-- **Prohibition of Hard‑Coding**
-
-  - Do not embed fixed numeric answers, lookup tables, or formula constants directly in source files unless the value is a true physical constant (e.g., π, gravity).
-  - Expected outputs for tests must be computed at runtime via simulator calls or helper utilities, never pasted literals.
-
-- **Simulator Authority**
-
-  - Reservoir properties, stress calculations, synthetic logs, and any other domain‑specific values must originate from MRST, Octave scripts, or the designated ML pipelines.
-  - If a new tool is introduced, its adoption must be documented in obsidian-vault/Planning/ with clear justification.
-
-- **Traceability Requirements**
-  -Each dataset or artefact must include provenance metadata (timestamp, script name, parameters) either in filename or an accompanying .meta.json file.
-  - Formulas or numerical methods belong in simulator scripts, not scattered across utilities.
-
-FAIL_FAST_POLICY ("No Defensive Programming")
-
-### Core Principle
-
-If required configuration, data, or dependencies are missing, FAIL immediately with clear error message explaining exactly what is needed and where to provide it.
-
-### Prohibited Defensive Patterns
-
-- Default values for domain-specific parameters (pressures, temperatures, densities, coordinates)
-- Empty data structures when real data is expected
-- "Safe" fallbacks that produce scientifically incorrect results
-- Warnings followed by continued execution with missing critical data
-- Exception handling that hides configuration or setup errors
-
-### Required Validation Approach
-
-- Check all prerequisites explicitly at function entry
-- Terminate immediately when requirements are not met
-- Error messages must specify exactly what is missing
-- Error messages must explain where to provide missing information
-- Never generate workarounds for missing essential inputs
+**Multi-Mode Policy System**: All policies now support suggest/warn/strict validation modes with context-aware enforcement based on development phase.
 
 ### File Naming (STRICTLY ENFORCED - CANONICAL)
 
@@ -443,20 +403,21 @@ If required configuration, data, or dependencies are missing, FAIL immediately w
 - **Debug**: `dbg_<issue>.m` (e.g., `dbg_s22_convergence_failure.m`)
 - **Config**: `<domain>_config.yaml` (9 files, all documented)
 
-## Validation Hooks
+## Validation Hooks (UPDATED)
 
-Automatic validation on file operations:
+**Multi-Mode Policy Validation System**:
 
-- **Pre-write**: Validates naming, style, docstrings
-- **Post-write**: Checks for print statements, cleanup needs
-- **Pre-commit**: Full compliance check
+- **user_prompt_submit.py**: Natural language router + policy injection
+- **post_tool_use.py**: Context-aware validation (suggest/warn/strict modes)
+- **post_response.py**: Auto-apply diffs + CI integration
+- **subagent_stop.py**: Agent coordination and result consolidation
 
 ## Custom Claude Code Commands
 
 - `/new-script` - Create workflow script with template
 - `/new-test` - Generate test file for module
 - `/new-debug` - Create debug script
-- `/validate` - Check rule compliance
+- `/validate` - Check policy compliance (needs update for multi-mode)
 - `/cleanup` - Remove prints/debug code before commit
 
 ## Key Libraries and Dependencies
@@ -519,12 +480,12 @@ Automatic validation on file operations:
 4. **Coordinate** - Facilitate inter-agent communication when needed
 5. **Supervise** - Ensure agents use MCP tools and follow project rules
 
-**CANON-FIRST ENFORCEMENT**:
-- **ALWAYS verify canon documentation** before implementing anything
-- **NEVER create fallbacks** - instead direct to update obsidian-vault/Planning/
-- **FAIL FAST with documentation directives** when specification is missing
-- **Eliminate defensive programming** that hides specification gaps
-- **Code must implement canon exactly** - no assumptions or defaults
+**MULTI-MODE POLICY ENFORCEMENT**:
+- **ALWAYS apply all 5 policies** with context-aware mode selection
+- **VALIDATE with appropriate strictness** based on development phase
+- **USE override mechanisms** when needed (file-level or environment)
+- **BALANCE principles with pragmatism** for development efficiency
+- **ESCALATE mode progressively** from prototype → development → production
 
 **Variable Management**:
 - Always check VARIABLE_INVENTORY.md before working with variables
@@ -533,11 +494,11 @@ Automatic validation on file operations:
 - Consult cross-reference table for variable dependencies
 - Maintain consistency with canonical naming conventions
 
-**Canon Documentation Authority**:
-- obsidian-vault/Planning/ contains THE specification for Eagle West Field
-- YAML configs implement canon specification exactly
-- Code implements YAML/canon exactly with zero deviation
-- Missing specifications → error directing to canon update
+**Policy-Aware Documentation Authority**:
+- obsidian-vault/Planning/ contains authoritative specifications for Eagle West Field
+- YAML configs implement specifications with policy compliance
+- Code implements specifications following all 5 policies with context-aware validation
+- Missing specifications → appropriate response based on validation mode (suggest/warn/strict)
 
 **Memory Recovery** (for new sessions):
 - Use `mcp__memory__search_nodes "Claude_Manager_Role"` to recover role context

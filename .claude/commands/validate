@@ -1,0 +1,118 @@
+#!/bin/bash
+"""
+Canon-First Validation Command
+Scans project files for hardcoding violations and provides actionable feedback.
+"""
+
+description="Validate project files for canon-first compliance"
+
+# Function to scan for hardcoded values
+scan_hardcoding() {
+    local file="$1"
+    local violations=()
+    
+    echo "🔍 Scanning $file..."
+    
+    # Check for magic numbers (allow common ones)
+    magic_numbers=$(grep -n -E '\b[0-9]{3,}\b' "$file" | grep -v -E '\b(100|200|404|500|1000|2000)\b' || true)
+    if [ -n "$magic_numbers" ]; then
+        echo "❌ Magic numbers found:"
+        echo "$magic_numbers"
+        violations+=("magic_numbers")
+    fi
+    
+    # Check for hardcoded paths
+    hardcoded_paths=$(grep -n -E '["'"'"'](/[^"'"'"'\\]+|\.\.?/[^"'"'"'\\]+)["'"'"']' "$file" | grep -v -E '(/tmp/|/dev/|/proc/|/usr/|/bin/)' || true)
+    if [ -n "$hardcoded_paths" ]; then
+        echo "❌ Hardcoded paths found:"
+        echo "$hardcoded_paths"
+        violations+=("hardcoded_paths")
+    fi
+    
+    # Check for potential secrets
+    secrets=$(grep -n -i -E '(api_key|token|secret|password)\s*[=:]\s*["'"'"'][^"'"'"']+["'"'"']' "$file" || true)
+    if [ -n "$secrets" ]; then
+        echo "❌ Potential hardcoded secrets found:"
+        echo "$secrets"
+        violations+=("secrets")
+    fi
+    
+    # Check for hardcoded business logic
+    business_logic=$(grep -n -i -E '\b(timeout|delay|interval|port|host|url|limit|max|min)\s*[=:]\s*[0-9]+' "$file" || true)
+    if [ -n "$business_logic" ]; then
+        echo "❌ Hardcoded business values found:"
+        echo "$business_logic"
+        violations+=("business_logic")
+    fi
+    
+    if [ ${#violations[@]} -eq 0 ]; then
+        echo "✅ No violations found in $file"
+        return 0
+    else
+        echo "📊 Total violation types in $file: ${#violations[@]}"
+        return 1
+    fi
+}
+
+# Main validation logic
+main() {
+    echo "🚀 Canon-First Validation Scanner"
+    echo "=================================="
+    
+    # Get files to scan
+    if [ $# -eq 0 ]; then
+        # Scan all code files
+        files=$(find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.java" -o -name "*.go" -o -name "*.m" \) | grep -v -E "(test|tests|node_modules|\.git)" | head -20)
+    else
+        files="$@"
+    fi
+    
+    if [ -z "$files" ]; then
+        echo "ℹ️  No code files found to validate"
+        exit 0
+    fi
+    
+    echo "📁 Files to scan: $(echo "$files" | wc -l)"
+    echo ""
+    
+    total_files=0
+    violation_files=0
+    
+    # Scan each file
+    for file in $files; do
+        if [ -f "$file" ]; then
+            total_files=$((total_files + 1))
+            if ! scan_hardcoding "$file"; then
+                violation_files=$((violation_files + 1))
+            fi
+            echo ""
+        fi
+    done
+    
+    # Summary
+    echo "📋 VALIDATION SUMMARY"
+    echo "===================="
+    echo "Files scanned: $total_files"
+    echo "Files with violations: $violation_files"
+    echo "Files clean: $((total_files - violation_files))"
+    
+    if [ $violation_files -gt 0 ]; then
+        echo ""
+        echo "🔧 RECOMMENDED ACTIONS:"
+        echo "- Move hardcoded values to config files (.env, config.json)"
+        echo "- Use environment variables for sensitive data"
+        echo "- Create .env.example with expected variables"
+        echo "- Update documentation with configuration options"
+        echo ""
+        echo "📖 POLICY REFERENCE:"
+        echo "See .claude/policies/canon-first.md for detailed guidelines"
+        exit 1
+    else
+        echo ""
+        echo "🎉 All files passed canon-first validation!"
+        exit 0
+    fi
+}
+
+# Run main function
+main "$@"
