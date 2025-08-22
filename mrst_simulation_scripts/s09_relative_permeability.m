@@ -69,22 +69,31 @@ function fluid = s09_relative_permeability()
 end
 
 function [rock, G] = step_1_load_rock_data()
-% Step 1 - Load rock structure from previous steps
-    script_dir = fileparts(mfilename('fullpath'));
-
-    % Substep 1.1 – Load from canonical by_type structure (CANON-FIRST)
-    addpath(fullfile(script_dir, 'utils'));
+% Step 1 - Load rock structure using new canonical MRST structure
     
-    % Use canonical data organization pattern (same as s13)
-    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-    canonical_data_dir = fullfile(base_data_path, 'by_type', 'static');
-    rock_file = fullfile(canonical_data_dir, 'final_simulation_rock.mat');
+    % NEW CANONICAL STRUCTURE: Load from rock.mat
+    canonical_file = '/workspace/data/mrst/rock.mat';
     
-    if exist(rock_file, 'file')
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        
+        % Reconstruct rock structure from canonical data
+        rock = struct();
+        rock.perm = data_struct.perm;
+        rock.poro = data_struct.poro;
+        if isfield(data_struct, 'layers')
+            rock.layer = data_struct.layers;
+        end
+        if isfield(data_struct, 'heterogeneity')
+            rock.heterogeneity = data_struct.heterogeneity;
+        end
+        rock.meta.units = data_struct.units;
+        
         fprintf('   ✅ Loading rock structure from canonical location\n');
-        load(rock_file, 'rock', 'G');
     else
         % Fallback to legacy location if canonical doesn't exist
+        script_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(script_dir, 'utils'));
         data_dir = get_data_path('static');
         legacy_rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
         
@@ -92,12 +101,25 @@ function [rock, G] = step_1_load_rock_data()
             fprintf('   ⚠️  Loading rock structure from legacy location\n');
             load(legacy_rock_file, 'final_rock', 'G');
             rock = final_rock;  % Convert legacy variable name
+            return;
         else
-            error(['CANON-FIRST ERROR: Final rock structure not found.\n' ...
-                   'REQUIRED: Run s08_apply_spatial_heterogeneity.m first.\n' ...
-                   'Expected files:\n' ...
-                   '  Canonical: %s\n' ...
-                   '  Legacy: %s'], rock_file, legacy_rock_file);
+            error(['CANON-FIRST ERROR: Rock structure not found.\n' ...
+                   'REQUIRED: Run s06-s08 workflow first.']);
+        end
+    end
+    
+    % Load grid from canonical structure
+    grid_file = '/workspace/data/mrst/grid.mat';
+    if exist(grid_file, 'file')
+        load(grid_file, 'data_struct');
+        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
+            G = data_struct.fault_grid;
+        else
+            G = data_struct.G;
+        end
+    else
+        error('CANON-FIRST ERROR: Grid data not found.');
+    end
         end
     end
     
@@ -631,8 +653,6 @@ function export_fluid_file(fluid, G, scal_config)
         % Load canonical data utilities
         script_path = fileparts(mfilename('fullpath'));
         addpath(fullfile(script_path, 'utils'));
-        run(fullfile(script_path, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(script_path, 'utils', 'directory_management.m'));
         
         % Create canonical directory structure
         base_data_path = fullfile(fileparts(script_path), 'data');
@@ -641,10 +661,30 @@ function export_fluid_file(fluid, G, scal_config)
             mkdir(static_path);
         end
         
-        % Save using canonical format with native .mat
-        fluid_file = fullfile(static_path, 'fluid_relperm_s09.mat');
-        save(fluid_file, 'fluid', 'G', 'scal_config');
-        fprintf('     Canonical fluid with relperm saved: %s\n', fluid_file);
+        % NEW CANONICAL STRUCTURE: Update fluid.mat with relative permeability
+        canonical_file = '/workspace/data/mrst/fluid.mat';
+        
+        % Load existing fluid data
+        if exist(canonical_file, 'file')
+            load(canonical_file, 'data_struct');
+        else
+            data_struct = struct();
+            data_struct.created_by = {};
+        end
+        
+        % Add relative permeability to existing fluid structure
+        data_struct.relperm.krw = fluid.krW;
+        data_struct.relperm.kro = fluid.krO;
+        data_struct.relperm.krg = fluid.krG;
+        data_struct.relperm.swc = scal_config.saturation_endpoints.swc;
+        data_struct.relperm.sor = scal_config.saturation_endpoints.sor;
+        data_struct.relperm.sgc = scal_config.saturation_endpoints.sgc;
+        data_struct.created_by{end+1} = 's09';
+        data_struct.timestamp = datetime('now');
+        
+        % Save updated canonical structure
+        save(canonical_file, 'data_struct');
+        fprintf('     NEW CANONICAL: Fluid with rel perm updated in %s\n', canonical_file);
         
         % Maintain legacy compatibility during transition
         legacy_data_dir = get_data_path('static', 'fluid');

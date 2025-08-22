@@ -244,9 +244,9 @@ function phases = define_workflow_phases()
                        'description', 'Solver Configuration (ad-fi)', ...
                        'critical', true, 'estimated_time', 60);
                        
-    phases{21} = struct('phase_id', 's21', 'script_name', 's21_run_simulation', ...
-                       'description', 'Run Simulation (10 years)', ...
-                       'critical', true, 'estimated_time', 600);
+    phases{21} = struct('phase_id', 's21', 'script_name', 's21_export_to_opm', ...
+                       'description', 'Export to OPM Format', ...
+                       'critical', true, 'estimated_time', 120);
                        
     % Phase 9: Quality Control and Analysis
     phases{22} = struct('phase_id', 's23', 'script_name', 's23_quality_validation', ...
@@ -392,7 +392,7 @@ function phase_result = execute_phase_fixed(phase, workflow_results)
                 output_data = s20_solver_setup();
                 
             case 's21'
-                output_data = s21_run_simulation();
+                output_data = s21_export_to_opm();
                 
             case 's23'
                 output_data = s23_quality_validation();

@@ -1,0 +1,507 @@
+# Wells Configuration for Eagle West Field MRST Simulation
+# Source: 05_Wells_Completions.md, 06_Production_History.md (CANON)
+# Date: 2025-08-07
+
+wells_system:
+  # Field Development Overview (CANON)
+  total_wells: 15                      # 10 producers + 5 injectors
+  producers: 10
+  injectors: 5
+  development_phases: 6
+  development_duration_days: 3650      # 10 years
+  peak_production_target: 18500        # STB/day
+  
+  # Development Phases Schedule (CANON)
+  development_phases:
+    phase_1:
+      timeline_days: [1, 365]          # Days 1-365
+      duration_years: 1
+      wells_added: ["EW-001"]
+      total_active_wells: 1
+      wells_p_i: "1/0"                 # Producers/Injectors
+      target_oil_rate_stb_day: 2500
+      expected_oil_rate_stb_day: 2350
+      water_cut_percent: 22
+      gor_scf_stb: 750
+      
+    phase_2:
+      timeline_days: [366, 730]        # Days 366-730
+      duration_years: 1
+      wells_added: ["IW-001", "EW-002"]
+      total_active_wells: 3
+      wells_p_i: "2/1"
+      target_oil_rate_stb_day: 5200
+      expected_oil_rate_stb_day: 5100
+      water_cut_percent: 28
+      gor_scf_stb: 800
+      injection_rate_bwpd: 5100
+      vrr_target: 1.1
+      
+    phase_3:
+      timeline_days: [731, 1095]       # Days 731-1095
+      duration_years: 1
+      wells_added: ["EW-003", "EW-004", "IW-002"]
+      total_active_wells: 6
+      wells_p_i: "4/2"
+      target_oil_rate_stb_day: 8500
+      expected_oil_rate_stb_day: 8300
+      water_cut_percent: 32
+      gor_scf_stb: 850
+      injection_rate_bwpd: 9500
+      vrr_target: 1.12
+      
+    phase_4:
+      timeline_days: [1096, 1825]      # Days 1096-1825
+      duration_years: 2
+      wells_added: ["EW-005", "EW-006", "EW-007", "IW-003"]
+      total_active_wells: 10
+      wells_p_i: "7/3"
+      target_oil_rate_stb_day: 12500
+      expected_oil_rate_stb_day: 12200
+      water_cut_percent: 38
+      gor_scf_stb: 900
+      injection_rate_bwpd: 14200
+      vrr_target: 1.14
+      
+    phase_5:
+      timeline_days: [1826, 2920]      # Days 1826-2920
+      duration_years: 3
+      wells_added: ["EW-008", "EW-009", "IW-004"]
+      total_active_wells: 13
+      wells_p_i: "9/4"
+      target_oil_rate_stb_day: 16200
+      expected_oil_rate_stb_day: 15800
+      water_cut_percent: 45
+      gor_scf_stb: 950
+      injection_rate_bwpd: 18500
+      vrr_target: 1.16
+      
+    phase_6:
+      timeline_days: [2921, 3650]      # Days 2921-3650
+      duration_years: 2
+      wells_added: ["EW-010", "IW-005"]
+      total_active_wells: 15
+      wells_p_i: "10/5"
+      target_oil_rate_stb_day: 18500
+      expected_oil_rate_stb_day: 18200
+      water_cut_percent: 52
+      gor_scf_stb: 1000
+      injection_rate_bwpd: 21500
+      vrr_target: 1.18
+      
+  # Producer Wells Specifications (CANON)
+  producer_wells:
+    EW-001:
+      well_type: "vertical"
+      phase: 1
+      drill_date_day: 180
+      grid_location: [15, 10, 3]       # [I, J, K_top]
+      surface_coords: [2750, 1750]     # ft from origin
+      total_depth_tvd_ft: 8200
+      target_oil_rate_stb_day: 1500
+      min_bhp_psi: 1500
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 150
+      esp_hp: 200
+      completion_layers: [1, 2, 3, 5, 6, 7]
+      wellbore_radius_ft: 0.328        # 6-inch wellbore (0.1 m)
+      skin_factor: 4.5
+      
+    EW-002:
+      well_type: "vertical"
+      phase: 2
+      drill_date_day: 550
+      grid_location: [25, 15, 2]
+      surface_coords: [3570, 2010]
+      total_depth_tvd_ft: 8180
+      target_oil_rate_stb_day: 1800
+      min_bhp_psi: 1450
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 175
+      esp_hp: 250
+      completion_layers: [1, 2, 3, 5, 6, 7]
+      wellbore_radius_ft: 0.328
+      skin_factor: 3.8
+      
+    EW-003:
+      well_type: "horizontal"
+      phase: 3
+      drill_date_day: 820
+      grid_location: [20, 25, 6]
+      surface_coords: [3240, 2840]
+      total_depth_tvd_ft: 8160
+      horizontal_length_ft: 2500
+      target_oil_rate_stb_day: 2200
+      min_bhp_psi: 1400
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 200
+      esp_hp: 300
+      completion_layers: [5, 6, 7]     # Middle zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.2                # Negative skin for horizontal
+      
+    EW-004:
+      well_type: "vertical"
+      phase: 3
+      drill_date_day: 900
+      grid_location: [8, 36, 3]
+      surface_coords: [1900, 3600]
+      total_depth_tvd_ft: 8220
+      target_oil_rate_stb_day: 1600
+      min_bhp_psi: 1520
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 140
+      esp_hp: 180
+      completion_layers: [1, 2, 3, 9, 10, 11]
+      wellbore_radius_ft: 0.328
+      skin_factor: 4.2
+      
+    EW-005:
+      well_type: "horizontal"
+      phase: 4
+      drill_date_day: 1200
+      grid_location: [30, 20, 2]
+      surface_coords: [4050, 2470]
+      total_depth_tvd_ft: 8140
+      horizontal_length_ft: 3000
+      target_oil_rate_stb_day: 2500
+      min_bhp_psi: 1350
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 220
+      esp_hp: 350
+      completion_layers: [1, 2, 3]     # Upper zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.1
+      
+    EW-006:
+      well_type: "vertical"
+      phase: 4
+      drill_date_day: 1350
+      grid_location: [8, 18, 4]
+      surface_coords: [1890, 2340]
+      total_depth_tvd_ft: 8240
+      target_oil_rate_stb_day: 1400
+      min_bhp_psi: 1480
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-4000"
+      esp_stages: 120
+      esp_hp: 150
+      completion_layers: [5, 6, 7, 9, 10]
+      wellbore_radius_ft: 0.328
+      skin_factor: 5.1
+      
+    EW-007:
+      well_type: "multi_lateral"
+      phase: 4
+      drill_date_day: 1500
+      grid_location: [22, 8, 3]
+      surface_coords: [3200, 1480]
+      total_depth_tvd_ft: 8200
+      lateral_1_length_ft: 1800
+      lateral_2_length_ft: 2200
+      target_oil_rate_stb_day: 2800
+      min_bhp_psi: 1380
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 250
+      esp_hp: 400
+      completion_layers: [1, 2, 3, 5, 6, 7]  # Multi-zone
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.8
+      
+    EW-008:
+      well_type: "horizontal"
+      phase: 5
+      drill_date_day: 2000
+      grid_location: [35, 12, 6]
+      surface_coords: [4460, 1880]
+      total_depth_tvd_ft: 8170
+      horizontal_length_ft: 2800
+      target_oil_rate_stb_day: 2300
+      min_bhp_psi: 1420
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-8000"
+      esp_stages: 190
+      esp_hp: 280
+      completion_layers: [5, 6, 7]
+      wellbore_radius_ft: 0.328
+      skin_factor: -1.5
+      
+    EW-009:
+      well_type: "vertical"
+      phase: 5
+      drill_date_day: 2200
+      grid_location: [22, 35, 4]
+      surface_coords: [3400, 3530]
+      total_depth_tvd_ft: 8190
+      target_oil_rate_stb_day: 1700
+      min_bhp_psi: 1550
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-6000"
+      esp_stages: 160
+      esp_hp: 220
+      completion_layers: [1, 2, 3, 9, 10, 11, 12]
+      wellbore_radius_ft: 0.328
+      skin_factor: 3.9
+      
+    EW-010:
+      well_type: "multi_lateral"           # CORRECTED: Canon says tri-lateral, not horizontal
+      phase: 6
+      drill_date_day: 3100
+      grid_location: [28, 28, 5]
+      surface_coords: [3810, 3070]
+      total_depth_tvd_ft: 8155
+      lateral_1_length_ft: 1350           # Primary lateral (Canon: 05_Wells_Completions.md)
+      lateral_2_length_ft: 1180           # Secondary lateral (Canon: 05_Wells_Completions.md)  
+      lateral_3_length_ft: 750            # Tertiary lateral (Canon: PROD10 tri-lateral)
+      target_oil_rate_stb_day: 2600
+      min_bhp_psi: 1380
+      max_water_cut: 0.95
+      max_gor_scf_stb: 3000
+      esp_type: "GC-10000"
+      esp_stages: 230
+      esp_hp: 380
+      completion_layers: [5, 6, 7]        # All three sand intervals
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.3
+      
+  # Injector Wells Specifications (CANON)
+  injector_wells:
+    IW-001:
+      well_type: "vertical"
+      phase: 2
+      drill_date_day: 450
+      grid_location: [5, 10, 6]
+      surface_coords: [750, 1750]
+      total_depth_tvd_ft: 8300
+      target_injection_rate_bbl_day: 5100
+      max_bhp_psi: 3200
+      completion_layers: [5, 6, 7, 10, 11, 12]  # Middle and lower zones
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.2
+      injection_fluid: "formation_water"
+      
+    IW-002:
+      well_type: "vertical"
+      phase: 3
+      drill_date_day: 1000
+      grid_location: [35, 35, 7]
+      surface_coords: [4460, 3530]
+      total_depth_tvd_ft: 8250
+      target_injection_rate_bbl_day: 4400
+      max_bhp_psi: 3300
+      completion_layers: [9, 10, 11, 12]  # Lower zone focus
+      wellbore_radius_ft: 0.328
+      skin_factor: 0.8
+      injection_fluid: "formation_water"
+      
+    IW-003:
+      well_type: "horizontal"
+      phase: 4
+      drill_date_day: 1600
+      grid_location: [14, 23, 8]
+      surface_coords: [2700, 2500]
+      total_depth_tvd_ft: 8280
+      horizontal_length_ft: 2000
+      target_injection_rate_bbl_day: 4700
+      max_bhp_psi: 3100
+      completion_layers: [9, 10, 11, 12]  # Lower zone horizontal
+      wellbore_radius_ft: 0.328
+      skin_factor: -2.5
+      injection_fluid: "formation_water"
+      
+    IW-004:
+      well_type: "vertical"
+      phase: 5
+      drill_date_day: 2300
+      grid_location: [32, 8, 9]
+      surface_coords: [4130, 1480]
+      total_depth_tvd_ft: 8320
+      target_injection_rate_bbl_day: 4300
+      max_bhp_psi: 3400
+      completion_layers: [10, 11, 12]  # Bottom layers
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.0
+      injection_fluid: "formation_water"
+      
+    IW-005:
+      well_type: "multi_lateral"          # CORRECTED: Canon says dual-lateral, not vertical
+      phase: 6
+      drill_date_day: 3200
+      grid_location: [15, 38, 10]
+      surface_coords: [2750, 3830]
+      total_depth_tvd_ft: 8340
+      lateral_1_length_ft: 900           # Primary lateral (Canon: INJ5 dual-lateral)
+      lateral_2_length_ft: 650           # Secondary lateral (Canon: 05_Wells_Completions.md)
+      target_injection_rate_bbl_day: 4000
+      max_bhp_psi: 3600
+      completion_layers: [9, 10, 11, 12]  # Middle and Lower Sand injection
+      wellbore_radius_ft: 0.328
+      skin_factor: 1.5
+      injection_fluid: "formation_water"
+      
+  # Drilling Parameters (CANON-FIRST)
+  drilling_parameters:
+    # Drilling Durations by Well Type (days) - from Eagle West Field specifications
+    drilling_durations:
+      vertical: 45              # Standard vertical drilling
+      horizontal: 65            # Extended for horizontal wells
+      multi_lateral: 85         # Extended for multi-lateral wells
+      
+    # Completion Durations by Well Type (days) - from Eagle West Field specifications  
+    completion_durations:
+      vertical: 15              # Standard completion for vertical wells
+      horizontal: 12            # Reduced completion time for horizontal (less perforation)
+      multi_lateral: 18         # Extended completion for multi-lateral complexity
+      
+    # Drilling Schedule Control Parameters
+    drilling_schedule_buffer_days: 30   # Buffer time between drilling operations
+    weather_delay_contingency: 0.15     # 15% contingency for weather delays
+    
+  # Well Completion Parameters (CANON)
+  completion_parameters:
+    # Wellbore Properties
+    wellbore_radius_m: 0.1               # 6-inch wellbore (0.328 ft)
+    wellbore_skin_range: [-2.5, 5.1]     # Range across all wells
+    default_skin_factor: 0.0             # Default skin factor for well initialization
+    default_target_oil_rate_stb_day: 0    # Default target oil rate for well initialization
+    casing_size_inch: 7.0                # Standard casing size
+    tubing_size_inch: 3.5                # Standard tubing size
+    
+    # REMOVED: Duplicate fields moved to proper locations below
+
+    # Sand Control
+    sand_control_method: "gravel_pack_with_screen"
+    screen_type: "premium_wire_wrap"
+    screen_slot_size_inch: 0.008
+    
+    # Perforation Parameters (CANON-FIRST)
+    perforation_density: 12               # Perforations per foot
+    perforation_diameter_inch: 0.43       # Perforation hole diameter in inches
+    
+    # Perforation Factors (CANON-FIRST) - Proper structure for MRST compatibility
+    perforation_factors:
+      horizontal_density_factor: 0.5     # Density reduction for horizontal wells
+      horizontal_diameter_factor: 1.16   # Diameter increase for horizontal wells
+      multilateral_density_factor: 0.67  # Density reduction for multilateral wells
+      multilateral_diameter_factor: 1.09 # Diameter increase for multilateral wells
+      multilateral_penetration_inch: 15  # Perforation penetration for multilateral wells
+      # TEMPORARY: Parameters placed here due to YAML parser issue after perforation_factors
+      default_kickoff_depth_offset_ft: 278  # Average offset from TVD for horizontal/multi-lateral wells
+      minimum_well_spacing_ft: 500.0       # Minimum well spacing for Eagle West Field
+    
+    # Completion Interval Parameters (CANON-FIRST)
+    layer_completion_parameters:
+      layer_thickness_ft: 25             # Standard layer thickness for Eagle West Field
+      layer_spacing_ft: 30               # Standard layer spacing
+      upper_sand_offset_ft: 250          # Upper sand offset from total depth
+      middle_sand_offset_ft: 150         # Middle sand offset from total depth  
+      lower_sand_offset_ft: 50           # Lower sand offset from total depth
+    
+    # Multi-Stage Completion Parameters (CANON-FIRST) - Moved to end
+    horizontal_completion:
+      stage_length_ft: 250               # Standard stage length for horizontal wells
+      vertical_completion_length_ft: 30  # Standard completion length per layer for vertical wells
+      multilateral_stage_length_ft: 200  # Standard stage length for multilateral wells
+    
+    # Completion Design
+    completion_type: "open_hole_gravel_pack"
+    gravel_pack_permeability_darcy: 5.0  # High perm gravel pack
+    
+    # Well Spacing and Layout (CANON)
+    minimum_well_spacing_ft: 500.0       # Minimum well spacing for Eagle West Field
+    
+  # Production Controls (CANON)
+  production_controls:
+    # Producer Constraints
+    producer_constraints:
+      oil_rate_control: "target_with_bhp_limit"
+      min_bhp_range_psi: [1350, 1650]    # Varies by well
+      water_cut_limit: 0.95               # 95% maximum
+      gor_limit_scf_stb: 3000            # Economic limit
+      
+    # Injector Constraints  
+    injector_constraints:
+      injection_rate_control: "target_with_bhp_limit"
+      max_bhp_range_psi: [3100, 3600]    # Varies by well
+      injection_fluid_type: "formation_water"
+      injection_temperature_f: 90.0       # Surface injection temperature
+      
+    # Field-Level Controls
+    field_controls:
+      voidage_replacement_ratio: [1.1, 1.18]  # By phase
+      field_oil_rate_target: 18500       # STB/day peak
+      field_injection_rate_target: 21500 # BWPD peak
+      
+  # Artificial Lift Systems (CANON)
+  artificial_lift:
+    esp_systems:
+      pump_types:
+        GC-2500: {capacity_bpd: 10000, hp: 100, stages_range: [80, 120]}
+        GC-4000: {capacity_bpd: 15000, hp: 150, stages_range: [100, 140]}
+        GC-6000: {capacity_bpd: 18000, hp: 200, stages_range: [120, 180]}
+        GC-8000: {capacity_bpd: 22000, hp: 250, stages_range: [150, 220]}
+        GC-10000: {capacity_bpd: 28000, hp: 300, stages_range: [180, 250]}
+        
+    # ESP Cable and Control
+    esp_cable:
+      insulation_type: "EPDM"
+      temperature_rating_f: 350
+      gauge_options: ["#2_AWG", "#4_AWG", "#6_AWG"]
+      
+    # Variable Speed Drive
+    vsd_control:
+      frequency_range_hz: [30, 65]
+      efficiency_curve: "manufacturer_standard"
+      power_factor: 0.85
+      
+  # MRST Implementation Parameters
+  mrst_well_model:
+    well_model_type: "SimpleWell"
+    connection_model: "standard"
+    wellbore_flow_model: "simple"
+    well_index_calculation: "Peaceman"
+    use_mrst_unit_conversion: true        # Use MRST convertTo() function where possible
+    
+    # Well Controls Implementation
+    control_switching: true
+    rate_bhp_switching: true
+    constraint_handling: "penalty_method"
+    
+  # Quality Control and Validation
+  validation:
+    well_location_accuracy: 50.0        # ft horizontal accuracy
+    completion_depth_accuracy: 5.0      # ft vertical accuracy
+    rate_target_tolerance: 0.05         # ±5% rate tolerance
+    bhp_measurement_accuracy: 10.0      # psi measurement accuracy
+
+# Grid Refinement Classification (CANONICAL - for grid generation)
+grid_refinement:
+  # Critical Wells - Finest PEBI grid resolution
+  critical_wells: ["EW-001", "EW-003", "EW-005", "EW-007", "EW-010"]
+  critical_pebi_cell_size: 20.0
+  critical_pebi_influence_radius: 180.0
+  
+  # Standard Wells - Medium PEBI grid resolution  
+  standard_wells: ["EW-002", "EW-008", "IW-001", "IW-003"]
+  standard_pebi_cell_size: 35.0
+  standard_pebi_influence_radius: 150.0
+  
+  # Marginal Wells - Coarsest PEBI grid resolution
+  marginal_wells: ["EW-004", "EW-006", "EW-009", "IW-002", "IW-004", "IW-005"]
+  marginal_pebi_cell_size: 50.0
+  marginal_pebi_influence_radius: 120.0

@@ -9,20 +9,20 @@ function data_path = get_data_path(category, subcategory, filename)
 %   data_path - Full path to data file or directory
 %
 % EXAMPLES:
-%   get_data_path('static') -> '/workspaces/claudeclean/data/by_type/static'
+%   get_data_path('static') -> '/workspace/data/by_type/static'
 %   get_data_path('static', 'geology') -> '.../by_type/static/geology'
 %   get_data_path('dynamic', 'pressures', 'pressure_timeseries.nc') -> '.../by_type/dynamic/pressures/pressure_timeseries.nc'
 %   get_data_path('metadata', 'control', 'session.mat') -> '.../by_type/metadata/control/session.mat'
 %
 % CANONICAL STRUCTURE:
-%   /workspaces/claudeclean/data/by_type/
+%   /workspace/data/by_type/
 %   ├── static/         (geology/, wells/, fluid_properties/, scal_properties/, field_boundaries/)
 %   ├── dynamic/        (pressures/, saturations/, rates/, velocities/, compositions/)
 %   ├── derived/        (recovery_factors/, sweep_efficiency/, connectivity/, economics/, analytics/)
 %   ├── visualizations/ (3d_maps/, 2d_plots/, animations/, dashboards/)
 %   └── metadata/       (control/, processing_logs/, version_control/, schema_definitions/)
 
-    base_path = '/workspaces/claudeclean/data/by_type';
+    base_path = '/workspace/data/by_type';
     
     if nargin < 2 || isempty(subcategory)
         subcategory = '';

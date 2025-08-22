@@ -54,30 +54,53 @@ function output_data = s14_aquifer_configuration()
         addpath(fullfile(script_dir, 'utils'));
         init_config = read_yaml_config('config/initialization_config.yaml', true);
         
-        % Load grid with pressure and saturations from s13 (CANON-FIRST: exact file from predecessor)
-        data_dir = get_data_path('static');
-        required_s13_file = fullfile(data_dir, 'grid_with_pressure_saturation_s13.mat');
-        if exist(required_s13_file, 'file')
-            fprintf('   ✅ Loading grid with pressure and saturations from s13\n');
-            load(required_s13_file, 'G_with_pressure_sat', 'state', 'rock', 'rock_types');
-            G = G_with_pressure_sat;
+        % Load from canonical MRST data structure
+        base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+        canonical_mrst_dir = fullfile(base_data_path, 'mrst');
+        
+        % Load initial state from s12/s13 (pressure, saturations, equilibrium data)
+        initial_state_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
+        if exist(initial_state_file, 'file')
+            fprintf('   ✅ Loading initial state with pressure and saturations\n');
+            initial_data = load(initial_state_file, 'data_struct');
+            state = initial_data.data_struct.state;
+            fprintf('   ✅ State loaded from canonical MRST structure\n');
         else
-            error(['CANON-FIRST ERROR: Missing required S13 output data.\n' ...
-                   'REQUIRED: Run s13_saturation_distribution.m first.\n' ...
-                   'Expected file: %s\n' ...
-                   'Canon specification: S14 requires exact S13 output with pressure and saturations.\n' ...
-                   'No fallbacks allowed - predecessor must generate complete data.'], required_s13_file);
+            error(['CANON-FIRST ERROR: Initial state not found at canonical location.\n' ...
+                   'REQUIRED: Run s12_pressure_initialization.m and s13_saturation_distribution.m first.\n' ...
+                   'Expected file: %s'], initial_state_file);
         end
         
-        % Load fluid properties for aquifer
-        addpath(fullfile(script_dir, 'utils')); 
-        fluid_file = '/workspaces/claudeclean/data/simulation_data/static/fluid/complete_fluid_blackoil.mat';
-        if exist(fluid_file, 'file')
-            fprintf('   ✅ Loading fluid properties from s11\n');
-            load(fluid_file, 'fluid_complete');
-            fluid = fluid_complete;
+        % Load grid from canonical MRST structure
+        grid_file = fullfile(canonical_mrst_dir, 'grid.mat');
+        if exist(grid_file, 'file')
+            grid_data = load(grid_file, 'data_struct');
+            G = grid_data.data_struct.G;
+            fprintf('   ✅ Loading grid from canonical MRST structure\n');
         else
-            error('Complete fluid properties not found. Run s11_pvt_tables.m first');
+            error(['CANON-FIRST ERROR: Grid not found at canonical location.\n' ...
+                   'Expected file: %s'], grid_file);
+        end
+        
+        % Load rock properties from canonical MRST structure
+        rock_file = fullfile(canonical_mrst_dir, 'rock.mat');
+        if exist(rock_file, 'file')
+            rock_data = load(rock_file, 'data_struct');
+            rock = struct('perm', rock_data.data_struct.perm, 'poro', rock_data.data_struct.poro);
+            if isfield(rock_data.data_struct, 'rock_type_assignments')
+                rock_types = rock_data.data_struct.rock_type_assignments;
+            end
+            fprintf('   ✅ Loading rock properties from canonical MRST structure\n');
+        end
+        
+        % Load fluid properties from canonical MRST structure
+        fluid_file = fullfile(canonical_mrst_dir, 'fluid.mat');
+        if exist(fluid_file, 'file')
+            fluid_data = load(fluid_file, 'data_struct');
+            fluid = fluid_data.data_struct.model;
+            fprintf('   ✅ Loading fluid properties from canonical MRST structure\n');
+        else
+            fprintf('   ⚠️  Fluid properties not found, will use basic aquifer properties\n');
         end
         
         %% 2. Extract Aquifer Configuration Parameters
@@ -123,15 +146,14 @@ function output_data = s14_aquifer_configuration()
         aquifer_type = aquifer_config.aquifer_model;
         boundary_condition = aquifer_config.aquifer_type;
         
-        % Load pressure initialization data to get actual datum values (needed for calculations)
-        pressure_file = '/workspaces/claudeclean/data/by_type/static/pressure_initialization_s12.mat';
-        if exist(pressure_file, 'file')
-            load(pressure_file, 'init_config');
-            datum_pressure = init_config.initialization.initial_conditions.initial_pressure_psi;
-            datum_depth = init_config.initialization.equilibration_method.datum_depth_ft_tvdss;
+        % Get pressure initialization data from loaded initial state
+        if exist('initial_data', 'var') && isfield(initial_data.data_struct, 'equilibrium')
+            datum_pressure = initial_data.data_struct.equilibrium.datum_pressure;
+            datum_depth = initial_data.data_struct.equilibrium.datum;
+            % Get water gradient from init config (already loaded)
             water_gradient = init_config.initialization.pressure_gradients.water_gradient_psi_ft;
         else
-            error('Pressure initialization data not found. Run s12_pressure_initialization.m first');
+            error('Pressure initialization data not found in initial state. Run s12_pressure_initialization.m first');
         end
         
         % System properties for aquifer calculations from fluid model
@@ -377,41 +399,46 @@ function output_data = s14_aquifer_configuration()
         fprintf('   📊 Connected pore volume: %.0f bbl\n', connected_pore_volume_bbl);
         fprintf('   📊 Connection ratio: %.1f%% of total cells\n', aquifer_analysis.connection_ratio * 100);
         
-        %% 8. Export Results
+        %% 8. Export Results to Canonical MRST Structure
         fprintf('📁 Exporting aquifer configuration data...\n');
         
-        % Ensure output directory exists
-        % Use same path construction as other working phases  
-        script_path = fileparts(mfilename('fullpath'));
-        output_dir = get_data_path('static');
-        if ~exist(output_dir, 'dir')
-            mkdir(output_dir);
+        % Update the existing initial_state.mat file
+        canonical_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
+        if exist(canonical_file, 'file')
+            load(canonical_file, 'data_struct');
+        else
+            data_struct = struct();
+            data_struct.created_by = {};
         end
         
-        % Create basic canonical directory structure
-        static_path = fullfile(output_dir, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
+        % Add aquifer data to existing structure
+        data_struct.aquifer.type = 'analytical';
+        data_struct.aquifer.model = aquifer_model;
+        data_struct.aquifer.parameters = aquifer_analysis;
+        data_struct.aquifer.cells = aquifer_cells;
+        data_struct.aquifer.pressure = aquifer_pressure;
+        data_struct.created_by{end+1} = 's14';
+        data_struct.timestamp = datetime('now');
+        
+        % Save updated structure
+        save(canonical_file, 'data_struct');
+        fprintf('   ✅ Canonical MRST data updated: %s\n', canonical_file);
+        
+        % Save aquifer configuration summary
+        aquifer_stats_file = fullfile(canonical_mrst_dir, 'aquifer_stats.txt');
+        fid = fopen(aquifer_stats_file, 'w');
+        if fid ~= -1
+            fprintf(fid, 'Eagle West Field - Aquifer Configuration Statistics\n');
+            fprintf(fid, '================================================\n\n');
+            fprintf(fid, 'Aquifer Type: %s\n', aquifer_model.type);
+            fprintf(fid, 'Aquifer Strength: %s\n', aquifer_model.strength);
+            fprintf(fid, 'Connected Cells: %d\n', length(aquifer_cells));
+            fprintf(fid, 'Connection Ratio: %.1f%%\n', aquifer_analysis.connection_ratio * 100);
+            fprintf(fid, 'Aquifer Pressure: %.0f psi\n', aquifer_pressure);
+            fprintf(fid, 'Aquifer Constant: %.2e bbl/psi\n', aquifer_model.aquifer_constant);
+            fprintf(fid, 'Connected Pore Volume: %.0f bbl\n', aquifer_analysis.connected_pore_volume_bbl);
+            fclose(fid);
         end
-        
-        % Save directly with native .mat format
-        aquifer_file = fullfile(static_path, 'aquifer_configuration_s14.mat');
-        save(aquifer_file, 'aquifer_model', 'aquifer_analysis', 'aquifer_cells', ...
-             'aquifer_pressure', 'boundary_cells');
-        fprintf('     Canonical data saved: %s\n', aquifer_file);
-        
-        % Save complete initialization state for simulation (backward compatibility)
-        % This combines grid, pressure, saturations, rock properties, and aquifer
-        state_complete = state;  % Already has pressure and saturations from s13
-        save(fullfile(output_dir, 'complete_initialization_state.mat'), ...
-             'G', 'state_complete', 'rock', 'rock_types', 'aquifer_model', ...
-             'fluid_complete');
-        
-        % Also save in canonical location
-        save(fullfile(static_path, 'complete_initialization_state_s14.mat'), ...
-             'G', 'state_complete', 'rock', 'rock_types', 'aquifer_model', ...
-             'fluid_complete');
-        fprintf('     Complete initialization state saved: %s\n', fullfile(static_path, 'complete_initialization_state_s14.mat'));
         
         %% 9. Create Output Summary
         output_data.aquifer_model = aquifer_model;

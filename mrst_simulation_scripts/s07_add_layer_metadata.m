@@ -77,26 +77,56 @@ function enhanced_rock = s07_add_layer_metadata()
 end
 
 function [base_rock, G] = load_base_rock_from_file()
-% Load base rock structure from file created by s06 (CANON-FIRST)
+% Load base rock structure using new canonical MRST structure
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
+    % NEW CANONICAL STRUCTURE: Load from rock.mat
+    canonical_file = '/workspace/data/mrst/rock.mat';
     
-    % CANON-FIRST: Only load from s06 data file, no fallbacks
-    base_rock_file = fullfile(data_dir, 'base_rock.mat');
-    
-    if ~exist(base_rock_file, 'file')
-        error(['CANON-FIRST ERROR: Base rock data file not found.\n' ...
-               'REQUIRED: Run s06_create_base_rock_structure.m first.\n' ...
-               'EXPECTED: %s\n' ...
-               'Canon specification requires base rock from s06.'], ...
-               base_rock_file);
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        
+        % Reconstruct rock structure from canonical data
+        base_rock = struct();
+        base_rock.perm = data_struct.perm;
+        base_rock.poro = data_struct.poro;
+        base_rock.meta.units = data_struct.units;
+        
+        fprintf('   ✅ Loading rock from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        script_path = fileparts(mfilename('fullpath'));
+        data_dir = get_data_path('static');
+        
+        base_rock_file = fullfile(data_dir, 'base_rock.mat');
+        
+        if ~exist(base_rock_file, 'file')
+            error(['CANON-FIRST ERROR: Base rock data file not found.\n' ...
+                   'REQUIRED: Run s06_create_base_rock_structure.m first.']);
+        end
+        
+        load_data = load(base_rock_file);
+        if ~isfield(load_data, 'rock') || ~isfield(load_data, 'G')
+            error('CANON-FIRST ERROR: Invalid base rock file format.');
+        end
+        
+        base_rock = load_data.rock;
+        G = load_data.G;
+        fprintf('   ⚠️  Loading rock from legacy location\n');
+        return;
     end
     
-    load_data = load(base_rock_file);
-    if ~isfield(load_data, 'rock') || ~isfield(load_data, 'G')
-        error(['CANON-FIRST ERROR: Invalid base rock file format.\n' ...
-               'REQUIRED: File must contain rock and G structures from s06.\n' ...
+    % Load grid from canonical structure
+    grid_file = '/workspace/data/mrst/grid.mat';
+    if exist(grid_file, 'file')
+        load(grid_file, 'data_struct');
+        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
+            G = data_struct.fault_grid;
+        else
+            G = data_struct.G;
+        end
+    else
+        error('CANON-FIRST ERROR: Grid data not found.');
+    end
                'Found fields: %s\n' ...
                'Canon specification requires rock and G fields.'], ...
                strjoin(fieldnames(load_data), ', '));
@@ -131,20 +161,47 @@ function validate_base_rock_input(rock)
 end
 
 function save_enhanced_rock_structure(enhanced_rock, G)
-% Save enhanced rock structure to data file for downstream workflow
+% Save enhanced rock structure using new canonical MRST structure
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
+    % NEW CANONICAL STRUCTURE: Update rock.mat with layer metadata
+    canonical_file = '/workspace/data/mrst/rock.mat';
     
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
+    % Load existing rock data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
     end
     
-    % Save enhanced rock structure with canonical naming
-    enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
-    save(enhanced_rock_file, 'enhanced_rock', 'G');
+    % Add layer metadata to existing rock structure
+    data_struct.layers.layer_id = enhanced_rock.layer.layer_id;
+    data_struct.layers.rock_type = enhanced_rock.layer.rock_type;
+    data_struct.layers.properties = enhanced_rock.layer.properties;
+    data_struct.created_by{end+1} = 's07';
+    data_struct.timestamp = datetime('now');
     
-    fprintf('   ✅ Enhanced rock structure saved to %s\n', enhanced_rock_file);
+    % Save updated canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('   NEW CANONICAL: Rock with layer metadata updated in %s\n', canonical_file);
+    
+    % Maintain legacy compatibility during transition
+    try
+        script_path = fileparts(mfilename('fullpath'));
+        data_dir = get_data_path('static');
+        
+        if ~exist(data_dir, 'dir')
+            mkdir(data_dir);
+        end
+        
+        % Save enhanced rock structure with canonical naming
+        enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
+        save(enhanced_rock_file, 'enhanced_rock', 'G');
+        
+        fprintf('   Legacy compatibility maintained: %s\n', enhanced_rock_file);
+    catch ME
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
+    end
     
 end
 

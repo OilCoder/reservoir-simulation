@@ -68,33 +68,40 @@ function rock = s06_create_base_rock_structure()
 end
 
 function G = load_grid_structure()
-% Load canonical PEBI grid structure from s05_create_pebi_grid (CANON-FIRST)
+% Load canonical PEBI grid structure using new canonical MRST structure
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
+    % NEW CANONICAL STRUCTURE: Load from grid.mat
+    canonical_file = '/workspace/data/mrst/grid.mat';
     
-    % CANON-FIRST: Only load canonical PEBI grid, no fallbacks
-    pebi_grid_file = fullfile(data_dir, 'pebi_grid.mat');
-    
-    if ~exist(pebi_grid_file, 'file')
-        error(['CANON-FIRST ERROR: Canonical PEBI grid not found.\n' ...
-               'REQUIRED: Run s05_create_pebi_grid.m to generate canonical grid.\n' ...
-               'EXPECTED: %s\n' ...
-               'Canon specification requires PEBI grid for Eagle West Field.'], ...
-               pebi_grid_file);
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        % Use fault grid if available, otherwise use base grid
+        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
+            G = data_struct.fault_grid;
+        else
+            G = data_struct.G;
+        end
+        fprintf('   ✅ Loading grid from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        script_path = fileparts(mfilename('fullpath'));
+        data_dir = get_data_path('static');
+        
+        pebi_grid_file = fullfile(data_dir, 'pebi_grid.mat');
+        
+        if ~exist(pebi_grid_file, 'file')
+            error(['CANON-FIRST ERROR: Grid structure not found.\n' ...
+                   'REQUIRED: Run s03_create_pebi_grid.m and s05_add_faults.m first.']);
+        end
+        
+        load_data = load(pebi_grid_file);
+        if ~isfield(load_data, 'G_pebi')
+            error('CANON-FIRST ERROR: Invalid grid file format.');
+        end
+        
+        G = load_data.G_pebi;
+        fprintf('   ⚠️  Loading grid from legacy location\n');
     end
-    
-    load_data = load(pebi_grid_file);
-    if ~isfield(load_data, 'G_pebi')
-        error(['CANON-FIRST ERROR: Invalid PEBI grid file format.\n' ...
-               'REQUIRED: File must contain G_pebi structure from s05.\n' ...
-               'Found fields: %s\n' ...
-               'Canon specification requires G_pebi field.'], ...
-               strjoin(fieldnames(load_data), ', '));
-    end
-    
-    G = load_data.G_pebi;
-    fprintf('   ✅ Loading canonical PEBI grid from s05\n');
     
     % CRITICAL FIX: Always recompute geometry to ensure valid volumes
     fprintf('   🔧 Recomputing geometry to ensure valid volumes...\n');
@@ -324,8 +331,6 @@ function save_base_rock_structure(rock, G)
         % Load canonical data utilities
         script_path = fileparts(mfilename('fullpath'));
         addpath(fullfile(script_path, 'utils'));
-        run(fullfile(script_path, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(script_path, 'utils', 'directory_management.m'));
         
         % Create canonical directory structure
         base_data_path = fullfile(fileparts(script_path), 'data');
@@ -345,10 +350,21 @@ function save_base_rock_structure(rock, G)
         rock_data.metadata.field_name = 'Eagle_West';
         rock_data.metadata.cell_count = length(rock.poro);
         
-        % Save using canonical format with native .mat
-        rock_file = fullfile(static_path, 'base_rock_s06.mat');
-        save(rock_file, 'rock');
-        fprintf('     Canonical base rock saved: %s\n', rock_file);
+        % NEW CANONICAL STRUCTURE: Create rock.mat in /workspace/data/mrst/
+        canonical_file = '/workspace/data/mrst/rock.mat';
+        
+        % Create new canonical rock structure
+        data_struct = struct();
+        data_struct.perm = rock.perm;
+        data_struct.poro = rock.poro;
+        data_struct.units.perm_unit = 'mD';
+        data_struct.units.poro_unit = 'fraction';
+        data_struct.created_by = {'s06'};
+        data_struct.timestamp = datetime('now');
+        
+        % Save canonical structure
+        save(canonical_file, 'data_struct');
+        fprintf('     NEW CANONICAL: Rock data saved to %s\n', canonical_file);
         
         % Maintain legacy compatibility during transition
         legacy_data_dir = get_data_path('static');

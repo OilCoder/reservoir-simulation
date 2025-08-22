@@ -109,21 +109,31 @@ function fault_data = s05_add_faults()
 end
 
 function G = step_1_load_structural_data()
-% Step 1 - Load structural framework from s04
+% Step 1 - Load structural framework from s04 using new canonical MRST structure
 
-    % Substep 1.1 – Load structural framework _____________________
-    func_dir = fileparts(mfilename('fullpath'));
-    addpath(fullfile(func_dir, 'utils'));
-    data_dir = get_data_path('static');
-    structural_file = fullfile(data_dir, 'structural_framework.mat');
+    % NEW CANONICAL STRUCTURE: Load from grid.mat
+    canonical_file = '/workspace/data/mrst/grid.mat';
     
-    if ~exist(structural_file, 'file')
-        error('Structural framework not found. Run s04_structural_framework first.');
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        G = data_struct.G;
+        fprintf('   ✅ Loading grid with structure from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        data_dir = get_data_path('static');
+        structural_file = fullfile(data_dir, 'structural_framework.mat');
+        
+        if ~exist(structural_file, 'file')
+            error('CANON-FIRST ERROR: Structural framework not found.\nREQUIRED: Run s04_structural_framework first.');
+        end
+        
+        % Load structural data
+        load(structural_file, 'structural_data');
+        G = structural_data.grid;
+        fprintf('   ⚠️  Loading structural data from legacy location\n');
     end
-    
-    % ✅ Load structural data
-    load(structural_file, 'structural_data');
-    G = structural_data.grid;
     
 end
 
@@ -455,36 +465,40 @@ function validate_fault_system_implementation(G, fault_geometries, trans_mult)
 end
 
 function export_fault_files(G, fault_geometries, intersections, trans_mult)
-% Export fault data to files using canonical organization
+% Export fault data to files using new canonical MRST structure
     
-    try
-        % Load canonical data utilities
+    % NEW CANONICAL STRUCTURE: Update grid.mat with fault information
+    canonical_file = '/workspace/data/mrst/grid.mat';
+    
+    % Load existing grid data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
+    end
+    
+    % Add fault information to existing grid structure  
+    data_struct.structure.faults = fault_geometries;
+    data_struct.fault_grid = G;  % Grid with fault properties applied
+    data_struct.created_by{end+1} = 's05';
+    data_struct.timestamp = datetime('now');
+    
+    % Save updated canonical structure
+    save(canonical_file, 'data_struct');
+    
+    % Count sealing vs leaky faults
+    sealing_count = 0;
+    for i = 1:length(fault_geometries)
+        if fault_geometries(i).trans_mult <= 0.01
+            sealing_count = sealing_count + 1;
+        end
+    end
+    fprintf('     NEW CANONICAL: Grid with fault system updated in %s\n', canonical_file);
+    
+        % Maintain legacy compatibility during transition
         func_dir = fileparts(mfilename('fullpath'));
         addpath(fullfile(func_dir, 'utils'));
-        run(fullfile(func_dir, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(func_dir, 'utils', 'directory_management.m'));
-        
-        % Create basic canonical directory structure
-        base_data_path = fullfile(fileparts(func_dir), 'data');
-        static_path = fullfile(base_data_path, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
-        end
-        
-        % Save fault system directly in canonical structure
-        fault_file = fullfile(static_path, 'fault_system_s05.mat');
-        save(fault_file, 'fault_geometries', 'trans_mult', 'intersections', 'G');
-        
-        % Count sealing vs leaky faults
-        sealing_count = 0;
-        for i = 1:length(fault_geometries)
-            if fault_geometries(i).trans_mult <= 0.01
-                sealing_count = sealing_count + 1;
-            end
-        end
-        fprintf('     Canonical fault system saved: %s\n', fault_file);
-        
-        % Maintain legacy compatibility during transition
         legacy_data_dir = get_data_path('static');
         if ~exist(legacy_data_dir, 'dir')
             mkdir(legacy_data_dir);

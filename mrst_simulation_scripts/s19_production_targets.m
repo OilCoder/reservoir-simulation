@@ -11,7 +11,7 @@ function targets_results = s19_production_targets()
     if ~success
         error('MRST validation failed: %s', message);
     end
-    print_step_header('S20', 'Production Targets (Minimal Version)');
+    print_step_header('S19', 'Production Targets (Minimal Version)');
     
     total_start_time = tic;
     targets_results = struct();
@@ -26,13 +26,20 @@ function targets_results = s19_production_targets()
         end
         data_dir = get_data_path('static');
         
-        schedule_file = fullfile(data_dir, 'development_schedule.mat');
-        load(schedule_file, 'schedule_results');
-        schedule_data = schedule_results;
-        
-        controls_file = fullfile(data_dir, 'production_controls.mat');
-        load(controls_file, 'control_results');
-        control_data = control_results;
+        % Load from canonical schedule.mat
+        canonical_schedule_file = '/workspace/data/mrst/schedule.mat';
+        if exist(canonical_schedule_file, 'file')
+            schedule_data_load = load(canonical_schedule_file, 'data_struct');
+            schedule_data = struct();
+            schedule_data.development_phases = schedule_data_load.data_struct.development.phases;
+            
+            control_data = struct();
+            control_data.producer_controls = schedule_data_load.data_struct.controls.producers;
+            control_data.injector_controls = schedule_data_load.data_struct.controls.injectors;
+        else
+            error(['Missing canonical schedule file: /workspace/data/mrst/schedule.mat\n' ...
+                   'REQUIRED: Run s17 and s18 to generate canonical schedule structure.']);
+        end
         
         targets_results.schedule_data = schedule_data;
         targets_results.control_data = control_data;
@@ -78,12 +85,36 @@ function targets_results = s19_production_targets()
         targets_results.economic_optimization = economic_optimization;
         print_step_result(5, 'Economic Optimization Logic', 'success', toc(step_start));
         
-        % Step 6 - Export (minimal)
+        % Step 6 - Update canonical schedule structure
         step_start = tic;
-        export_path = fullfile(data_dir, 'production_targets.mat');
-        save(export_path, 'targets_results');
-        targets_results.export_path = export_path;
-        print_step_result(6, 'Export Production Targets', 'success', toc(step_start));
+        canonical_file = '/workspace/data/mrst/schedule.mat';
+        
+        % Load existing data
+        if exist(canonical_file, 'file')
+            load(canonical_file, 'data_struct');
+        else
+            data_struct = struct();
+            data_struct.created_by = {};
+        end
+        
+        % Add production targets
+        data_struct.targets.field = targets_results.phase_targets;
+        data_struct.targets.pattern = struct();  % Pattern-based targets (minimal)
+        data_struct.targets.recovery = struct();  % Recovery targets (minimal)
+        data_struct.targets.recovery.total_revenue_musd = targets_results.economic_optimization.field_economics.total_revenue_musd;
+        
+        % Create minimal MRST schedule structure
+        schedule = struct();
+        schedule.step = [];  % Will be populated by s20
+        schedule.control = [];  % Will be populated by s20
+        data_struct.schedule = schedule;
+        
+        data_struct.created_by{end+1} = 's19';
+        data_struct.timestamp = datetime('now');
+        
+        save(canonical_file, 'data_struct');
+        targets_results.export_path = canonical_file;
+        print_step_result(6, 'Update Canonical Schedule Structure', 'success', toc(step_start));
         
         % Final setup
         targets_results.status = 'success';
@@ -92,7 +123,7 @@ function targets_results = s19_production_targets()
         targets_results.optimization_complete = true;
         targets_results.creation_time = datestr(now);
         
-        print_step_footer('S20', 'Production Targets Created (Minimal Version)', toc(total_start_time));
+        print_step_footer('S19', 'Production Targets Created (Minimal Version)', toc(total_start_time));
         
     catch ME
         targets_results.status = 'failed';

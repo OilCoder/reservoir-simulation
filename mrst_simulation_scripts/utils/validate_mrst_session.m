@@ -107,28 +107,30 @@ function session_loaded = load_saved_s01_session(script_dir)
     session_loaded = false;
     
     try
-        % Look for saved session file
-        session_file = fullfile(script_dir, 'data', 'session', 's01_mrst_session.mat');
+        % Look for saved session file in local session folder
+        script_dir = fileparts(fileparts(mfilename('fullpath'))); % Go up one level from utils/
+        session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
         
         if exist(session_file, 'file')
             fprintf('   Loading saved MRST session from: %s\n', session_file);
             
             % Load the saved session data
-            session_data = load(session_file);
+            loaded_data = load(session_file);
+            session_data = loaded_data.session_data;
             
             % Restore MATLAB path from saved session
-            if isfield(session_data, 'mrst_paths') && ~isempty(session_data.mrst_paths)
-                for i = 1:length(session_data.mrst_paths)
-                    if exist(session_data.mrst_paths{i}, 'dir')
-                        addpath(session_data.mrst_paths{i});
+            if isfield(session_data, 'paths') && ~isempty(session_data.paths)
+                for i = 1:length(session_data.paths)
+                    if exist(session_data.paths{i}, 'dir')
+                        addpath(session_data.paths{i});
                     end
                 end
-                fprintf('   Restored %d MRST paths from saved session\n', length(session_data.mrst_paths));
+                fprintf('   Restored %d MRST paths from saved session\n', length(session_data.paths));
             end
             
             % Restore global variables if they exist
-            if isfield(session_data, 'global_vars')
-                global_vars = session_data.global_vars;
+            if isfield(session_data, 'environment')
+                global_vars = session_data.environment;
                 if isfield(global_vars, 'MRST_ROOT_PATH')
                     global MRST_ROOT_PATH;
                     MRST_ROOT_PATH = global_vars.MRST_ROOT_PATH;

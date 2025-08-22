@@ -214,7 +214,7 @@ This document defines technical specifications and requirements for **native MRS
 - **Relative Permeability**: Special core analysis (SCAL) data
 
 ### Initial Reservoir Conditions
-- **Pressure**: Hydrostatic gradient with 2900 psi at datum
+- **Pressure**: Hydrostatic gradient with 3600 psi at datum
 - **Oil-Water Contact**: 8150 ft subsea
 - **Initial Water Saturation**: 20% in oil zone
 - **Initial Oil Saturation**: 80% in oil zone

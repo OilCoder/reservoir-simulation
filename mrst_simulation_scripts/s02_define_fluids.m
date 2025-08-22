@@ -445,34 +445,41 @@ function validate_native_fluid(fluid, fluid_params)
 end
 
 function export_native_fluid_data(fluid, fluid_params, deck)
-% EXPORT_NATIVE_FLUID_DATA - Export native fluid data using canonical organization
+% EXPORT_NATIVE_FLUID_DATA - Export native fluid data using new canonical MRST structure
 %
 % INPUT:
 %   fluid - Native MRST fluid structure
 %   fluid_params - Original fluid parameters
 %   deck - MRST deck structure
 
-    try
-        % Load canonical data utilities
-        script_path = fileparts(mfilename('fullpath'));
-        addpath(fullfile(script_path, 'utils'));
-        run(fullfile(script_path, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(script_path, 'utils', 'directory_management.m'));
-        
-        % Create basic canonical directory structure
-        base_data_path = fullfile(fileparts(script_path), 'data');
-        static_path = fullfile(base_data_path, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
+    % NEW CANONICAL STRUCTURE: Create fluid.mat in /workspace/data/mrst/
+    canonical_file = '/workspace/data/mrst/fluid.mat';
+    
+    % Check if canonical file already exists (load existing data)
+    if exist(canonical_file, 'file')
+        load(canonical_file);
+        if ~exist('data_struct', 'var')
+            data_struct = struct();
+            data_struct.created_by = {};
         end
-        
-        % Save fluid data directly in canonical structure  
-        fluid_file = fullfile(static_path, 'fluid_properties_s02.mat');
-        save(fluid_file, 'fluid', 'fluid_params', 'deck');
-        
-        fprintf('     Canonical fluid data saved: %s\n', fluid_file);
-        
-        % Maintain legacy compatibility during transition
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
+    end
+    
+    % Add new fluid data to canonical structure
+    data_struct.properties = fluid_params;
+    data_struct.model = fluid;
+    data_struct.deck = deck;
+    data_struct.created_by{end+1} = 's02';
+    data_struct.timestamp = datetime('now');
+    
+    % Save canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('     NEW CANONICAL: Fluid data saved to %s\n', canonical_file);
+    
+    % Maintain legacy compatibility during transition
+    try
         legacy_data_dir = get_data_path('static');
         if ~exist(legacy_data_dir, 'dir')
             mkdir(legacy_data_dir);
@@ -482,14 +489,9 @@ function export_native_fluid_data(fluid, fluid_params, deck)
         
         % Create summary report
         create_fluid_summary_report(fluid_params, deck, legacy_data_dir);
-        
         fprintf('     Legacy compatibility maintained: %s\n', legacy_fluid_file);
-        
     catch ME
-        fprintf('Warning: Canonical export failed: %s\n', ME.message);
-        
-        % Fallback to legacy format only
-        fallback_export_fluid_data(fluid, fluid_params, deck);
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
     end
 end
 

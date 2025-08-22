@@ -18,46 +18,45 @@ function fluid_complete = s11_pvt_tables()
         step_start = tic;
         addpath('utils/pvt_processing');
         
-        % Use canonical data organization pattern
-        base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-        canonical_data_dir = fullfile(base_data_path, 'by_type', 'static');
-        fluid_file = fullfile(canonical_data_dir, 'fluid_capillary_s10.mat');
-        grid_file = fullfile(canonical_data_dir, 'pebi_grid_s03.mat');
+        % NEW CANONICAL STRUCTURE: Load from fluid.mat and grid.mat
+        fluid_file = '/workspace/data/mrst/fluid.mat';
+        grid_file = '/workspace/data/mrst/grid.mat';
         
         if ~exist(fluid_file, 'file')
-            error(['Missing canonical fluid file: fluid_capillary_s10.mat\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
-                   'S10 must generate fluid_capillary_s10.mat file in canonical location:\n' ...
-                   '%s'], fluid_file);
+            error(['Missing canonical fluid file: fluid.mat\n' ...
+                   'REQUIRED: Run s02-s10 workflow to generate fluid data.']);
         end
         if ~exist(grid_file, 'file')
-            error(['Missing canonical grid file: pebi_grid_s03.mat\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
-                   'S03 must generate pebi_grid_s03.mat file in canonical location:\n' ...
-                   '%s'], grid_file);
+            error(['Missing canonical grid file: grid.mat\n' ...
+                   'REQUIRED: Run s03-s05 workflow to generate grid data.']);
         end
         
-        % Load fluid with capillary pressure from s10
-        fluid_data = load(fluid_file); 
-        if isfield(fluid_data, 'fluid_with_pc')
-            fluid_with_pc = fluid_data.fluid_with_pc;
-        else
-            error(['Invalid fluid file structure. Expected variable: fluid_with_pc\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
-                   'S10 must save fluid_with_pc variable in canonical format.']);
+        % Load fluid with capillary pressure from canonical structure
+        fluid_data = load(fluid_file, 'data_struct');
+        
+        % Reconstruct complete fluid structure from canonical data
+        fluid_with_pc = fluid_data.data_struct.model;  % Base MRST fluid model
+        if isfield(fluid_data.data_struct, 'relperm')
+            % Add relative permeability functions
+            fluid_with_pc.krW = fluid_data.data_struct.relperm.krw;
+            fluid_with_pc.krO = fluid_data.data_struct.relperm.kro;
+            fluid_with_pc.krG = fluid_data.data_struct.relperm.krg;
+        end
+        if isfield(fluid_data.data_struct, 'capillary')
+            % Add capillary pressure functions
+            fluid_with_pc.pcOW = fluid_data.data_struct.capillary.pcow;
+            fluid_with_pc.pcOG = fluid_data.data_struct.capillary.pcog;
         end
         
-        % Load PEBI grid from s03
-        grid_data = load(grid_file); 
-        if isfield(grid_data, 'G_pebi')
-            G = grid_data.G_pebi;
-        elseif isfield(grid_data, 'G')
-            G = grid_data.G;
+        % Load grid from canonical structure
+        grid_data = load(grid_file, 'data_struct');
+        if isfield(grid_data.data_struct, 'fault_grid') && ~isempty(grid_data.data_struct.fault_grid)
+            G = grid_data.data_struct.fault_grid;
         else
-            error(['Invalid grid file structure. Expected variable: G_pebi or G\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Data_Pipeline.md\n' ...
-                   'S03 must save G_pebi variable in canonical format.']);
+            G = grid_data.data_struct.G;
         end
+        
+        fprintf('   ✅ Loading from canonical MRST structure\n');
         pvt_config = load_pvt_config();
         print_step_result(1, 'Load Dependencies', 'success', toc(step_start));
         

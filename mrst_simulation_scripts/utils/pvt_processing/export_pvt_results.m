@@ -1,34 +1,52 @@
 function export_pvt_results(fluid_complete)
-% EXPORT_PVT_RESULTS - Export PVT tables and comprehensive summary
+% EXPORT_PVT_RESULTS - Export PVT tables using new canonical MRST structure
 %
 % INPUT:
 %   fluid_complete - Complete MRST fluid structure with PVT tables
 
-    % Export complete fluid with PVT tables
-    static_dir = '/workspaces/claudeclean/data/simulation_data/static/fluid';
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    % NEW CANONICAL STRUCTURE: Update fluid.mat with PVT tables
+    canonical_file = '/workspace/data/mrst/fluid.mat';
+    
+    % Load existing fluid data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
     end
     
-    % Save complete fluid structure
-    fluid_file = fullfile(static_dir, 'complete_fluid_blackoil.mat');
-    save(fluid_file, 'fluid_complete');
-    fprintf('   ✅ Complete fluid saved: %s\n', fluid_file);
+    % Add PVT tables to existing fluid structure
+    data_struct.properties.pvt.pvto = fluid_complete.pvto;
+    data_struct.properties.pvt.pvtw = fluid_complete.pvtw;
+    data_struct.properties.pvt.pvtg = fluid_complete.pvtg;
+    data_struct.properties.pvt.surface = fluid_complete.surface;
+    data_struct.created_by{end+1} = 's11';
+    data_struct.timestamp = datetime('now');
     
-    % Save PVT tables separately for easy access
-    pvt_file = fullfile(static_dir, 'pvt_tables.mat');
-    pvt_results = struct();
-    pvt_results.pvto = fluid_complete.pvto;
-    pvt_results.pvtw = fluid_complete.pvtw;
-    pvt_results.pvtg = fluid_complete.pvtg;
-    pvt_results.surface = fluid_complete.surface;
-    save(pvt_file, 'pvt_results');
-    fprintf('   ✅ PVT tables saved: %s\n', pvt_file);
+    % Save updated canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('   NEW CANONICAL: Fluid with PVT tables updated in %s\n', canonical_file);
     
-    % Create comprehensive PVT summary
-    summary_file = fullfile(static_dir, 'pvt_comprehensive_summary.txt');
-    write_pvt_summary(fluid_complete, summary_file);
-    fprintf('   ✅ PVT summary saved: %s\n', summary_file);
+    % Maintain legacy compatibility during transition
+    try
+        base_data_path = fullfile('/workspace', 'data');
+        static_dir = fullfile(base_data_path, 'by_type', 'static', 'fluid');
+        if ~exist(static_dir, 'dir')
+            mkdir(static_dir);
+        end
+        
+        % Save complete fluid structure
+        fluid_file = fullfile(static_dir, 'complete_fluid_blackoil.mat');
+        save(fluid_file, 'fluid_complete');
+        fprintf('   Legacy compatibility maintained: %s\n', fluid_file);
+        
+        % Create comprehensive PVT summary
+        summary_file = fullfile(static_dir, 'pvt_comprehensive_summary.txt');
+        write_pvt_summary(fluid_complete, summary_file);
+        fprintf('   PVT summary saved: %s\n', summary_file);
+    catch ME
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
+    end
 end
 
 function write_pvt_summary(fluid_complete, filename)

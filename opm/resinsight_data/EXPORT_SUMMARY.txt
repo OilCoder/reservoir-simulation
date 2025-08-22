@@ -1,0 +1,30 @@
+MRST TO OMP EXPORT SUMMARY
+============================
+
+Export Date: 2025-08-21 17:09:00
+Source: MRST Workflow (Eagle West Field)
+Target: OPM Flow Simulator
+
+FILES CREATED:
+- EAGLE_WEST.DATA (Master simulation deck)
+- GRID.inc (Grid geometry and properties)
+- PROPS.inc (Rock properties)
+- PVT.inc (Fluid properties and relative permeability)
+- WELLS.inc (Well specifications and completions)
+- SCHEDULE.inc (Production schedule and controls)
+- SOLUTION.inc (Initial conditions)
+
+NEXT STEPS:
+1. Run OPM Flow simulation: flow EAGLE_WEST.DATA
+2. Analyze results with OPM utilities
+3. Import results back to MRST if needed
+
+SIMULATION PARAMETERS:
+Field: Eagle West (Offshore)
+Grid: 41×41×12 cells (20,172 total)
+Wells: 15 total (10 producers EW-001 to EW-010, 5 injectors IW-001 to IW-005)
+Simulation Period: 10 years (3,650 days)
+Time Steps: Monthly (120 steps)
+Phases: Oil-Water-Gas (3-phase)
+Reservoir Depth: 2,000-2,120 m TVDSS
+Field Size: 2,600 acres

@@ -1074,30 +1074,31 @@ function validate_pebi_grid_structure(G_pebi, well_points, fault_lines)
 end
 
 function export_pebi_grid_files(G_pebi)
-% Export PEBI grid to data files using canonical organization
+% Export PEBI grid to data files using new canonical MRST structure
 
-    try
-        % Load canonical data utilities
-        script_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(script_dir, 'utils'));
-        run(fullfile(script_dir, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(script_dir, 'utils', 'directory_management.m'));
-        
-        % Create canonical directory structure
-        base_data_path = fullfile(fileparts(script_dir), 'data');
-        % Create basic canonical directory structure
-        static_path = fullfile(base_data_path, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
+    % NEW CANONICAL STRUCTURE: Create grid.mat in /workspace/data/mrst/
+    canonical_file = '/workspace/data/mrst/grid.mat';
+    
+    % Create new canonical grid structure
+    data_struct = struct();
+    data_struct.G = G_pebi;
+    data_struct.dimensions = [G_pebi.cells.num, G_pebi.faces.num, G_pebi.nodes.num];
+    if isfield(G_pebi.nodes, 'coords')
+        data_struct.coordinates.x_range = [min(G_pebi.nodes.coords(:,1)), max(G_pebi.nodes.coords(:,1))];
+        data_struct.coordinates.y_range = [min(G_pebi.nodes.coords(:,2)), max(G_pebi.nodes.coords(:,2))];
+        if size(G_pebi.nodes.coords, 2) >= 3
+            data_struct.coordinates.z_range = [min(G_pebi.nodes.coords(:,3)), max(G_pebi.nodes.coords(:,3))];
         end
-        
-        % Save PEBI grid directly in canonical structure
-        grid_file = fullfile(static_path, 'pebi_grid_s03.mat');
-        save(grid_file, 'G_pebi');
-        
-        fprintf('     Canonical PEBI grid saved: %s\n', grid_file);
-        
-        % Maintain legacy compatibility during transition
+    end
+    data_struct.created_by = {'s03'};
+    data_struct.timestamp = datetime('now');
+    
+    % Save canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('     NEW CANONICAL: Grid data saved to %s\n', canonical_file);
+    
+    % Maintain legacy compatibility during transition
+    try
         legacy_data_dir = get_data_path('static');
         if ~exist(legacy_data_dir, 'dir')
             mkdir(legacy_data_dir);
@@ -1117,30 +1118,9 @@ function export_pebi_grid_files(G_pebi)
         fprintf('     Legacy compatibility maintained:\n');
         fprintf('       PEBI grid: %s\n', pebi_grid_file);
         fprintf('       Compatible grid: %s\n', refined_grid_file);
-        
     catch ME
-        fprintf('Warning: Canonical export failed: %s\n', ME.message);
-        
-        % Fallback to legacy export
-        script_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(script_dir, 'utils'));
-        data_dir = get_data_path('static');
-        
-        if ~exist(data_dir, 'dir')
-            mkdir(data_dir);
-        end
-        
-        pebi_grid_file = fullfile(data_dir, 'pebi_grid.mat');
-        refined_grid_file = fullfile(data_dir, 'refined_grid.mat');
-        
-        save(pebi_grid_file, 'G_pebi');
-        G = G_pebi;
-        save(refined_grid_file, 'G');
-        
-        fprintf('     Fallback: PEBI grid exported to: %s\n', pebi_grid_file);
-        fprintf('     Fallback: Compatible grid saved as: %s\n', refined_grid_file);
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
     end
-    
 end
 
 function pebi_data = create_pebi_output_structure(G_pebi, well_points, fault_lines, size_function)

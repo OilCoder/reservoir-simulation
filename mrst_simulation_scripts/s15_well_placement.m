@@ -540,12 +540,47 @@ function export_path = step_5_export_well_data(wells_results)
         mkdir(static_path);
     end
     
-    % Substep 5.1 - Save MATLAB structure with canonical pattern
-    export_path = fullfile(static_path, 'well_placement_s15.mat');
-    save(export_path, 'wells_results');
-    fprintf('     Canonical data saved: %s\n', export_path);
+    % Create canonical MRST wells data structure
+    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
+    canonical_mrst_dir = fullfile(base_data_path, 'mrst');
     
-    % Backward compatibility
+    % Ensure canonical MRST directory exists
+    if ~exist(canonical_mrst_dir, 'dir')
+        mkdir(canonical_mrst_dir);
+    end
+    
+    % Create canonical wells.mat structure
+    canonical_file = fullfile(canonical_mrst_dir, 'wells.mat');
+    data_struct = struct();
+    data_struct.placement.count = 15;                    % 10 producers + 5 injectors
+    data_struct.placement.producers = wells_results.producer_wells;        % EW-001 to EW-010
+    data_struct.placement.injectors = wells_results.injector_wells;         % IW-001 to IW-005
+    
+    % Extract coordinates and trajectories
+    all_wells = [wells_results.producer_wells; wells_results.injector_wells];
+    well_coords = zeros(length(all_wells), 3);
+    trajectories = cell(length(all_wells), 1);
+    
+    for i = 1:length(all_wells)
+        well = all_wells(i);
+        well_coords(i, :) = [well.surface_coords(1), well.surface_coords(2), well.total_depth_tvd_ft];
+        trajectories{i} = struct('type', well.trajectory_type, ...
+                                'surface', well.surface_coords, ...
+                                'tvd', well.total_depth_tvd_ft, ...
+                                'md', well.total_depth_md_ft);
+    end
+    
+    data_struct.placement.coordinates = well_coords;     % [x, y, z] per well
+    data_struct.placement.trajectories = trajectories;   % 3D trajectories
+    data_struct.created_by = {'s15'};
+    data_struct.timestamp = datetime('now');
+    
+    % Save to canonical MRST location
+    save(canonical_file, 'data_struct');
+    export_path = canonical_file;
+    fprintf('     ✅ Canonical MRST wells data saved: %s\n', export_path);
+    
+    % Backward compatibility - save to legacy location
     legacy_path = fullfile(data_dir, 'well_placement.mat');
     save(legacy_path, 'wells_results');
     

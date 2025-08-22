@@ -1,5 +1,5 @@
-function control_results = s18_production_controls()
-% S18_PRODUCTION_CONTROLS - Production Controls for Eagle West Field
+function control_results = s17_production_controls()
+% S17_PRODUCTION_CONTROLS - Production Controls for Eagle West Field
 % Requires: MRST
 %
 % Implements production controls with:
@@ -24,7 +24,7 @@ function control_results = s18_production_controls()
     if ~success
         error('MRST validation failed: %s', message);
     end
-    print_step_header('S18', 'Production Controls Setup');
+    print_step_header('S17', 'Production Controls Setup');
     
     total_start_time = tic;
     control_results = initialize_control_structure();
@@ -84,7 +84,7 @@ function control_results = s18_production_controls()
         control_results.total_injectors = length(control_results.injector_controls);
         control_results.creation_time = datestr(now);
         
-        print_step_footer('S18', sprintf('Production Controls Setup (%d producers + %d injectors)', ...
+        print_step_footer('S17', sprintf('Production Controls Setup (%d producers + %d injectors)', ...
             control_results.total_producers, control_results.total_injectors), toc(total_start_time));
         
     catch ME
@@ -116,14 +116,17 @@ function [completion_data, config] = step_1_load_completion_data()
     end
     data_dir = get_data_path('static');
     
-    % Substep 1.1 - Load completion data ___________________________
-    completion_file = fullfile(data_dir, 'well_completions.mat');
-    if exist(completion_file, 'file')
-        load(completion_file, 'completion_results');
-        completion_data = completion_results;
-        fprintf('Loaded completion data: %d wells\n', completion_data.wells_data.total_wells);
+    % Substep 1.1 - Load completion data from canonical wells.mat __
+    canonical_wells_file = '/workspace/data/mrst/wells.mat';
+    if exist(canonical_wells_file, 'file')
+        wells_data = load(canonical_wells_file, 'data_struct');
+        completion_data = struct();
+        completion_data.wells_data = wells_data.data_struct;
+        completion_data.W = wells_data.data_struct.W;  % MRST wells structure
+        fprintf('Loaded wells data from canonical structure: %d wells\n', length(completion_data.W));
     else
-        error('Well completion file not found. Run s17_well_completions.m first.');
+        error(['Missing canonical wells file: /workspace/data/mrst/wells.mat\n' ...
+               'REQUIRED: Run s16_well_completions.m to generate canonical wells structure.']);
     end
     
     % Substep 1.2 - Load wells configuration _______________________
@@ -498,9 +501,37 @@ function export_path = step_6_export_control_data(control_results)
         mkdir(data_dir);
     end
     
-    % Substep 6.1 - Save MATLAB structure __________________________
-    export_path = fullfile(data_dir, 'production_controls.mat');
-    save(export_path, 'control_results');
+    % Substep 6.1 - Save to canonical MRST structure _______________
+    canonical_file = '/workspace/data/mrst/schedule.mat';
+    
+    % Create canonical data structure
+    data_struct = struct();
+    data_struct.controls.producers = control_results.producer_controls;
+    data_struct.controls.injectors = control_results.injector_controls;
+    
+    % Extract BHP limits and rate targets
+    bhp_limits = struct();
+    rate_targets = struct();
+    
+    for i = 1:length(control_results.producer_controls)
+        pc = control_results.producer_controls(i);
+        bhp_limits.(pc.name) = pc.min_bhp_psi;
+        rate_targets.(pc.name) = pc.target_oil_rate_stb_day;
+    end
+    
+    for i = 1:length(control_results.injector_controls)
+        ic = control_results.injector_controls(i);
+        bhp_limits.(ic.name) = ic.max_bhp_psi;
+        rate_targets.(ic.name) = ic.target_injection_rate_bbl_day;
+    end
+    
+    data_struct.controls.bhp_limits = bhp_limits;
+    data_struct.controls.rate_targets = rate_targets;
+    data_struct.created_by = {'s17'};
+    data_struct.timestamp = datetime('now');
+    
+    save(canonical_file, 'data_struct');
+    export_path = canonical_file;
     
     % Substep 6.2 - Create controls summary ________________________
     summary_file = fullfile(data_dir, 'production_controls_summary.txt');
@@ -632,5 +663,5 @@ end
 
 % Main execution when called as script
 if ~nargout
-    control_results = s18_production_controls();
+    control_results = s17_production_controls();
 end

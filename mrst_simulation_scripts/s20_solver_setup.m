@@ -138,95 +138,71 @@ function [config, model_data] = step_1_load_configuration_and_model()
     config = read_yaml_config(config_path);
     fprintf('Loaded solver configuration: %s solver\n', config.solver_configuration.solver_type);
     
-    % Substep 1.2 - Load grid model __________________________________
-    canon_grid_file = fullfile(data_dir, 'refined_grid.mat');
-    if ~exist(canon_grid_file, 'file')
-        error(['Missing canonical grid file: refined_grid.mat\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
-               'Workflow must generate 41x41x12 refined grid file.']);
+    % Substep 1.2 - Load grid model from canonical MRST structure ___
+    canonical_grid_file = '/workspace/data/mrst/grid.mat';
+    if exist(canonical_grid_file, 'file')
+        grid_data = load(canonical_grid_file, 'data_struct');
+        model_data.grid = grid_data.data_struct.G;
+        fprintf('Loaded grid from canonical structure: %d cells\n', model_data.grid.cells.num);
+    else
+        error(['Missing canonical grid file: /workspace/data/mrst/grid.mat\n' ...
+               'REQUIRED: Run s03-s05 to generate canonical grid structure.']);
     end
-    data = load(canon_grid_file);
-    if ~isfield(data, 'G')
-        error(['Canonical grid file missing G variable\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Grid_Definition.md\n' ...
-               'Must contain G with 41x41x12 dimensions.']);
-    end
-    model_data.grid = data.G;
-    fprintf('Loaded grid model from %s: %d cells\n', 'refined_grid.mat', model_data.grid.cells.num);
     
-    % Substep 1.3 - Load rock properties _____________________________
-    canon_rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
-    if ~exist(canon_rock_file, 'file')
-        error(['Missing canonical rock file: final_simulation_rock.mat\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Rock_Properties.md\n' ...
-               'Workflow must generate final_simulation_rock.mat file.']);
+    % Substep 1.3 - Load rock properties from canonical MRST structure
+    canonical_rock_file = '/workspace/data/mrst/rock.mat';
+    if exist(canonical_rock_file, 'file')
+        rock_data = load(canonical_rock_file, 'data_struct');
+        model_data.rock = struct('perm', rock_data.data_struct.perm, 'poro', rock_data.data_struct.poro);
+        fprintf('Loaded rock properties from canonical structure: %d cells\n', length(model_data.rock.poro));
+    else
+        error(['Missing canonical rock file: /workspace/data/mrst/rock.mat\n' ...
+               'REQUIRED: Run s06-s08 to generate canonical rock structure.']);
     end
-    data = load(canon_rock_file);
-    if ~isfield(data, 'rock')
-        error(['Canonical rock file missing rock variable\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Rock_Properties.md\n' ...
-               'Must contain rock with permeability and porosity.']);
-    end
-    model_data.rock = data.rock;
-    fprintf('Loaded rock properties from %s: %d cells with heterogeneity\n', 'final_simulation_rock.mat', length(model_data.rock.poro));
     
-    % Substep 1.4 - Load fluid properties ____________________________
-    canon_fluid_file = fullfile(data_dir, 'fluid', 'complete_fluid_blackoil.mat');
-    if ~exist(canon_fluid_file, 'file')
-        error(['Missing canonical fluid file: complete_fluid_blackoil.mat\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
-               'Workflow must generate complete_fluid_blackoil.mat file.']);
+    % Substep 1.4 - Load fluid properties from canonical MRST structure
+    canonical_fluid_file = '/workspace/data/mrst/fluid.mat';
+    if exist(canonical_fluid_file, 'file')
+        fluid_data = load(canonical_fluid_file, 'data_struct');
+        model_data.fluid = fluid_data.data_struct.model;
+        fprintf('Loaded fluid properties from canonical structure: 3-phase black oil\n');
+    else
+        error(['Missing canonical fluid file: /workspace/data/mrst/fluid.mat\n' ...
+               'REQUIRED: Run s02, s09-s10 to generate canonical fluid structure.']);
     end
-    data = load(canon_fluid_file);
-    if ~isfield(data, 'fluid_complete')
-        error(['Canonical fluid file missing fluid_complete variable\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
-               'Must contain fluid_complete with 3-phase black oil properties.']);
-    end
-    model_data.fluid = data.fluid_complete;
-    fprintf('Loaded fluid properties from %s: 3-phase black oil\n', 'complete_fluid_blackoil.mat');
     
-    % Substep 1.5 - Load PVT tables __________________________________
+    % Substep 1.5 - Validate PVT data in loaded fluid _______________
     if ~isfield(model_data.fluid, 'rhoOS')
         error(['Canonical fluid missing required PVT data: rhoOS\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
-               'Must include surface densities and PVT tables.']);
+               'REQUIRED: Run s02 to generate complete fluid with PVT tables.']);
     end
     model_data.pvt = model_data.fluid;
-    fprintf('Loaded PVT tables: Oil, gas, water properties (from fluid)\n');
+    fprintf('Validated PVT tables: Oil, gas, water properties\n');
     
-    % Substep 1.6 - Load well system _________________________________
-    canon_wells_file = fullfile(data_dir, 'well_placement.mat');
-    if ~exist(canon_wells_file, 'file')
-        error(['Missing canonical wells file: well_placement.mat\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Well_Configuration.md\n' ...
-               'Workflow must generate well_placement.mat file.']);
+    % Substep 1.6 - Load well system from canonical MRST structure ___
+    canonical_wells_file = '/workspace/data/mrst/wells.mat';
+    if exist(canonical_wells_file, 'file')
+        wells_data = load(canonical_wells_file, 'data_struct');
+        model_data.wells = wells_data.data_struct;
+        fprintf('Loaded well system from canonical structure: %d wells\n', length(model_data.wells.W));
+    else
+        error(['Missing canonical wells file: /workspace/data/mrst/wells.mat\n' ...
+               'REQUIRED: Run s16 to generate canonical wells structure.']);
     end
-    data = load(canon_wells_file);
-    if ~isfield(data, 'wells_results')
-        error(['Canonical wells file missing wells_results variable\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Well_Configuration.md\n' ...
-               'Must contain wells_results with 15 wells.']);
-    end
-    model_data.wells = data.wells_results;
-    fprintf('Loaded well system: %d wells with completions\n', model_data.wells.total_wells);
     
-    % Substep 1.7 - Load development schedule ________________________
-    canon_schedule_file = fullfile(data_dir, 'development_schedule.mat');
-    if ~exist(canon_schedule_file, 'file')
-        error(['Missing canonical schedule file: development_schedule.mat\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Development_Schedule.md\n' ...
-               'Workflow must generate development_schedule.mat file.']);
+    % Substep 1.7 - Load development schedule from canonical structure
+    canonical_schedule_file = '/workspace/data/mrst/schedule.mat';
+    if exist(canonical_schedule_file, 'file')
+        schedule_data = load(canonical_schedule_file, 'data_struct');
+        model_data.development_schedule = struct();
+        model_data.development_schedule.development_phases = schedule_data.data_struct.development.phases;
+        model_data.development_schedule.mrst_schedule = schedule_data.data_struct.schedule;
+        fprintf('Loaded development schedule from canonical structure: %d phases\n', ...
+            length(model_data.development_schedule.development_phases));
+    else
+        error(['Missing canonical schedule file: /workspace/data/mrst/schedule.mat\n' ...
+               'REQUIRED: Run s17-s19 to generate canonical schedule structure.']);
     end
-    data = load(canon_schedule_file);
-    if ~isfield(data, 'schedule_results')
-        error(['Canonical schedule file missing schedule_results variable\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Development_Schedule.md\n' ...
-               'Must contain schedule_results with 6 development phases.']);
-    end
-    model_data.development_schedule = data.schedule_results;
-    fprintf('Loaded development schedule: %d phases over 10 years\n', ...
-        length(model_data.development_schedule.development_phases));
 
 end
 
@@ -514,8 +490,8 @@ function export_path = step_6_export_solver_configuration(solver_results)
         mkdir(data_dir);
     end
     
-    % Substep 6.1 - Save MATLAB structure ____________________________
-    export_path = fullfile(data_dir, 'solver_configuration.mat');
+    % Substep 6.1 - Save to canonical MRST solver structure ________
+    canonical_file = '/workspace/data/mrst/solver.mat';
     % Validate required fields before export
     if ~isfield(solver_results, 'status')
         error(['Missing canonical solver status field\n' ...
@@ -595,93 +571,46 @@ function export_path = step_6_export_solver_configuration(solver_results)
         end
     end
     
-    save(export_path, 'solver_config_export');
+    % Create canonical solver data structure
+    data_struct = struct();
+    data_struct.type = 'FI';  % Fully Implicit
+    data_struct.tolerances.cnv = config.solver_configuration.tolerance_cnv;
+    data_struct.tolerances.mb = config.solver_configuration.tolerance_mb;
+    data_struct.tolerances.max_its = config.solver_configuration.max_iterations;
     
-    % Substep 6.2 - Create solver summary _____________________________
+    % Numerical parameters
+    if isfield(solver_results, 'timestep_control')
+        ts_control = solver_results.timestep_control;
+        data_struct.numerical.timestep = ts_control.initial_dt;
+        data_struct.numerical.cfl = 1.0;  % Default CFL number
+        data_struct.numerical.relaxation = 1.0;  % Default relaxation factor
+    end
+    
+    % Store model components
+    data_struct.model = model_data;  % Complete MRST model components
+    
+    % Load initial state
+    canonical_state_file = '/workspace/data/mrst/initial_state.mat';
+    if exist(canonical_state_file, 'file')
+        state_data = load(canonical_state_file, 'data_struct');
+        data_struct.state0 = state_data.data_struct.state;
+    else
+        error(['Missing canonical initial state file: /workspace/data/mrst/initial_state.mat\n' ...
+               'REQUIRED: Run s11-s12 to generate canonical initial state.']);
+    end
+    
+    data_struct.created_by = {'s20'};
+    data_struct.timestamp = datetime('now');
+    
+    save(canonical_file, 'data_struct');
+    export_path = canonical_file;
+    
+    % Substep 6.2 - Create solver summary (optional) ________________
     summary_file = fullfile(data_dir, 'solver_configuration_summary.txt');
     write_solver_summary_file(summary_file, solver_results);
     
-    % Substep 6.3 - Export simulation-ready model ___________________
-    model_file = fullfile(data_dir, 'simulation_model.mat');
-    if ~isfield(solver_results, 'black_oil_model')
-        error(['Missing canonical black oil model\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
-               'Must define solver_results.black_oil_model.']);
-    end
-    
-    % Extract only serializable model data (Canon-First: exclude complex objects)
-    model_export = struct();
-    model = solver_results.black_oil_model;
-    
-    % Save essential model metadata
-    if isfield(model, 'model_type')
-        model_export.model_type = model.model_type;
-    else
-        model_export.model_type = 'black_oil';
-    end
-    
-    if isfield(model, 'gravity')
-        model_export.gravity = model.gravity;
-    end
-    
-    % Grid reference (essential for simulation)
-    if isfield(model, 'G')
-        model_export.grid_cells = model.G.cells.num;
-        if isfield(model.G, 'cartDims')
-            model_export.grid_dimensions = model.G.cartDims;
-        else
-            model_export.grid_dimensions = 'N/A - no cartDims field';
-        end
-    end
-    
-    model_export.creation_time = datestr(now);
-    model_export.note = 'Serializable model metadata only - full model recreated at runtime';
-    
-    save(model_file, 'model_export');
-    
-    % Substep 6.4 - Export final schedule _____________________________
-    schedule_file = fullfile(data_dir, 'simulation_schedule.mat');
-    if ~isfield(solver_results, 'simulation_schedule')
-        error(['Missing canonical simulation schedule\n' ...
-               'UPDATE CANON: obsidian-vault/Planning/Solver_Configuration.md\n' ...
-               'Must define solver_results.simulation_schedule.']);
-    end
-    
-    % Extract only serializable schedule data (Canon-First: safe serialization)
-    schedule_export = struct();
-    schedule = solver_results.simulation_schedule;
-    
-    % Save essential schedule metadata
-    if isfield(schedule, 'total_steps')
-        schedule_export.total_steps = schedule.total_steps;
-    end
-    if isfield(schedule, 'total_time_days')
-        schedule_export.total_time_days = schedule.total_time_days;
-    end
-    if isfield(schedule, 'total_time_seconds')
-        schedule_export.total_time_seconds = schedule.total_time_seconds;
-    end
-    
-    % Save timestep structure (should be serializable)
-    if isfield(schedule, 'step') && isstruct(schedule.step)
-        try
-            schedule_export.step = schedule.step;
-        catch
-            % If step contains complex objects, save only metadata
-            schedule_export.step_count = length(schedule.step);
-            schedule_export.step_note = 'Complex step structure - full schedule recreated at runtime';
-        end
-    end
-    
-    schedule_export.creation_time = datestr(now);
-    schedule_export.note = 'Serializable schedule metadata - control structure recreated at runtime';
-    
-    save(schedule_file, 'schedule_export');
-    
     fprintf('   Exported to: %s\n', export_path);
     fprintf('   Summary: %s\n', summary_file);
-    fprintf('   Model: %s\n', model_file);
-    fprintf('   Schedule: %s\n', schedule_file);
 
 end
 

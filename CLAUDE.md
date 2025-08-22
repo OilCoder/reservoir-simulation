@@ -41,9 +41,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ├── 🐍 src/ # Python source code
 ├── 📊 mrst_simulation_scripts/ # Octave/MRST scripts (25+ workflow steps)
 │ ├── config/ # YAML configuration files (9 files, 100% documented)
+│ ├── session/ # MRST session persistence (local only)
 │ ├── s01_initialize_mrst.m → s25_reservoir_analysis.m
 │ ├── s99_run_workflow.m # Complete workflow runner
-│ └── tests/ # MRST test files  
+│ └── utils/ # MRST utility functions  
 ├── 📖 obsidian-vault/ # Documentation system
 │ ├── Planning/Reservoir_Definition/ # Technical documentation (CANONICAL)
 │ │ ├── VARIABLE_INVENTORY.md # 900+ variables with LLM optimization

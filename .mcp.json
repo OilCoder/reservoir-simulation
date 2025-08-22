@@ -12,7 +12,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/workspaces/claudeclean"
+        "/workspace"
       ]
     },
     "sequential-thinking": {
@@ -22,15 +22,26 @@
         "@modelcontextprotocol/server-sequential-thinking"
       ]
     },
-    "todo": {
-      "command": "/workspaces/claudeclean/obsidian-vault/Planning/Todo_Lists/todo-wrapper.sh",
-      "args": []
-    },
     "ref": {
       "command": "npx",
       "args": [
         "-y",
         "ref-tools-mcp@latest"
+      ]
+    },
+    "github": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://localhost/reservoir_sim"
       ]
     }
   }

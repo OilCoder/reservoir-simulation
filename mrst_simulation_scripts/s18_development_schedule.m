@@ -143,15 +143,18 @@ function [control_data, config] = step_1_load_control_data()
     end
     data_dir = get_data_path('static');
     
-    % Substep 1.1 - Load production controls data __________________
-    controls_file = fullfile(data_dir, 'production_controls.mat');
-    if exist(controls_file, 'file')
-        load(controls_file, 'control_results');
-        control_data = control_results;
-        fprintf('Loaded production controls: %d producers + %d injectors\n', ...
+    % Substep 1.1 - Load production controls from canonical schedule.mat
+    canonical_schedule_file = '/workspace/data/mrst/schedule.mat';
+    if exist(canonical_schedule_file, 'file')
+        schedule_data = load(canonical_schedule_file, 'data_struct');
+        control_data = struct();
+        control_data.producer_controls = schedule_data.data_struct.controls.producers;
+        control_data.injector_controls = schedule_data.data_struct.controls.injectors;
+        fprintf('Loaded production controls from canonical structure: %d producers + %d injectors\n', ...
             length(control_data.producer_controls), length(control_data.injector_controls));
     else
-        error('Production controls file not found. Run s18_production_controls.m first.');
+        error(['Missing canonical schedule file: /workspace/data/mrst/schedule.mat\n' ...
+               'REQUIRED: Run s17_production_controls.m to generate canonical schedule structure.']);
     end
     
     % Substep 1.2 - Load wells configuration _______________________
@@ -754,9 +757,38 @@ function export_path = step_6_export_development_schedule(schedule_results)
         mkdir(data_dir);
     end
     
-    % Substep 6.1 - Save MATLAB structure __________________________
-    export_path = fullfile(data_dir, 'development_schedule.mat');
-    save(export_path, 'schedule_results');
+    % Substep 6.1 - Update canonical MRST schedule structure ______
+    canonical_file = '/workspace/data/mrst/schedule.mat';
+    
+    % Load existing data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
+    end
+    
+    % Add development schedule data
+    data_struct.development.phases = schedule_results.development_phases;
+    data_struct.development.timeline = schedule_results.timeline_milestones;
+    
+    % Create drilling sequence from well startup schedule
+    drilling_seq = struct();
+    for i = 1:length(schedule_results.well_startup_schedule)
+        well = schedule_results.well_startup_schedule(i);
+        drilling_seq.(well.well_name) = struct(...
+            'drill_day', well.drill_date_day, ...
+            'startup_day', well.startup_day, ...
+            'phase', well.phase, ...
+            'type', well.well_type);
+    end
+    data_struct.development.drilling = drilling_seq;
+    
+    data_struct.created_by{end+1} = 's18';
+    data_struct.timestamp = datetime('now');
+    
+    save(canonical_file, 'data_struct');
+    export_path = canonical_file;
     
     % Substep 6.2 - Create schedule summary ________________________
     summary_file = fullfile(data_dir, 'development_schedule_summary.txt');
@@ -766,10 +798,9 @@ function export_path = step_6_export_development_schedule(schedule_results)
     milestones_file = fullfile(data_dir, 'development_milestones.txt');
     write_milestones_file(milestones_file, schedule_results);
     
-    % Substep 6.4 - Create MRST schedule file ______________________
-    mrst_file = fullfile(data_dir, 'mrst_simulation_schedule.mat');
-    mrst_schedule = schedule_results.mrst_schedule;
-    save(mrst_file, 'mrst_schedule');
+    % Substep 6.4 - Store MRST schedule in canonical structure _____
+    % MRST schedule is already included in main canonical structure
+    mrst_file = canonical_file;  % Reference to same file
     
     fprintf('   Exported to: %s\n', export_path);
     fprintf('   Summary: %s\n', summary_file);

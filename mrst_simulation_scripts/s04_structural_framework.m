@@ -102,21 +102,31 @@ function structural_data = s04_structural_framework()
 end
 
 function G = step_1_load_grid()
-% Step 1 - Load grid structure from s03
+% Step 1 - Load grid structure from s03 using new canonical MRST structure
     
-    % Substep 1.1 – Load base grid ________________________________
-    func_dir = fileparts(mfilename('fullpath'));
-    addpath(fullfile(func_dir, 'utils'));
-    data_dir = get_data_path('static');
-    grid_file = fullfile(data_dir, 'pebi_grid.mat');
+    % NEW CANONICAL STRUCTURE: Load from grid.mat
+    canonical_file = '/workspace/data/mrst/grid.mat';
     
-    if ~exist(grid_file, 'file')
-        error('PEBI grid not found. Run s03_create_pebi_grid.m first.');
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        G = data_struct.G;
+        fprintf('   ✅ Loading grid from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        data_dir = get_data_path('static');
+        grid_file = fullfile(data_dir, 'pebi_grid.mat');
+        
+        if ~exist(grid_file, 'file')
+            error('CANON-FIRST ERROR: Grid structure not found.\nREQUIRED: Run s03_create_pebi_grid.m first.');
+        end
+        
+        % Load PEBI grid structure
+        load(grid_file, 'G_pebi');
+        G = G_pebi;  % Use PEBI grid as base grid
+        fprintf('   ⚠️  Loading grid from legacy location\n');
     end
-    
-    % ✅ Load PEBI grid structure
-    load(grid_file, 'G_pebi');
-    G = G_pebi;  % Use PEBI grid as base grid
     
 end
 
@@ -177,7 +187,7 @@ function G = step_2_apply_framework(G, surfaces, layers)
 end
 
 function structural_data = step_3_export_framework(G, surfaces, layers)
-% Step 4 - Export structural framework data using canonical organization
+% Step 4 - Export structural framework data using new canonical MRST structure
 
     % Assemble structural data
     structural_data = struct();
@@ -186,27 +196,32 @@ function structural_data = step_3_export_framework(G, surfaces, layers)
     structural_data.layers = layers;
     structural_data.status = 'completed';
     
+    % NEW CANONICAL STRUCTURE: Update grid.mat with structural information
+    canonical_file = '/workspace/data/mrst/grid.mat';
+    
+    % Load existing grid data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
+    end
+    
+    % Add structural information to existing grid structure
+    data_struct.structure.layers = layers;
+    data_struct.structure.surfaces = surfaces;
+    data_struct.created_by{end+1} = 's04';
+    data_struct.timestamp = datetime('now');
+    
+    % Save updated canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('     NEW CANONICAL: Grid with structure updated in %s\n', canonical_file);
+    
+    % Maintain legacy compatibility during transition
     try
-        % Load canonical data utilities
         func_dir = fileparts(mfilename('fullpath'));
         addpath(fullfile(func_dir, 'utils'));
-        run(fullfile(func_dir, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(func_dir, 'utils', 'directory_management.m'));
         
-        % Create basic canonical directory structure
-        base_data_path = fullfile(fileparts(func_dir), 'data');
-        static_path = fullfile(base_data_path, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
-        end
-        
-        % Save structural framework directly in canonical structure
-        framework_file = fullfile(static_path, 'structural_framework_s04.mat');
-        save(framework_file, 'structural_data', 'layers', 'surfaces');
-        
-        fprintf('     Canonical structural framework saved: %s\n', framework_file);
-        
-        % Maintain legacy compatibility during transition
         legacy_data_dir = get_data_path('static');
         if ~exist(legacy_data_dir, 'dir')
             mkdir(legacy_data_dir);
@@ -215,22 +230,8 @@ function structural_data = step_3_export_framework(G, surfaces, layers)
         save(legacy_framework_file, 'structural_data');
         
         fprintf('     Legacy compatibility maintained: %s\n', legacy_framework_file);
-        
     catch ME
-        fprintf('Warning: Canonical export failed: %s\n', ME.message);
-        
-        % Fallback to legacy export
-        func_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(func_dir, 'utils'));
-        data_dir = get_data_path('static');
-        
-        if ~exist(data_dir, 'dir')
-            mkdir(data_dir);
-        end
-        
-        framework_file = fullfile(data_dir, 'structural_framework.mat');
-        save(framework_file, 'structural_data');
-        fprintf('     Fallback: Structural framework saved to: %s\n', framework_file);
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
     end
     
 end

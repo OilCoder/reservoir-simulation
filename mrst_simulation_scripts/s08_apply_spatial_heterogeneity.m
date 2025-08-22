@@ -77,26 +77,57 @@ function final_rock = s08_apply_spatial_heterogeneity()
 end
 
 function [enhanced_rock, G] = load_enhanced_rock_from_file()
-% Load enhanced rock structure from file created by s07 (CANON-FIRST)
+% Load enhanced rock structure using new canonical MRST structure
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
+    % NEW CANONICAL STRUCTURE: Load from rock.mat
+    canonical_file = '/workspace/data/mrst/rock.mat';
     
-    % CANON-FIRST: Only load from s07 data file, no fallbacks
-    enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
-    
-    if ~exist(enhanced_rock_file, 'file')
-        error(['CANON-FIRST ERROR: Enhanced rock data file not found.\n' ...
-               'REQUIRED: Run s07_add_layer_metadata.m first.\n' ...
-               'EXPECTED: %s\n' ...
-               'Canon specification requires enhanced rock from s07.'], ...
-               enhanced_rock_file);
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        
+        % Reconstruct enhanced rock structure from canonical data
+        enhanced_rock = struct();
+        enhanced_rock.perm = data_struct.perm;
+        enhanced_rock.poro = data_struct.poro;
+        enhanced_rock.layer = data_struct.layers;
+        enhanced_rock.meta.units = data_struct.units;
+        
+        fprintf('   ✅ Loading enhanced rock from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        script_path = fileparts(mfilename('fullpath'));
+        data_dir = get_data_path('static');
+        
+        enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
+        
+        if ~exist(enhanced_rock_file, 'file')
+            error(['CANON-FIRST ERROR: Enhanced rock data file not found.\n' ...
+                   'REQUIRED: Run s07_add_layer_metadata.m first.']);
+        end
+        
+        load_data = load(enhanced_rock_file);
+        if ~isfield(load_data, 'enhanced_rock') || ~isfield(load_data, 'G')
+            error('CANON-FIRST ERROR: Invalid enhanced rock file format.');
+        end
+        
+        enhanced_rock = load_data.enhanced_rock;
+        G = load_data.G;
+        fprintf('   ⚠️  Loading enhanced rock from legacy location\n');
+        return;
     end
     
-    load_data = load(enhanced_rock_file);
-    if ~isfield(load_data, 'enhanced_rock') || ~isfield(load_data, 'G')
-        error(['CANON-FIRST ERROR: Invalid enhanced rock file format.\n' ...
-               'REQUIRED: File must contain enhanced_rock and G structures from s07.\n' ...
+    % Load grid from canonical structure
+    grid_file = '/workspace/data/mrst/grid.mat';
+    if exist(grid_file, 'file')
+        load(grid_file, 'data_struct');
+        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
+            G = data_struct.fault_grid;
+        else
+            G = data_struct.G;
+        end
+    else
+        error('CANON-FIRST ERROR: Grid data not found.');
+    end
                'Found fields: %s\n' ...
                'Canon specification requires enhanced_rock and G fields.'], ...
                strjoin(fieldnames(load_data), ', '));
@@ -136,25 +167,47 @@ function validate_enhanced_rock_input(rock)
 end
 
 function save_final_rock_structure(final_rock, G)
-% Save final rock structure to data file for simulation workflow
+% Save final rock structure using new canonical MRST structure
     
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
+    % NEW CANONICAL STRUCTURE: Update rock.mat with heterogeneity
+    canonical_file = '/workspace/data/mrst/rock.mat';
     
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
+    % Load existing rock data
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+    else
+        data_struct = struct();
+        data_struct.created_by = {};
     end
     
-    % Save final rock structure with canonical naming (legacy compatibility)
-    final_rock_file = fullfile(data_dir, 'final_rock.mat');
-    save(final_rock_file, 'final_rock', 'G');
+    % Add heterogeneity information to existing rock structure
+    data_struct.heterogeneity.correlation = final_rock.heterogeneity.correlation;
+    data_struct.heterogeneity.variogram = final_rock.heterogeneity.variogram;
+    data_struct.heterogeneity.realizations = final_rock.heterogeneity.realizations;
+    data_struct.created_by{end+1} = 's08';
+    data_struct.timestamp = datetime('now');
     
-    fprintf('   ✅ Final rock structure saved to %s\n', final_rock_file);
+    % Save updated canonical structure
+    save(canonical_file, 'data_struct');
+    fprintf('   NEW CANONICAL: Rock with heterogeneity updated in %s\n', canonical_file);
     
-    % CANON-FIRST: Also save to canonical by_type structure with correct variable naming
-    % Use canonical data organization pattern (FASE 5 implementation)
-    base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-    canonical_static_dir = fullfile(base_data_path, 'by_type', 'static');
+    % Maintain legacy compatibility during transition
+    try
+        script_path = fileparts(mfilename('fullpath'));
+        data_dir = get_data_path('static');
+        
+        if ~exist(data_dir, 'dir')
+            mkdir(data_dir);
+        end
+        
+        % Save final rock structure with canonical naming (legacy compatibility)
+        final_rock_file = fullfile(data_dir, 'final_rock.mat');
+        save(final_rock_file, 'final_rock', 'G');
+        
+        fprintf('   Legacy compatibility maintained: %s\n', final_rock_file);
+    catch ME
+        fprintf('Warning: Legacy export failed: %s\n', ME.message);
+    end
     
     % Ensure canonical directory exists
     if ~exist(canonical_static_dir, 'dir')

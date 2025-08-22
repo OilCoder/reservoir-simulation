@@ -391,34 +391,28 @@ function save_mrst_session_to_file(script_dir, mrst_env)
         session_data.metadata.script_version = 's01_canonical';
         session_data.metadata.field_name = 'Eagle_West';
         
-        % Save session data in canonical format
-        control_path = fullfile(base_data_path, 'by_type', 'control');
-        if ~exist(control_path, 'dir')
-            mkdir(control_path);
+        % Save session data in local session folder
+        script_dir = fileparts(mfilename('fullpath'));
+        session_path = fullfile(script_dir, 'session');
+        if ~exist(session_path, 'dir')
+            mkdir(session_path);
         end
-        session_file = fullfile(control_path, 'mrst_session_s01.mat');
+        session_file = fullfile(session_path, 's01_mrst_session.mat');
         save(session_file, 'session_data');
         fprintf('Canonical session data saved: %s\n', session_file);
         
-        % Maintain backward compatibility during transition
-        session_dir = fullfile(script_dir, 'data', 'session');
-        if ~exist(session_dir, 'dir')
-            mkdir(session_dir);
-        end
-        legacy_session_file = fullfile(session_dir, 's01_mrst_session.mat');
-        save(legacy_session_file, 'mrst_paths', 'global_vars', 'mrst_env');
-        
-        fprintf('Legacy session maintained: %s\n', legacy_session_file);
+        fprintf('Session data saved in local session folder: %s\n', session_path);
         fprintf('Saved %d MRST paths for persistence\n', length(mrst_paths));
         
     catch ME
-        fprintf('Warning: Failed to save canonical session: %s\n', ME.message);
-        % Fallback to legacy format
-        session_dir = fullfile(script_dir, 'data', 'session');
-        if ~exist(session_dir, 'dir')
-            mkdir(session_dir);
+        fprintf('Warning: Failed to save session: %s\n', ME.message);
+        % Fallback to local session directory
+        script_dir = fileparts(mfilename('fullpath'));
+        session_path = fullfile(script_dir, 'session');
+        if ~exist(session_path, 'dir')
+            mkdir(session_path);
         end
-        session_file = fullfile(session_dir, 's01_mrst_session.mat');
+        session_file = fullfile(session_path, 's01_mrst_session.mat');
         
         % Collect minimal data for fallback
         current_path = strsplit(path, pathsep);

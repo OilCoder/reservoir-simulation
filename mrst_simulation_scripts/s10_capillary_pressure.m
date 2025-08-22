@@ -63,24 +63,60 @@ function fluid_with_pc = s10_capillary_pressure()
 end
 
 function [fluid, G] = step_1_load_fluid_data()
-% Step 1 - Load fluid structure from s09
-    script_dir = fileparts(mfilename('fullpath'));
-
-    % Substep 1.1 – Locate fluid file __________________________________
-    script_path = fileparts(mfilename('fullpath'));
-    if isempty(script_path)
-        script_path = pwd();
-    end
-    addpath(fullfile(script_dir, 'utils'));
-    data_dir = get_data_path('static', 'fluid');
-    fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
+% Step 1 - Load fluid structure using new canonical MRST structure
     
-    if ~exist(fluid_file, 'file')
-        error('Fluid with relative permeability not found. Run s09_relative_permeability.m first.');
+    % NEW CANONICAL STRUCTURE: Load from fluid.mat
+    canonical_file = '/workspace/data/mrst/fluid.mat';
+    
+    if exist(canonical_file, 'file')
+        load(canonical_file, 'data_struct');
+        
+        % Reconstruct fluid structure from canonical data
+        fluid = data_struct.model;  % Base MRST fluid model
+        
+        % Ensure relative permeability functions are available
+        if isfield(data_struct, 'relperm')
+            % Add rel perm functions to fluid if not already present
+            if ~isfield(fluid, 'krW')
+                fluid.krW = data_struct.relperm.krw;
+            end
+            if ~isfield(fluid, 'krO')
+                fluid.krO = data_struct.relperm.kro;
+            end
+            if ~isfield(fluid, 'krG')
+                fluid.krG = data_struct.relperm.krg;
+            end
+        end
+        
+        fprintf('   ✅ Loading fluid from canonical location\n');
+    else
+        % Fallback to legacy location if canonical doesn't exist
+        script_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(script_dir, 'utils'));
+        data_dir = get_data_path('static', 'fluid');
+        fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
+        
+        if ~exist(fluid_file, 'file')
+            error('Fluid with relative permeability not found. Run s09_relative_permeability.m first.');
+        end
+        
+        load(fluid_file, 'fluid', 'G');
+        fprintf('   ⚠️  Loading fluid from legacy location\n');
+        return;
     end
     
-    % Substep 1.2 – Load fluid structure ________________________________
-    load(fluid_file, 'fluid', 'G');
+    % Load grid from canonical structure
+    grid_file = '/workspace/data/mrst/grid.mat';
+    if exist(grid_file, 'file')
+        load(grid_file, 'data_struct');
+        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
+            G = data_struct.fault_grid;
+        else
+            G = data_struct.G;
+        end
+    else
+        error('CANON-FIRST ERROR: Grid data not found.');
+    end
     
 end
 
@@ -390,8 +426,6 @@ function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
         % Load canonical data utilities
         script_path = fileparts(mfilename('fullpath'));
         addpath(fullfile(script_path, 'utils'));
-        run(fullfile(script_path, 'utils', 'canonical_data_utils.m'));
-        run(fullfile(script_path, 'utils', 'directory_management.m'));
         
         % Create canonical directory structure
         base_data_path = fullfile(fileparts(script_path), 'data');
@@ -400,10 +434,27 @@ function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
             mkdir(static_path);
         end
         
-        % Save using canonical format with native .mat
-        enhanced_fluid_file = fullfile(static_path, 'fluid_capillary_s10.mat');
-        save(enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
-        fprintf('     Canonical fluid with capillary pressure saved: %s\n', enhanced_fluid_file);
+        % NEW CANONICAL STRUCTURE: Update fluid.mat with capillary pressure
+        canonical_file = '/workspace/data/mrst/fluid.mat';
+        
+        % Load existing fluid data
+        if exist(canonical_file, 'file')
+            load(canonical_file, 'data_struct');
+        else
+            data_struct = struct();
+            data_struct.created_by = {};
+        end
+        
+        % Add capillary pressure to existing fluid structure
+        data_struct.capillary.pcow = fluid_with_pc.pcOW;
+        data_struct.capillary.pcog = fluid_with_pc.pcOG;
+        data_struct.capillary.J_function = scal_config.leverett_j_function;
+        data_struct.created_by{end+1} = 's10';
+        data_struct.timestamp = datetime('now');
+        
+        % Save updated canonical structure
+        save(canonical_file, 'data_struct');
+        fprintf('     NEW CANONICAL: Fluid with capillary pressure updated in %s\n', canonical_file);
         
         % Maintain legacy compatibility with canonical naming only
         legacy_data_dir = get_data_path('static', 'fluid');

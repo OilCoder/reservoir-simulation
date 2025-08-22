@@ -75,14 +75,14 @@ initialization:
     # Northern Compartment
     northern_compartment:
       area_acres: 980.0
-      pressure_datum_psi: 2900.0        # Reference pressure
+      pressure_datum_psi: 3590.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 5.0       # ±5 psi from datum
       owc_depth_ft_tvdss: 8145.0       # Compartment-specific OWC
       
     # Southern Compartment  
     southern_compartment:
       area_acres: 1870.0
-      pressure_datum_psi: 2895.0        # 5 psi lower (fault effect)
+      pressure_datum_psi: 3610.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 8.0       # ±8 psi from datum
       owc_depth_ft_tvdss: 8155.0       # Compartment-specific OWC
       

@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<ResInsightProject version="2024.03.0">
+    <ProjectFileVersionString>2024.03.0</ProjectFileVersionString>
+    <EclipseCases>
+        <EclipseCase id="0">
+            <CaseFileName>../resinsight_data/EAGLE_WEST.DATA</CaseFileName>
+            <CaseName>Eagle West Field</CaseName>
+            <DefaultFormationNames>
+                <Formation>Upper_Formation</Formation>
+                <Formation>Middle_Formation</Formation>  
+                <Formation>Lower_Formation</Formation>
+            </DefaultFormationNames>
+        </EclipseCase>
+    </EclipseCases>
+    
+    <Views>
+        <Reservoir3dView id="0">
+            <CaseId>0</CaseId>
+            <ViewName>3D Grid View</ViewName>
+            <CellResult>
+                <ResultType>STATIC_NATIVE</ResultType>
+                <ResultVariable>PERMX</ResultVariable>
+            </CellResult>
+            <WellCollection>
+                <Wells>
+                    <Well name="EW-001"/>
+                    <Well name="EW-002"/>
+                    <Well name="EW-003"/>
+                    <Well name="EW-004"/>
+                    <Well name="EW-005"/>
+                    <Well name="EW-006"/>
+                    <Well name="EW-007"/>
+                    <Well name="EW-008"/>
+                    <Well name="EW-009"/>
+                    <Well name="EW-010"/>
+                    <Well name="IW-001"/>
+                    <Well name="IW-002"/>
+                    <Well name="IW-003"/>
+                    <Well name="IW-004"/>
+                    <Well name="IW-005"/>
+                </Wells>
+            </WellCollection>
+        </Reservoir3dView>
+    </Views>
+    
+    <PlotTemplates>
+        <SummaryPlots>
+            <SummaryPlot id="0">
+                <PlotTitle>Field Production</PlotTitle>
+                <Curves>
+                    <SummaryCurve>
+                        <VectorName>FOPR</VectorName>
+                        <CurveName>Field Oil Production Rate</CurveName>
+                    </SummaryCurve>
+                    <SummaryCurve>
+                        <VectorName>FWPR</VectorName>
+                        <CurveName>Field Water Production Rate</CurveName>
+                    </SummaryCurve>
+                    <SummaryCurve>
+                        <VectorName>FWCT</VectorName>
+                        <CurveName>Field Water Cut</CurveName>
+                    </SummaryCurve>
+                </Curves>
+            </SummaryPlot>
+        </SummaryPlots>
+    </PlotTemplates>
+</ResInsightProject>
