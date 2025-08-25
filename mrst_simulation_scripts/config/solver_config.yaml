@@ -24,6 +24,14 @@ solver_configuration:
     timestep_cut_factor: 0.5
     max_timestep_cuts: 8
     adaptive_control: true
+    # Time step limits for solver (for s20)
+    time_step_limits_days: [1.0, 365.0]  # [min, max] in days
+    
+    # Cutting criteria (CANON)
+    cut_criteria:
+      max_saturation_change: 0.2      # 20% per timestep
+      max_pressure_change_pa: 5e6     # 50 bar per timestep  
+      convergence_failure: true
     
   # ----------------------------------------
   # Simulation Schedule

@@ -115,6 +115,13 @@ initialization:
     carter_tracy_constant: 1.119      # Empirical constant from petroleum engineering literature
     van_everdingen_hurst_constant: 0.0002637  # Time constant from van Everdingen & Hurst (1949)
     
+    # Validation Parameters (CANON)
+    validation:
+      porosity_limits:
+        minimum: 0.05                  # Physical minimum for aquifer porosity
+        maximum: 0.50                  # Physical maximum for unconsolidated sediments
+      connectivity_threshold: 0.05     # 5% of cells connected is reasonable minimum
+    
   # Height Functions and Pc Integration (CANON)
   height_function_parameters:
     # Oil-Water Height Function

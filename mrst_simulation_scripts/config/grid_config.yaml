@@ -130,6 +130,14 @@ pebi_grid:
     method: "minimum"                      # How to combine size fields: minimum, weighted, max
     smooth_transitions: true               # Enable smooth size transitions
     max_size_gradient: 1.3                 # Maximum size change between neighbors
+  
+  # Geometry Parameters (Anti-hardcoding policy compliance)
+  geometry_parameters:
+    fault_alignment_tolerance: 50.0        # ft - Tolerance for face alignment with fault
+    min_distance_fraction: 0.5             # Minimum distance fraction for point spacing
+    well_refinement_fraction: 0.6          # Well refinement fraction for spacing
+    boundary_spacing_fraction: 0.8         # Boundary spacing fraction
+    depth_validation_tolerance: 50.0       # ft - Tolerance for depth validation
     
   # Grid Quality Control
   quality_control:

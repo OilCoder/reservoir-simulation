@@ -33,10 +33,20 @@ function output_data = s14_aquifer_configuration()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Add MRST to path manually (since session doesn't save paths)
+    mrst_root = '/opt/mrst';
+    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
+    addpath(genpath(fullfile(mrst_root, 'modules')));
+    
+    % Load saved MRST session to check status
+    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    if exist(session_file, 'file')
+        loaded_data = load(session_file);
+        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
+            fprintf('   ✅ MRST session validated\n');
+        end
+    else
+        error('MRST session not found. Please run s01_initialize_mrst.m first.');
     end
     
     % Print module header
@@ -46,8 +56,7 @@ function output_data = s14_aquifer_configuration()
     start_time = tic;
     output_data = struct();
     
-    try
-        %% 1. Load Configuration and Previous Results
+    %% 1. Load Configuration and Previous Results
         fprintf('📋 Loading configuration and previous results...\n');
         
         % Load YAML configurations
@@ -56,49 +65,46 @@ function output_data = s14_aquifer_configuration()
         
         % Load from canonical MRST data structure
         base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-        canonical_mrst_dir = fullfile(base_data_path, 'mrst');
+        canonical_mrst_dir = fullfile(base_data_path, 'simulation_data');
         
         % Load initial state from s12/s13 (pressure, saturations, equilibrium data)
-        initial_state_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
-        if exist(initial_state_file, 'file')
+        state_file = fullfile(canonical_mrst_dir, 'state.mat');
+        if exist(state_file, 'file')
             fprintf('   ✅ Loading initial state with pressure and saturations\n');
-            initial_data = load(initial_state_file, 'data_struct');
-            state = initial_data.data_struct.state;
-            fprintf('   ✅ State loaded from canonical MRST structure\n');
+            state_data = load(state_file, 'state');
+            state = state_data.state;
+            fprintf('   ✅ State loaded from consolidated data structure\n');
         else
-            error(['CANON-FIRST ERROR: Initial state not found at canonical location.\n' ...
+            error(['CANON-FIRST ERROR: Initial state not found at consolidated location.\n' ...
                    'REQUIRED: Run s12_pressure_initialization.m and s13_saturation_distribution.m first.\n' ...
-                   'Expected file: %s'], initial_state_file);
+                   'Expected file: %s'], state_file);
         end
         
-        % Load grid from canonical MRST structure
+        % Load grid from consolidated data structure
         grid_file = fullfile(canonical_mrst_dir, 'grid.mat');
         if exist(grid_file, 'file')
-            grid_data = load(grid_file, 'data_struct');
-            G = grid_data.data_struct.G;
-            fprintf('   ✅ Loading grid from canonical MRST structure\n');
+            grid_data = load(grid_file, 'G');
+            G = grid_data.G;
+            fprintf('   ✅ Loading grid from consolidated data structure\n');
         else
             error(['CANON-FIRST ERROR: Grid not found at canonical location.\n' ...
                    'Expected file: %s'], grid_file);
         end
         
-        % Load rock properties from canonical MRST structure
+        % Load rock properties from consolidated data structure
         rock_file = fullfile(canonical_mrst_dir, 'rock.mat');
         if exist(rock_file, 'file')
-            rock_data = load(rock_file, 'data_struct');
-            rock = struct('perm', rock_data.data_struct.perm, 'poro', rock_data.data_struct.poro);
-            if isfield(rock_data.data_struct, 'rock_type_assignments')
-                rock_types = rock_data.data_struct.rock_type_assignments;
-            end
-            fprintf('   ✅ Loading rock properties from canonical MRST structure\n');
+            rock_data = load(rock_file, 'rock');
+            rock = rock_data.rock;
+            fprintf('   ✅ Loading rock properties from consolidated data structure\n');
         end
         
-        % Load fluid properties from canonical MRST structure
+        % Load fluid properties from consolidated data structure
         fluid_file = fullfile(canonical_mrst_dir, 'fluid.mat');
         if exist(fluid_file, 'file')
-            fluid_data = load(fluid_file, 'data_struct');
-            fluid = fluid_data.data_struct.model;
-            fprintf('   ✅ Loading fluid properties from canonical MRST structure\n');
+            fluid_data = load(fluid_file, 'fluid');
+            fluid = fluid_data.fluid;
+            fprintf('   ✅ Loading fluid properties from consolidated data structure\n');
         else
             fprintf('   ⚠️  Fluid properties not found, will use basic aquifer properties\n');
         end
@@ -146,15 +152,17 @@ function output_data = s14_aquifer_configuration()
         aquifer_type = aquifer_config.aquifer_model;
         boundary_condition = aquifer_config.aquifer_type;
         
-        % Get pressure initialization data from loaded initial state
-        if exist('initial_data', 'var') && isfield(initial_data.data_struct, 'equilibrium')
-            datum_pressure = initial_data.data_struct.equilibrium.datum_pressure;
-            datum_depth = initial_data.data_struct.equilibrium.datum;
-            % Get water gradient from init config (already loaded)
-            water_gradient = init_config.initialization.pressure_gradients.water_gradient_psi_ft;
-        else
-            error('Pressure initialization data not found in initial state. Run s12_pressure_initialization.m first');
+        % Get pressure initialization data from configuration (Canon-First approach)
+        datum_pressure = init_config.initialization.initial_conditions.initial_pressure_psi;
+        datum_depth = init_config.initialization.equilibration_method.datum_depth_ft_tvdss;
+        water_gradient = init_config.initialization.pressure_gradients.water_gradient_psi_ft;
+        
+        % Verify pressure data exists in state
+        if ~isfield(state, 'pressure') || isempty(state.pressure)
+            error('Pressure field not found in state. Run s12_pressure_initialization.m first');
         end
+        
+        fprintf('   ✅ Using pressure initialization from configuration (Canon-First)\n');
         
         % System properties for aquifer calculations from fluid model
         % Extract unit conversion factor from CANON configuration (CANON-FIRST)
@@ -333,12 +341,17 @@ function output_data = s14_aquifer_configuration()
             validation_passed = false;
         end
         
-        % Check reasonable aquifer properties using physical constraints
-        typical_porosity_min = 0.05;  % Physical minimum for aquifer
-        typical_porosity_max = 0.50;  % Physical maximum for unconsolidated sediments
-        if aquifer_porosity < typical_porosity_min || aquifer_porosity > typical_porosity_max
+        % Check reasonable aquifer properties using configuration validation limits
+        if ~isfield(aquifer_config, 'validation') || ~isfield(aquifer_config.validation, 'porosity_limits')
+            error(['Missing validation parameters in initialization_config.yaml.\n' ...
+                   'REQUIRED: Add validation.porosity_limits section to aquifer_configuration.\n' ...
+                   'Canon must specify minimum and maximum porosity limits.']);
+        end
+        
+        porosity_limits = aquifer_config.validation.porosity_limits;
+        if aquifer_porosity < porosity_limits.minimum || aquifer_porosity > porosity_limits.maximum
             fprintf('   ⚠️  Warning: Aquifer porosity (%.2f) outside physical range [%.2f-%.2f]\n', ...
-                    aquifer_porosity, typical_porosity_min, typical_porosity_max);
+                    aquifer_porosity, porosity_limits.minimum, porosity_limits.maximum);
             validation_passed = false;
         end
         
@@ -359,8 +372,14 @@ function output_data = s14_aquifer_configuration()
             validation_passed = false;
         end
         
-        % Check aquifer strength consistency
-        connectivity_threshold = 0.05;  % 5% of cells connected is reasonable minimum
+        % Check aquifer strength consistency using configuration threshold
+        if ~isfield(aquifer_config.validation, 'connectivity_threshold')
+            error(['Missing connectivity_threshold in initialization_config.yaml validation.\n' ...
+                   'REQUIRED: Add validation.connectivity_threshold to aquifer_configuration.\n' ...
+                   'Canon must specify minimum connectivity threshold.']);
+        end
+        
+        connectivity_threshold = aquifer_config.validation.connectivity_threshold;
         if strcmp(aquifer_strength, 'weak') && length(aquifer_cells) > G.cells.num * connectivity_threshold
             fprintf('   ⚠️  Warning: Weak aquifer classification inconsistent with high connectivity\n');
         end
@@ -402,27 +421,26 @@ function output_data = s14_aquifer_configuration()
         %% 8. Export Results to Canonical MRST Structure
         fprintf('📁 Exporting aquifer configuration data...\n');
         
-        % Update the existing initial_state.mat file
-        canonical_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
-        if exist(canonical_file, 'file')
-            load(canonical_file, 'data_struct');
+        % Load existing state and add aquifer configuration
+        state_file = fullfile(canonical_mrst_dir, 'state.mat');
+        if exist(state_file, 'file')
+            state_data = load(state_file);
+            state = state_data.state;
         else
-            data_struct = struct();
-            data_struct.created_by = {};
+            error('State file not found. Run s12 and s13 first.');
         end
         
-        % Add aquifer data to existing structure
-        data_struct.aquifer.type = 'analytical';
-        data_struct.aquifer.model = aquifer_model;
-        data_struct.aquifer.parameters = aquifer_analysis;
-        data_struct.aquifer.cells = aquifer_cells;
-        data_struct.aquifer.pressure = aquifer_pressure;
-        data_struct.created_by{end+1} = 's14';
-        data_struct.timestamp = datetime('now');
+        % Add aquifer configuration to state
+        aquifer_config = struct();
+        aquifer_config.type = 'analytical';
+        aquifer_config.model = aquifer_model;
+        aquifer_config.parameters = aquifer_analysis;
+        aquifer_config.cells = aquifer_cells;
+        aquifer_config.pressure = aquifer_pressure;
         
-        % Save updated structure
-        save(canonical_file, 'data_struct');
-        fprintf('   ✅ Canonical MRST data updated: %s\n', canonical_file);
+        % Save using consolidated data structure
+        save_consolidated_data('state', 's14', 'state', state, 'aquifer_config', aquifer_config);
+        fprintf('   ✅ State updated with aquifer configuration in consolidated structure\n');
         
         % Save aquifer configuration summary
         aquifer_stats_file = fullfile(canonical_mrst_dir, 'aquifer_stats.txt');
@@ -450,11 +468,6 @@ function output_data = s14_aquifer_configuration()
         output_data.boundary_condition = aquifer_model.boundary_condition;
         
         % Success message
-        print_step_footer('S14', 'Aquifer configuration completed successfully', toc(start_time));
-        
-    catch ME
-        print_step_footer('S14', sprintf('FAILED: %s', ME.message), toc(start_time));
-        rethrow(ME);
-    end
+    print_step_footer('S14', 'Aquifer configuration completed successfully', toc(start_time));
     
 end

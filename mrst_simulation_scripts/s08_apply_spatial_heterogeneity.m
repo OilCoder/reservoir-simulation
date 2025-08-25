@@ -4,9 +4,9 @@ function final_rock = s08_apply_spatial_heterogeneity()
 % OBJECTIVE: Add realistic spatial variations to rock properties and finalize
 %            the structure for MRST reservoir simulation.
 %
-% INPUT: Loads enhanced_rock.mat from data directory (created by s07)
+% INPUT: Loads rock from consolidated data structure (created by s07)
 % OUTPUT: final_rock - Simulation-ready rock with spatial heterogeneity
-%         Saves final_rock.mat for downstream workflow
+%         Saves to consolidated data structure for downstream workflow
 %
 % Author: Claude Code AI System
 % Date: August 14, 2025
@@ -18,124 +18,111 @@ function final_rock = s08_apply_spatial_heterogeneity()
     % Load validation functions (inline for compatibility)
     load_validation_functions();
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Add MRST to path manually (since session doesn't save paths)
+    mrst_root = '/opt/mrst';
+    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
+    addpath(genpath(fullfile(mrst_root, 'modules')));
+    
+    % Load saved MRST session to check status
+    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    if exist(session_file, 'file')
+        loaded_data = load(session_file);
+        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
+            fprintf('   ✅ MRST session validated\n');
+        end
+    else
+        error('MRST session not found. Please run s01_initialize_mrst.m first.');
     end
 
     print_step_header('S08', 'Apply Spatial Heterogeneity');
     
     total_start_time = tic;
     
-    try
-        % ----------------------------------------
-        % Step 1 – Load Enhanced Rock from File
-        % ----------------------------------------
-        step_start = tic;
-        [enhanced_rock, G] = load_enhanced_rock_from_file();
-        validate_enhanced_rock_input(enhanced_rock);
-        print_step_result(1, 'Load Enhanced Rock from File', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 2 – Apply Spatial Variations
-        % ----------------------------------------
-        step_start = tic;
-        final_rock = apply_geostatistical_variations(enhanced_rock);
-        print_step_result(2, 'Apply Spatial Variations', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 3 – Finalize for Simulation
-        % ----------------------------------------
-        step_start = tic;
-        final_rock = add_simulation_metadata(final_rock);
-        final_rock = add_mrst_compatibility_flags(final_rock);
-        final_rock = add_field_statistics(final_rock);
-        print_step_result(3, 'Finalize for Simulation', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 4 – Final Validation and Export
-        % ----------------------------------------
-        step_start = tic;
-        validate_rock_dimensions(final_rock, G);
-        validate_property_ranges(final_rock);
-        validate_heterogeneity_application(final_rock);
-        validate_simulation_readiness(final_rock);
-        export_final_rock_structure(final_rock, G);
-        print_step_result(4, 'Final Validation and Export', 'success', toc(step_start));
-        
-        % Save final rock structure to file for simulation
-        save_final_rock_structure(final_rock, G);
-        
-        print_step_footer('S08', 'Final Rock Ready for Simulation', toc(total_start_time));
-        
-    catch ME
-        print_error_step(0, 'Spatial Heterogeneity Application', ME.message);
-        error('Spatial heterogeneity application failed: %s', ME.message);
+    % ----------------------------------------
+    % Step 1 – Load Enhanced Rock from File
+    % ----------------------------------------
+    step_start = tic;
+    [enhanced_rock, G] = load_enhanced_rock_from_file();
+    validate_enhanced_rock_input(enhanced_rock);
+    print_step_result(1, 'Load Enhanced Rock from File', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 2 – Apply Spatial Variations
+    % ----------------------------------------
+    step_start = tic;
+    final_rock = apply_geostatistical_variations(enhanced_rock);
+    print_step_result(2, 'Apply Spatial Variations', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 3 – Finalize for Simulation
+    % ----------------------------------------
+    step_start = tic;
+    final_rock = add_simulation_metadata(final_rock);
+    final_rock = add_mrst_compatibility_flags(final_rock);
+    final_rock = add_field_statistics(final_rock);
+    print_step_result(3, 'Finalize for Simulation', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 4 – Final Validation and Export
+    % ----------------------------------------
+    step_start = tic;
+    validate_rock_dimensions(final_rock, G);
+    validate_property_ranges(final_rock);
+    validate_heterogeneity_application(final_rock);
+    validate_simulation_readiness(final_rock);
+    
+    % Save consolidated rock data (final contributor to rock.mat)
+    layer_info = final_rock.meta.layer_info;
+    if isfield(final_rock.meta, 'stratification')
+        save_consolidated_data('rock', 's08', 'rock', final_rock, 'layer_info', layer_info, ...
+                             'stratification', final_rock.meta.stratification);
+    else
+        save_consolidated_data('rock', 's08', 'rock', final_rock, 'layer_info', layer_info);
     end
+    
+    print_step_result(4, 'Final Validation and Export', 'success', toc(step_start));
+    
+    print_step_footer('S08', 'Final Rock Ready for Simulation', toc(total_start_time));
 
 end
 
 function [enhanced_rock, G] = load_enhanced_rock_from_file()
-% Load enhanced rock structure using new canonical MRST structure
+% Load enhanced rock structure using consolidated data structure
     
-    % NEW CANONICAL STRUCTURE: Load from rock.mat
-    canonical_file = '/workspace/data/mrst/rock.mat';
+    % Load from consolidated data structure
+    rock_file = '/workspace/data/simulation_data/rock.mat';
     
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
+    if exist(rock_file, 'file')
+        rock_data = load(rock_file);
         
-        % Reconstruct enhanced rock structure from canonical data
-        enhanced_rock = struct();
-        enhanced_rock.perm = data_struct.perm;
-        enhanced_rock.poro = data_struct.poro;
-        enhanced_rock.layer = data_struct.layers;
-        enhanced_rock.meta.units = data_struct.units;
+        % Load rock structure directly from consolidated data
+        enhanced_rock = rock_data.rock;
         
-        fprintf('   ✅ Loading enhanced rock from canonical location\n');
+        % Load and attach source configuration
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        config = read_yaml_config('config/rock_properties_config.yaml');
+        enhanced_rock.meta.source_config = config;
+        
+        fprintf('   ✅ Loading enhanced rock from consolidated data structure\n');
     else
-        % Fallback to legacy location if canonical doesn't exist
-        script_path = fileparts(mfilename('fullpath'));
-        data_dir = get_data_path('static');
-        
-        enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
-        
-        if ~exist(enhanced_rock_file, 'file')
-            error(['CANON-FIRST ERROR: Enhanced rock data file not found.\n' ...
-                   'REQUIRED: Run s07_add_layer_metadata.m first.']);
-        end
-        
-        load_data = load(enhanced_rock_file);
-        if ~isfield(load_data, 'enhanced_rock') || ~isfield(load_data, 'G')
-            error('CANON-FIRST ERROR: Invalid enhanced rock file format.');
-        end
-        
-        enhanced_rock = load_data.enhanced_rock;
-        G = load_data.G;
-        fprintf('   ⚠️  Loading enhanced rock from legacy location\n');
-        return;
+        error(['Missing consolidated rock file: /workspace/data/simulation_data/rock.mat\n' ...
+               'REQUIRED: Run s07_add_layer_metadata.m first.\n' ...
+               'Canon specifies rock.mat must exist before spatial heterogeneity application.']);
     end
     
-    % Load grid from canonical structure
-    grid_file = '/workspace/data/mrst/grid.mat';
+    % Load grid from consolidated data structure
+    grid_file = '/workspace/data/simulation_data/grid.mat';
     if exist(grid_file, 'file')
-        load(grid_file, 'data_struct');
-        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
-            G = data_struct.fault_grid;
+        grid_data = load(grid_file);
+        if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)
+            G = grid_data.fault_grid;
         else
-            G = data_struct.G;
+            G = grid_data.G;
         end
     else
-        error('CANON-FIRST ERROR: Grid data not found.');
+        error('CANON-FIRST ERROR: Grid data not found in consolidated structure.');
     end
-               'Found fields: %s\n' ...
-               'Canon specification requires enhanced_rock and G fields.'], ...
-               strjoin(fieldnames(load_data), ', '));
-    end
-    
-    enhanced_rock = load_data.enhanced_rock;
-    G = load_data.G;
-    fprintf('   ✅ Loading enhanced rock from s07 data file\n');
     
 end
 
@@ -166,62 +153,6 @@ function validate_enhanced_rock_input(rock)
     
 end
 
-function save_final_rock_structure(final_rock, G)
-% Save final rock structure using new canonical MRST structure
-    
-    % NEW CANONICAL STRUCTURE: Update rock.mat with heterogeneity
-    canonical_file = '/workspace/data/mrst/rock.mat';
-    
-    % Load existing rock data
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-    else
-        data_struct = struct();
-        data_struct.created_by = {};
-    end
-    
-    % Add heterogeneity information to existing rock structure
-    data_struct.heterogeneity.correlation = final_rock.heterogeneity.correlation;
-    data_struct.heterogeneity.variogram = final_rock.heterogeneity.variogram;
-    data_struct.heterogeneity.realizations = final_rock.heterogeneity.realizations;
-    data_struct.created_by{end+1} = 's08';
-    data_struct.timestamp = datetime('now');
-    
-    % Save updated canonical structure
-    save(canonical_file, 'data_struct');
-    fprintf('   NEW CANONICAL: Rock with heterogeneity updated in %s\n', canonical_file);
-    
-    % Maintain legacy compatibility during transition
-    try
-        script_path = fileparts(mfilename('fullpath'));
-        data_dir = get_data_path('static');
-        
-        if ~exist(data_dir, 'dir')
-            mkdir(data_dir);
-        end
-        
-        % Save final rock structure with canonical naming (legacy compatibility)
-        final_rock_file = fullfile(data_dir, 'final_rock.mat');
-        save(final_rock_file, 'final_rock', 'G');
-        
-        fprintf('   Legacy compatibility maintained: %s\n', final_rock_file);
-    catch ME
-        fprintf('Warning: Legacy export failed: %s\n', ME.message);
-    end
-    
-    % Ensure canonical directory exists
-    if ~exist(canonical_static_dir, 'dir')
-        mkdir(canonical_static_dir);
-    end
-    
-    % Save to canonical location with variable name 'rock' (not 'final_rock') for downstream compatibility
-    rock = final_rock;  % Rename for downstream scripts that expect 'rock' variable
-    canonical_rock_file = fullfile(canonical_static_dir, 'final_simulation_rock.mat');
-    save(canonical_rock_file, 'rock', 'G');
-    
-    fprintf('   ✅ Canonical rock structure saved to %s\n', canonical_rock_file);
-    
-end
 
 function final_rock = apply_geostatistical_variations(enhanced_rock)
 % Apply spatial variations based on YAML heterogeneity parameters
@@ -293,13 +224,29 @@ function final_rock = add_field_statistics(final_rock)
     final_rock.meta.field_summary = struct();
     final_rock.meta.field_summary.total_cells = length(final_rock.poro);
     
-    % Porosity statistics
+    % Add component statistics
+    final_rock = add_porosity_statistics(final_rock);
+    final_rock = add_permeability_statistics(final_rock);
+    final_rock = add_rock_type_statistics(final_rock);
+    final_rock = add_heterogeneity_metadata(final_rock);
+    final_rock = add_policy_compliance_metadata(final_rock);
+    
+end
+
+function final_rock = add_porosity_statistics(final_rock)
+% Add porosity statistics to field summary
+    
     final_rock.meta.field_summary.porosity_stats = struct(...
         'min', min(final_rock.poro), ...
         'max', max(final_rock.poro), ...
         'mean', mean(final_rock.poro), ...
         'std', std(final_rock.poro), ...
         'median', median(final_rock.poro));
+    
+end
+
+function final_rock = add_permeability_statistics(final_rock)
+% Add permeability statistics to field summary
     
     % Permeability statistics (horizontal - kx component)
     kx = final_rock.perm(:,1);
@@ -311,7 +258,11 @@ function final_rock = add_field_statistics(final_rock)
         'median_kx', median(kx), ...
         'units', 'MRST_native');
     
-    % Rock type statistics
+end
+
+function final_rock = add_rock_type_statistics(final_rock)
+% Add rock type distribution statistics if available
+    
     if isfield(final_rock.meta, 'rock_type_assignments')
         assignments = final_rock.meta.rock_type_assignments;
         unique_types = unique(assignments);
@@ -326,12 +277,21 @@ function final_rock = add_field_statistics(final_rock)
         end
     end
     
-    % Heterogeneity and policy compliance
+end
+
+function final_rock = add_heterogeneity_metadata(final_rock)
+% Add heterogeneity application metadata
+    
     final_rock.meta.heterogeneity = struct(...
         'type', 'Layer_Based_with_Spatial_Variation', ...
         'source', 'YAML_Configuration', ...
         'spatial_correlation', 'Random_Variation_Applied', ...
         'geostatistics_method', 'YAML_Parameter_Based');
+    
+end
+
+function final_rock = add_policy_compliance_metadata(final_rock)
+% Add policy compliance flags
     
     final_rock.meta.policy_compliance = struct(...
         'mrst_native_only', true, ...
@@ -342,84 +302,7 @@ function final_rock = add_field_statistics(final_rock)
     
 end
 
-function export_final_rock_structure(final_rock, G)
-% Export final simulation-ready rock structure (legacy compatibility + canonical)
-    
-    script_path = fileparts(mfilename('fullpath'));
-    data_dir = get_data_path('static');
-    
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
-    end
-    
-    % Export final rock structure (alternative name for legacy compatibility)
-    final_rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
-    save(final_rock_file, 'final_rock', 'G');
-    
-    % Export comprehensive summary report
-    export_final_summary_report(final_rock, G, data_dir);
-    
-    fprintf('   ✅ Final rock structure also exported to %s\n', final_rock_file);
-    
-end
 
-function export_final_summary_report(final_rock, G, data_dir)
-% Export detailed summary report for final rock structure
-    
-    summary_file = fullfile(data_dir, 'final_rock_summary.txt');
-    fid = fopen(summary_file, 'w');
-    
-    fprintf(fid, 'Eagle West Field - Final Simulation Rock Summary\n');
-    fprintf(fid, '=================================================\n\n');
-    
-    % Simulation status
-    fprintf(fid, 'SIMULATION STATUS: %s\n', final_rock.meta.simulation_ready.status);
-    fprintf(fid, 'WORKFLOW COMPLETED: %s\n', final_rock.meta.simulation_ready.workflow_completed);
-    fprintf(fid, 'CREATION CHAIN: %s\n\n', strjoin(final_rock.meta.simulation_ready.creation_chain, ' → '));
-    
-    % Field characteristics
-    fprintf(fid, 'Field Characteristics:\n');
-    fprintf(fid, '  Total Cells: %d\n', final_rock.meta.field_summary.total_cells);
-    fprintf(fid, '  Grid Type: PEBI (Unstructured)\n');
-    fprintf(fid, '  Layers: %d\n', final_rock.meta.layer_info.n_layers);
-    
-    % Property statistics
-    poro_stats = final_rock.meta.field_summary.porosity_stats;
-    perm_stats = final_rock.meta.field_summary.permeability_stats;
-    
-    fprintf(fid, '\nPorosity Statistics:\n');
-    fprintf(fid, '  Range: %.3f - %.3f\n', poro_stats.min, poro_stats.max);
-    fprintf(fid, '  Mean: %.3f ± %.3f\n', poro_stats.mean, poro_stats.std);
-    fprintf(fid, '  Median: %.3f\n', poro_stats.median);
-    
-    fprintf(fid, '\nPermeability Statistics (kx):\n');
-    fprintf(fid, '  Range: %.2e - %.2e mD\n', perm_stats.min_kx, perm_stats.max_kx);
-    fprintf(fid, '  Mean: %.2e ± %.2e mD\n', perm_stats.mean_kx, perm_stats.std_kx);
-    fprintf(fid, '  Median: %.2e mD\n', perm_stats.median_kx);
-    
-    % Rock type distribution
-    if isfield(final_rock.meta.field_summary, 'rock_type_distribution')
-        fprintf(fid, '\nRock Type Distribution:\n');
-        rt_dist = final_rock.meta.field_summary.rock_type_distribution;
-        rt_names = fieldnames(rt_dist);
-        for i = 1:length(rt_names)
-            rt_data = rt_dist.(rt_names{i});
-            fprintf(fid, '  %s: %d cells (%.1f%%)\n', rt_names{i}, rt_data.cell_count, rt_data.fraction*100);
-        end
-    end
-    
-    % Heterogeneity information
-    het = final_rock.meta.heterogeneity;
-    fprintf(fid, '\nHeterogeneity Applied:\n');
-    fprintf(fid, '  Type: %s\n', het.type);
-    fprintf(fid, '  Method: %s\n', het.geostatistics_method);
-    fprintf(fid, '  Source: %s\n', het.source);
-    
-    fprintf(fid, '\n=== READY FOR MRST RESERVOIR SIMULATION ===\n');
-    
-    fclose(fid);
-    
-end
 
 function load_validation_functions()
 % Load validation functions inline for compatibility

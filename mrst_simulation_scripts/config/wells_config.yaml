@@ -353,3 +353,32 @@ grid_refinement:
   critical_pebi_influence_radius: 180.0  # ft
   standard_pebi_influence_radius: 150.0  # ft  
   marginal_pebi_influence_radius: 120.0  # ft
+
+  # Drilling Parameters (CANON)
+  drilling_parameters:
+    drilling_durations:
+      vertical: 45      # days - Standard vertical well drilling
+      horizontal: 65    # days - Horizontal well drilling
+      multi_lateral: 85 # days - Multi-lateral well drilling
+    
+    completion_durations:
+      vertical: 15      # days - Standard vertical completion
+      horizontal: 20    # days - Horizontal completion
+      multi_lateral: 25 # days - Multi-lateral completion
+
+# Development Schedule Parameters (CANON)
+# Source: 05_Wells_Completions.md Production Forecasting
+development_parameters:
+  # Production efficiency parameters
+  production_efficiency: 0.90        # Expected vs target production efficiency
+  
+  # Water cut evolution parameters
+  initial_water_cut_percent: 20.0    # Starting water cut percentage
+  water_cut_increase_per_phase: 5.0  # Percent increase per development phase
+  
+  # Gas-oil ratio evolution parameters  
+  initial_gor_scf_stb: 1200.0       # Starting gas-oil ratio (SCF/STB)
+  gor_increase_per_phase: 100.0     # SCF/STB increase per development phase
+  
+  # Voidage replacement parameters
+  vrr_target: 1.20                  # Target voidage replacement ratio

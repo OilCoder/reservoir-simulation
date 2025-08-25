@@ -57,10 +57,9 @@ function structural_data = s04_structural_framework()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Validate MRST session - basic check only
+    if ~exist('cartGrid', 'file')
+        error('MRST not initialized. Run s01_initialize_mrst() first.');
     end
 
     print_step_header('S04', 'Setup Structural Framework');
@@ -68,28 +67,27 @@ function structural_data = s04_structural_framework()
     total_start_time = tic;
     
     try
-        % ----------------------------------------
+        % Add structural utilities to path
+        addpath(fullfile(script_dir, 'utils', 'structural'));
+        
+        % Load configuration once for all operations
+        config = load_structural_config();
+        
         % Step 1 – Load Grid & Define Surfaces
-        % ----------------------------------------
         step_start = tic;
-        G = step_1_load_grid();
-        surfaces = step_1_define_surfaces(G);
+        G = load_structural_grid();
+        surfaces = define_structural_surfaces(G);
         print_step_result(1, 'Load Grid & Define Surfaces', 'success', toc(step_start));
         
-        % ----------------------------------------
-        % Step 2 – Apply Structural Framework
-        % ----------------------------------------
+        % Step 2 – Apply Structural Framework  
         step_start = tic;
-        config = load_structural_config();  % Load config for layer creation
-        layers = step_2_create_layers(G, surfaces, config);
-        G = step_2_apply_framework(G, surfaces, layers);
+        layers = create_geological_layers(G, surfaces, config);
+        G = apply_structural_framework(G, surfaces, layers);
         print_step_result(2, 'Apply Structural Framework', 'success', toc(step_start));
         
-        % ----------------------------------------
-        % Step 3 – Validate & Export Framework
-        % ----------------------------------------
+        % Step 3 – Export Framework
         step_start = tic;
-        structural_data = step_3_export_framework(G, surfaces, layers);
+        structural_data = export_structural_data(G, surfaces, layers);
         print_step_result(3, 'Validate & Export Framework', 'success', toc(step_start));
         
         print_step_footer('S04', 'Structural Framework Ready', toc(total_start_time));
@@ -101,164 +99,7 @@ function structural_data = s04_structural_framework()
 
 end
 
-function G = step_1_load_grid()
-% Step 1 - Load grid structure from s03 using new canonical MRST structure
-    
-    % NEW CANONICAL STRUCTURE: Load from grid.mat
-    canonical_file = '/workspace/data/mrst/grid.mat';
-    
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-        G = data_struct.G;
-        fprintf('   ✅ Loading grid from canonical location\n');
-    else
-        % Fallback to legacy location if canonical doesn't exist
-        func_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(func_dir, 'utils'));
-        data_dir = get_data_path('static');
-        grid_file = fullfile(data_dir, 'pebi_grid.mat');
-        
-        if ~exist(grid_file, 'file')
-            error('CANON-FIRST ERROR: Grid structure not found.\nREQUIRED: Run s03_create_pebi_grid.m first.');
-        end
-        
-        % Load PEBI grid structure
-        load(grid_file, 'G_pebi');
-        G = G_pebi;  % Use PEBI grid as base grid
-        fprintf('   ⚠️  Loading grid from legacy location\n');
-    end
-    
-end
 
-function surfaces = step_1_define_surfaces(G)
-% Step 1 - Define structural surfaces for anticline
-
-    % Substep 1.1 – Load structural configuration from YAML ______
-    config = load_structural_config();
-    
-    % Substep 1.2 – Create anticline structure ____________________
-    surfaces = struct();
-    surfaces.anticline_axis = define_anticline_axis(G, config);
-    surfaces.structural_relief = config.anticline.structural_relief;
-    surfaces.crest_depth = config.anticline.crest_depth;
-    
-    % Substep 1.3 – Define compartments ___________________________
-    % Simple compartment definition (avoiding complex array parsing)
-    surfaces.compartments = {'Northern', 'Southern'};
-    
-end
-
-function axis_data = define_anticline_axis(G, config)
-% Define anticline axis through field center
-    field_center_x = mean([min(G.cells.centroids(:,1)), max(G.cells.centroids(:,1))]);
-    field_center_y = mean([min(G.cells.centroids(:,2)), max(G.cells.centroids(:,2))]);
-    
-    % Anticline axis trend from YAML configuration - Policy compliance
-    axis_trend = config.anticline.axis_trend * pi/180;  % Convert degrees to radians
-    axis_data = struct('center_x', field_center_x, 'center_y', field_center_y, 'trend', axis_trend);
-end
-
-function layers = step_2_create_layers(G, surfaces, config)  
-% Step 2 - Create geological layer framework
-
-    % Substep 2.1 – Create layer structure from YAML config ______
-    layers = struct();
-    % For PEBI grids, get number of layers from config instead of cartDims
-    layers.n_layers = config.layering.n_layers;  % From YAML config - PEBI grid compatible
-    layer_thickness = config.layering.layer_thickness;  % From YAML - Policy compliance
-    layers.layer_tops = surfaces.crest_depth + (0:layers.n_layers-1) * layer_thickness;
-    layers.anticline_structure = true;
-    
-end
-
-function G = step_2_apply_framework(G, surfaces, layers)
-% Step 2 - Apply structural framework to grid
-
-    % Substep 2.2 – Apply anticline geometry _____________________
-    G.structural_framework = struct();
-    G.structural_framework.surfaces = surfaces;
-    G.structural_framework.layers = layers;
-    G.structural_framework.type = 'anticline';
-    
-    % Add cell-based structural properties
-    G.cells.layer_id = ceil((1:G.cells.num)' / (G.cells.num / layers.n_layers));
-    G.cells.structural_depth = G.cells.centroids(:,3) + surfaces.crest_depth;
-    
-end
-
-function structural_data = step_3_export_framework(G, surfaces, layers)
-% Step 4 - Export structural framework data using new canonical MRST structure
-
-    % Assemble structural data
-    structural_data = struct();
-    structural_data.grid = G;
-    structural_data.surfaces = surfaces;
-    structural_data.layers = layers;
-    structural_data.status = 'completed';
-    
-    % NEW CANONICAL STRUCTURE: Update grid.mat with structural information
-    canonical_file = '/workspace/data/mrst/grid.mat';
-    
-    % Load existing grid data
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-    else
-        data_struct = struct();
-        data_struct.created_by = {};
-    end
-    
-    % Add structural information to existing grid structure
-    data_struct.structure.layers = layers;
-    data_struct.structure.surfaces = surfaces;
-    data_struct.created_by{end+1} = 's04';
-    data_struct.timestamp = datetime('now');
-    
-    % Save updated canonical structure
-    save(canonical_file, 'data_struct');
-    fprintf('     NEW CANONICAL: Grid with structure updated in %s\n', canonical_file);
-    
-    % Maintain legacy compatibility during transition
-    try
-        func_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(func_dir, 'utils'));
-        
-        legacy_data_dir = get_data_path('static');
-        if ~exist(legacy_data_dir, 'dir')
-            mkdir(legacy_data_dir);
-        end
-        legacy_framework_file = fullfile(legacy_data_dir, 'structural_framework.mat');
-        save(legacy_framework_file, 'structural_data');
-        
-        fprintf('     Legacy compatibility maintained: %s\n', legacy_framework_file);
-    catch ME
-        fprintf('Warning: Legacy export failed: %s\n', ME.message);
-    end
-    
-end
-
-function config = load_structural_config()
-% Load structural configuration from YAML - NO HARDCODING POLICY
-    try
-        % Policy Compliance: Load ALL parameters from YAML config
-        func_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(func_dir, 'utils'));
-        full_config = read_yaml_config('config/structural_framework_config.yaml', true);
-        config = full_config.structural_framework;
-        
-        % Validate required fields exist
-        required_fields = {'anticline', 'layering', 'compartments'};
-        for i = 1:length(required_fields)
-            if ~isfield(config, required_fields{i})
-                error('Missing required field in structural_framework_config.yaml: %s', required_fields{i});
-            end
-        end
-        
-        fprintf('Structural framework configuration loaded from YAML\n');
-        
-    catch ME
-        error('Failed to load structural configuration from YAML: %s\nPolicy violation: No hardcoding allowed', ME.message);
-    end
-end
 
 % Main execution when called as script
 if ~nargout

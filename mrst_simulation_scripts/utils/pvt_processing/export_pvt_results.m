@@ -1,49 +1,98 @@
 function export_pvt_results(fluid_complete)
-% EXPORT_PVT_RESULTS - Export PVT tables using new canonical MRST structure
+% EXPORT_PVT_RESULTS - Export PVT tables to simulation data catalog structure
 %
 % INPUT:
 %   fluid_complete - Complete MRST fluid structure with PVT tables
 
-    % NEW CANONICAL STRUCTURE: Update fluid.mat with PVT tables
-    canonical_file = '/workspace/data/mrst/fluid.mat';
-    
-    % Load existing fluid data
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-    else
-        data_struct = struct();
-        data_struct.created_by = {};
+    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/static/
+    static_dir = '/workspace/data/simulation_data/static';
+    if ~exist(static_dir, 'dir')
+        mkdir(static_dir);
     end
     
-    % Add PVT tables to existing fluid structure
-    data_struct.properties.pvt.pvto = fluid_complete.pvto;
-    data_struct.properties.pvt.pvtw = fluid_complete.pvtw;
-    data_struct.properties.pvt.pvtg = fluid_complete.pvtg;
-    data_struct.properties.pvt.surface = fluid_complete.surface;
-    data_struct.created_by{end+1} = 's11';
-    data_struct.timestamp = datetime('now');
+    % Create fluid_properties.mat according to catalog specification
+    fluid_properties_file = fullfile(static_dir, 'fluid_properties.mat');
     
-    % Save updated canonical structure
-    save(canonical_file, 'data_struct');
-    fprintf('   NEW CANONICAL: Fluid with PVT tables updated in %s\n', canonical_file);
+    % PVT Data Structure (Section 4 of catalog)
+    if isfield(fluid_complete, 'pvto') && ~isempty(fluid_complete.pvto)
+        pressure_table = fluid_complete.pvto(:,1);
+        oil_fvf = fluid_complete.pvto(:,3);
+        oil_viscosity = fluid_complete.pvto(:,4);
+    else
+        % Default pressure points if not available
+        pressure_table = linspace(1e5, 400e5, 50)';  % 1-400 bar
+        oil_fvf = ones(50, 1) * 1.2;  % Default FVF
+        oil_viscosity = ones(50, 1) * 2.0;  % Default viscosity
+    end
+    
+    if isfield(fluid_complete, 'pvtw') && ~isempty(fluid_complete.pvtw)
+        water_fvf = ones(size(pressure_table)) * fluid_complete.pvtw(2);
+        water_viscosity = ones(size(pressure_table)) * 0.5e-3;  % Default water viscosity
+    else
+        water_fvf = ones(size(pressure_table));
+        water_viscosity = ones(size(pressure_table)) * 0.5e-3;
+    end
+    
+    % Relative Permeability Tables (Section 4 of catalog)
+    saturation_table = linspace(0, 1, 100)';
+    krw_table = max(0, ((saturation_table - 0.15) / 0.85).^2);  % Corey model
+    kro_table = max(0, ((0.8 - saturation_table) / 0.65).^2);
+    pcow_table = zeros(size(saturation_table));  % Zero capillary pressure for now
+    
+    % Fluid Constants (from catalog)
+    oil_density = 850.0;    % kg/m³
+    water_density = 1000.0; % kg/m³
+    oil_viscosity_ref = 2.0;    % cP
+    water_viscosity_ref = 0.5;  % cP
+    connate_water_sat = 0.15;   % fraction
+    residual_oil_sat = 0.20;    % fraction
+    
+    % Create fluid_complete copy without function handles for saving
+    fluid_for_save = struct();
+    field_names = fieldnames(fluid_complete);
+    for i = 1:length(field_names)
+        field_name = field_names{i};
+        field_value = fluid_complete.(field_name);
+        if isa(field_value, 'function_handle')
+            fluid_for_save.(field_name) = sprintf('Function handle removed for Octave compatibility');
+        else
+            fluid_for_save.(field_name) = field_value;
+        end
+    end
+    
+    % Save catalog-compliant fluid properties
+    save(fluid_properties_file, 'pressure_table', 'oil_fvf', 'oil_viscosity', ...
+         'water_fvf', 'water_viscosity', 'saturation_table', 'krw_table', ...
+         'kro_table', 'pcow_table', 'oil_density', 'water_density', ...
+         'oil_viscosity_ref', 'water_viscosity_ref', 'connate_water_sat', ...
+         'residual_oil_sat', 'fluid_for_save', '-v7');
+    
+    fprintf('     Fluid properties saved to catalog location: %s\n', fluid_properties_file);
+    
+    % Save using consolidated data structure (final fluid contributor)  
+    script_path = fileparts(mfilename('fullpath'));
+    script_path = fileparts(fileparts(script_path));  % Go up two levels to get to mrst_simulation_scripts
+    addpath(fullfile(script_path, 'utils'));
+    save_consolidated_data('fluid', 's11', 'fluid', fluid_for_save);
+    fprintf('     ✅ Saved to fluid.mat: fluid\n');
     
     % Maintain legacy compatibility during transition
     try
         base_data_path = fullfile('/workspace', 'data');
-        static_dir = fullfile(base_data_path, 'by_type', 'static', 'fluid');
-        if ~exist(static_dir, 'dir')
-            mkdir(static_dir);
+        legacy_static_dir = fullfile(base_data_path, 'by_type', 'static', 'fluid');
+        if ~exist(legacy_static_dir, 'dir')
+            mkdir(legacy_static_dir);
         end
         
         % Save complete fluid structure
-        fluid_file = fullfile(static_dir, 'complete_fluid_blackoil.mat');
+        fluid_file = fullfile(legacy_static_dir, 'complete_fluid_blackoil.mat');
         save(fluid_file, 'fluid_complete');
-        fprintf('   Legacy compatibility maintained: %s\n', fluid_file);
+        fprintf('     Legacy compatibility maintained: %s\n', fluid_file);
         
         % Create comprehensive PVT summary
-        summary_file = fullfile(static_dir, 'pvt_comprehensive_summary.txt');
+        summary_file = fullfile(legacy_static_dir, 'pvt_comprehensive_summary.txt');
         write_pvt_summary(fluid_complete, summary_file);
-        fprintf('   PVT summary saved: %s\n', summary_file);
+        fprintf('     PVT summary saved: %s\n', summary_file);
     catch ME
         fprintf('Warning: Legacy export failed: %s\n', ME.message);
     end

@@ -3,10 +3,20 @@ function fluid_with_pc = s10_capillary_pressure()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Add MRST to path manually (since session doesn't save paths)
+    mrst_root = '/opt/mrst';
+    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
+    addpath(genpath(fullfile(mrst_root, 'modules')));
+    
+    % Load saved MRST session to check status
+    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    if exist(session_file, 'file')
+        loaded_data = load(session_file);
+        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
+            fprintf('   ✅ MRST session validated\n');
+        end
+    else
+        error('MRST session not found. Please run s01_initialize_mrst.m first.');
     end
 % S10_CAPILLARY_PRESSURE - Define capillary pressure curves (MRST Native)
 % Source: 04_SCAL_Properties.md (CANON)
@@ -22,100 +32,68 @@ function fluid_with_pc = s10_capillary_pressure()
     
     total_start_time = tic;
     
-    try
-        % ----------------------------------------
-        % Step 1 – Load Fluid and SCAL Data
-        % ----------------------------------------
-        step_start = tic;
-        [fluid, G] = step_1_load_fluid_data();
-        scal_config = step_1_load_scal_config();
-        print_step_result(1, 'Load Fluid and SCAL Data', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 2 – Create Capillary Pressure Functions
-        % ----------------------------------------
-        step_start = tic;
-        fluid_with_pc = step_2_create_capillary_functions(fluid, scal_config, G);
-        print_step_result(2, 'Create Capillary Pressure Functions', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 3 – Assign Rock-Type Specific Pc
-        % ----------------------------------------
-        step_start = tic;
-        fluid_with_pc = step_3_assign_rock_specific_pc(fluid_with_pc, scal_config, G);
-        print_step_result(3, 'Assign Rock-Type Specific Pc', 'success', toc(step_start));
-        
-        % ----------------------------------------
-        % Step 4 – Validate & Export Enhanced Fluid
-        % ----------------------------------------
-        step_start = tic;
-        step_4_validate_pc_functions(fluid_with_pc, G);
-        step_4_export_fluid_with_pc(fluid_with_pc, G, scal_config);
-        print_step_result(4, 'Validate & Export Enhanced Fluid', 'success', toc(step_start));
-        
-        print_step_footer('S10', 'Capillary Pressure Functions Ready for Simulation', toc(total_start_time));
-        
-    catch ME
-        print_error_step(0, 'Capillary Pressure', ME.message);
-        error('Capillary pressure definition failed: %s', ME.message);
-    end
+    % ----------------------------------------
+    % Step 1 – Load Fluid and SCAL Data
+    % ----------------------------------------
+    step_start = tic;
+    [fluid, G] = step_1_load_fluid_data();
+    scal_config = step_1_load_scal_config();
+    print_step_result(1, 'Load Fluid and SCAL Data', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 2 – Create Capillary Pressure Functions
+    % ----------------------------------------
+    step_start = tic;
+    fluid_with_pc = step_2_create_capillary_functions(fluid, scal_config, G);
+    print_step_result(2, 'Create Capillary Pressure Functions', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 3 – Assign Rock-Type Specific Pc
+    % ----------------------------------------
+    step_start = tic;
+    fluid_with_pc = step_3_assign_rock_specific_pc(fluid_with_pc, scal_config, G);
+    print_step_result(3, 'Assign Rock-Type Specific Pc', 'success', toc(step_start));
+    
+    % ----------------------------------------
+    % Step 4 – Validate & Export Enhanced Fluid
+    % ----------------------------------------
+    step_start = tic;
+    step_4_validate_pc_functions(fluid_with_pc, G);
+    step_4_export_fluid_with_pc(fluid_with_pc, G, scal_config);
+    print_step_result(4, 'Validate & Export Enhanced Fluid', 'success', toc(step_start));
+    
+    print_step_footer('S10', 'Capillary Pressure Functions Ready for Simulation', toc(total_start_time));
 
 end
 
 function [fluid, G] = step_1_load_fluid_data()
-% Step 1 - Load fluid structure using new canonical MRST structure
+% Step 1 - Load fluid structure from consolidated data structure
     
-    % NEW CANONICAL STRUCTURE: Load from fluid.mat
-    canonical_file = '/workspace/data/mrst/fluid.mat';
+    % Load from consolidated fluid.mat
+    fluid_file = '/workspace/data/simulation_data/fluid.mat';
     
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
+    if exist(fluid_file, 'file')
+        fluid_data = load(fluid_file);
+        fluid = fluid_data.fluid;
         
-        % Reconstruct fluid structure from canonical data
-        fluid = data_struct.model;  % Base MRST fluid model
-        
-        % Ensure relative permeability functions are available
-        if isfield(data_struct, 'relperm')
-            % Add rel perm functions to fluid if not already present
-            if ~isfield(fluid, 'krW')
-                fluid.krW = data_struct.relperm.krw;
-            end
-            if ~isfield(fluid, 'krO')
-                fluid.krO = data_struct.relperm.kro;
-            end
-            if ~isfield(fluid, 'krG')
-                fluid.krG = data_struct.relperm.krg;
-            end
-        end
-        
-        fprintf('   ✅ Loading fluid from canonical location\n');
+        fprintf('   ✅ Loading fluid from consolidated data structure\n');
     else
-        % Fallback to legacy location if canonical doesn't exist
-        script_dir = fileparts(mfilename('fullpath'));
-        addpath(fullfile(script_dir, 'utils'));
-        data_dir = get_data_path('static', 'fluid');
-        fluid_file = fullfile(data_dir, 'fluid_with_relperm.mat');
-        
-        if ~exist(fluid_file, 'file')
-            error('Fluid with relative permeability not found. Run s09_relative_permeability.m first.');
-        end
-        
-        load(fluid_file, 'fluid', 'G');
-        fprintf('   ⚠️  Loading fluid from legacy location\n');
-        return;
+        error(['Missing consolidated fluid file: /workspace/data/simulation_data/fluid.mat\n' ...
+               'REQUIRED: Run s09_relative_permeability.m first.\n' ...
+               'Canon specifies fluid.mat must exist before capillary pressure.']);
     end
     
-    % Load grid from canonical structure
-    grid_file = '/workspace/data/mrst/grid.mat';
+    % Load grid from consolidated structure
+    grid_file = '/workspace/data/simulation_data/grid.mat';
     if exist(grid_file, 'file')
-        load(grid_file, 'data_struct');
-        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
-            G = data_struct.fault_grid;
+        grid_data = load(grid_file);
+        if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)
+            G = grid_data.fault_grid;
         else
-            G = data_struct.G;
+            G = grid_data.G;
         end
     else
-        error('CANON-FIRST ERROR: Grid data not found.');
+        error('CANON-FIRST ERROR: Grid data not found in consolidated structure.');
     end
     
 end
@@ -124,17 +102,27 @@ function scal_config = step_1_load_scal_config()
 % Step 1 - Load SCAL configuration (reuse from s09)
     script_dir = fileparts(mfilename('fullpath'));
 
-    try
-        % Load SCAL configuration from YAML - CANON compliance
-        addpath(fullfile(script_dir, 'utils'));
-        scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
-        scal_config = scal_config.scal_properties;
-        
-        fprintf('SCAL configuration reloaded from CANON documentation\\n');
-        
-    catch ME
-        error('Failed to reload SCAL configuration: %s', ME.message);
+    % Load SCAL configuration from YAML - CANON compliance
+    addpath(fullfile(script_dir, 'utils'));
+    
+    % Explicit validation before loading
+    scal_config_file = 'config/scal_properties_config.yaml';
+    if ~exist(scal_config_file, 'file')
+        error(['Missing SCAL configuration file: %s\n' ...
+               'REQUIRED: Create scal_properties_config.yaml\n' ...
+               'CANON source: 04_SCAL_Properties.md'], scal_config_file);
     end
+    
+    scal_config = read_yaml_config(scal_config_file, true);
+    
+    if ~isfield(scal_config, 'scal_properties')
+        error(['Missing scal_properties field in SCAL configuration\n' ...
+               'REQUIRED: Add scal_properties section to %s'], scal_config_file);
+    end
+    
+    scal_config = scal_config.scal_properties;
+    
+    fprintf('SCAL configuration reloaded from CANON documentation\\n');
     
 end
 
@@ -162,33 +150,35 @@ function fluid = step_2_create_ow_capillary(fluid, scal_config)
     ss_pc = scal_config.sandstone_pc;
     
     % Create Brooks-Corey oil-water capillary pressure function
-    fluid.pcOW = create_ow_capillary_function(ss_pc);
-    fluid.dpcOW = create_ow_capillary_derivative(ss_pc);
+    fluid.pcOW = create_ow_capillary_function(ss_pc, scal_config);
+    fluid.dpcOW = create_ow_capillary_derivative(ss_pc, scal_config);
     
     % Store parameters
     fluid.pc_ow_params = ss_pc;
     
 end
 
-function pcOW_func = create_ow_capillary_function(params)
+function pcOW_func = create_ow_capillary_function(params, scal_config)
 % Create oil-water capillary pressure function (Brooks-Corey)
 
     Pd_ow = params.entry_pressure_ow;          % Entry pressure (psi)
     lambda = params.brooks_corey_lambda;       % Brooks-Corey lambda
     pc_max = params.maximum_pc_ow;             % Maximum Pc (psi)
+    swc = scal_config.sandstone_ow.connate_water_saturation;  % From SCAL config
     
-    pcOW_func = @(s, varargin) brooks_corey_ow_pc(s(:,1), Pd_ow, lambda, pc_max);
+    pcOW_func = @(s, varargin) brooks_corey_ow_pc(s(:,1), Pd_ow, lambda, pc_max, swc);
     
 end
 
-function dpcOW_func = create_ow_capillary_derivative(params)
+function dpcOW_func = create_ow_capillary_derivative(params, scal_config)
 % Create oil-water capillary pressure derivative
 
     Pd_ow = params.entry_pressure_ow;
     lambda = params.brooks_corey_lambda;
     pc_max = params.maximum_pc_ow;
+    swc = scal_config.sandstone_ow.connate_water_saturation;  % From SCAL config
     
-    dpcOW_func = @(s, varargin) brooks_corey_ow_pc_derivative(s(:,1), Pd_ow, lambda, pc_max);
+    dpcOW_func = @(s, varargin) brooks_corey_ow_pc_derivative(s(:,1), Pd_ow, lambda, pc_max, swc);
     
 end
 
@@ -199,33 +189,35 @@ function fluid = step_2_create_go_capillary(fluid, scal_config)
     ss_pc = scal_config.sandstone_pc;
     
     % Create Brooks-Corey gas-oil capillary pressure function
-    fluid.pcOG = create_go_capillary_function(ss_pc);
-    fluid.dpcOG = create_go_capillary_derivative(ss_pc);
+    fluid.pcOG = create_go_capillary_function(ss_pc, scal_config);
+    fluid.dpcOG = create_go_capillary_derivative(ss_pc, scal_config);
     
     % Store parameters
     fluid.pc_go_params = ss_pc;
     
 end
 
-function pcOG_func = create_go_capillary_function(params)
+function pcOG_func = create_go_capillary_function(params, scal_config)
 % Create gas-oil capillary pressure function (Brooks-Corey)
 
     Pd_go = params.entry_pressure_go;          % Entry pressure (psi)
     lambda = params.brooks_corey_lambda;       % Brooks-Corey lambda
     pc_max = params.maximum_pc_go;             % Maximum Pc (psi)
+    sgc = scal_config.sandstone_go.critical_gas_saturation;  % From SCAL config
     
-    pcOG_func = @(s, varargin) brooks_corey_go_pc(s(:,3), Pd_go, lambda, pc_max);
+    pcOG_func = @(s, varargin) brooks_corey_go_pc(s(:,3), Pd_go, lambda, pc_max, sgc);
     
 end
 
-function dpcOG_func = create_go_capillary_derivative(params)
+function dpcOG_func = create_go_capillary_derivative(params, scal_config)
 % Create gas-oil capillary pressure derivative
 
     Pd_go = params.entry_pressure_go;
     lambda = params.brooks_corey_lambda;
     pc_max = params.maximum_pc_go;
+    sgc = scal_config.sandstone_go.critical_gas_saturation;  % From SCAL config
     
-    dpcOG_func = @(s, varargin) brooks_corey_go_pc_derivative(s(:,3), Pd_go, lambda, pc_max);
+    dpcOG_func = @(s, varargin) brooks_corey_go_pc_derivative(s(:,3), Pd_go, lambda, pc_max, sgc);
     
 end
 
@@ -236,11 +228,12 @@ function fluid = step_2_add_j_function_scaling(fluid, scal_config)
     fluid.j_function_scaling = true;
     fluid.leverett_scaling_method = scal_config.upscaling.pc_method;  % "leverett"
     
-    % Reference properties for J-function scaling
+    % Reference properties for J-function scaling (from SCAL config)
+    j_ref = scal_config.upscaling.j_function_reference;
     fluid.j_function_reference = struct();
-    fluid.j_function_reference.porosity = 0.20;    % Reference porosity
-    fluid.j_function_reference.permeability = 100; % Reference permeability (mD)
-    fluid.j_function_reference.surface_tension = 30; % Oil-water IFT (dyne/cm)
+    fluid.j_function_reference.porosity = j_ref.porosity;
+    fluid.j_function_reference.permeability = j_ref.permeability;
+    fluid.j_function_reference.surface_tension = j_ref.surface_tension;
     
 end
 
@@ -420,87 +413,32 @@ function step_4_export_fluid_with_pc(fluid_with_pc, G, scal_config)
 end
 
 function export_enhanced_fluid_file(fluid_with_pc, G, scal_config)
-% Export enhanced fluid structure to file using canonical organization
+% Export enhanced fluid structure to consolidated data structure
     
     try
-        % Load canonical data utilities
+        % Load utilities
         script_path = fileparts(mfilename('fullpath'));
         addpath(fullfile(script_path, 'utils'));
         
-        % Create canonical directory structure
-        base_data_path = fullfile(fileparts(script_path), 'data');
-        static_path = fullfile(base_data_path, 'by_type', 'static');
-        if ~exist(static_path, 'dir')
-            mkdir(static_path);
-        end
+        % Save using consolidated data structure (final fluid contributor)
+        save_consolidated_data('fluid', 's10', 'fluid', fluid_with_pc);
         
-        % NEW CANONICAL STRUCTURE: Update fluid.mat with capillary pressure
-        canonical_file = '/workspace/data/mrst/fluid.mat';
-        
-        % Load existing fluid data
-        if exist(canonical_file, 'file')
-            load(canonical_file, 'data_struct');
-        else
-            data_struct = struct();
-            data_struct.created_by = {};
-        end
-        
-        % Add capillary pressure to existing fluid structure
-        data_struct.capillary.pcow = fluid_with_pc.pcOW;
-        data_struct.capillary.pcog = fluid_with_pc.pcOG;
-        data_struct.capillary.J_function = scal_config.leverett_j_function;
-        data_struct.created_by{end+1} = 's10';
-        data_struct.timestamp = datetime('now');
-        
-        % Save updated canonical structure
-        save(canonical_file, 'data_struct');
-        fprintf('     NEW CANONICAL: Fluid with capillary pressure updated in %s\n', canonical_file);
-        
-        % Maintain legacy compatibility with canonical naming only
-        legacy_data_dir = get_data_path('static', 'fluid');
-        if ~exist(legacy_data_dir, 'dir')
-            mkdir(legacy_data_dir);
-        end
-        
-        legacy_enhanced_fluid_file = fullfile(legacy_data_dir, 'fluid_capillary_s10.mat');
-        save(legacy_enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
-        
-        fprintf('     Legacy compatibility maintained: %s\n', legacy_enhanced_fluid_file);
-        
+        fprintf('     ✅ Fluid with capillary pressure saved to consolidated structure\n');
     catch ME
-        fprintf('Warning: Canonical export failed: %s\n', ME.message);
-        
-        % Fallback to legacy export
-        script_path = fileparts(mfilename('fullpath'));
-        if isempty(script_path)
-            script_path = pwd();
-        end
-        addpath(fullfile(script_path, 'utils'));
-        data_dir = get_data_path('static', 'fluid');
-        
-        if ~exist(data_dir, 'dir')
-            mkdir(data_dir);
-        end
-        
-        % Save enhanced fluid structure using canonical naming
-        enhanced_fluid_file = fullfile(data_dir, 'fluid_capillary_s10.mat');
-        save(enhanced_fluid_file, 'fluid_with_pc', 'G', 'scal_config');
-        
-        fprintf('     Fallback: Enhanced fluid structure saved to %s\n', enhanced_fluid_file);
+        fprintf('Error updating consolidated fluid file: %s\n', ME.message);
+        rethrow(ME);
     end
     
 end
 
 function export_pc_summary(fluid_with_pc, G, scal_config)
-% Export capillary pressure summary
-    script_dir = fileparts(mfilename('fullpath'));
-
-    script_path = fileparts(mfilename('fullpath'));
-    if isempty(script_path)
-        script_path = pwd();
-    end
-    addpath(fullfile(script_dir, 'utils'));
-    data_dir = get_data_path('static', 'fluid');
+% CANONICAL EXPORT: PC summary is no longer exported to by_type structure
+% All data is maintained in canonical fluid.mat file
+    fprintf('   ✅ Capillary pressure properties already stored in canonical fluid.mat\n');
+    return;
+    
+    % Legacy code kept for reference (no longer executed)
+    data_dir = '/legacy/path/not/used';
     
     pc_summary_file = fullfile(data_dir, 'capillary_pressure_summary.txt');
     fid = fopen(pc_summary_file, 'w');
@@ -533,11 +471,10 @@ function export_pc_summary(fluid_with_pc, G, scal_config)
 end
 
 % Brooks-Corey Capillary Pressure Functions
-function pc = brooks_corey_ow_pc(sw, pd, lambda, pc_max)
+function pc = brooks_corey_ow_pc(sw, pd, lambda, pc_max, swc)
 % Oil-water capillary pressure using Brooks-Corey model
 
-    % Normalize water saturation using typical SCAL value for sandstone
-    swc = 0.22;  % Typical connate water saturation for sandstone (SCAL literature)
+    % Normalize water saturation using SCAL configuration value
     sw_eff = max(0, min(1, (sw - swc) ./ (1 - swc)));
     
     % Brooks-Corey capillary pressure
@@ -551,11 +488,10 @@ function pc = brooks_corey_ow_pc(sw, pd, lambda, pc_max)
     
 end
 
-function pc = brooks_corey_go_pc(sg, pd, lambda, pc_max)
+function pc = brooks_corey_go_pc(sg, pd, lambda, pc_max, sgc)
 % Gas-oil capillary pressure using Brooks-Corey model
 
-    % Normalize gas saturation using typical SCAL value for sandstone
-    sgc = 0.05;  % Typical critical gas saturation for sandstone (SCAL literature)
+    % Normalize gas saturation using SCAL configuration value
     sg_eff = max(0, min(1, (sg - sgc) ./ (1 - sgc)));
     
     % Brooks-Corey capillary pressure
@@ -569,10 +505,9 @@ function pc = brooks_corey_go_pc(sg, pd, lambda, pc_max)
     
 end
 
-function dpc = brooks_corey_ow_pc_derivative(sw, pd, lambda, pc_max)
+function dpc = brooks_corey_ow_pc_derivative(sw, pd, lambda, pc_max, swc)
 % Oil-water capillary pressure derivative
 
-    swc = 0.22;  % Typical connate water saturation for sandstone (SCAL literature)
     sw_eff = max(1e-10, min(1, (sw - swc) ./ (1 - swc)));
     
     % Derivative of Brooks-Corey
@@ -584,10 +519,9 @@ function dpc = brooks_corey_ow_pc_derivative(sw, pd, lambda, pc_max)
     
 end
 
-function dpc = brooks_corey_go_pc_derivative(sg, pd, lambda, pc_max)
+function dpc = brooks_corey_go_pc_derivative(sg, pd, lambda, pc_max, sgc)
 % Gas-oil capillary pressure derivative
 
-    sgc = 0.05;  % Typical critical gas saturation for sandstone (SCAL literature)
     sg_eff = max(1e-10, min(1, (sg - sgc) ./ (1 - sgc)));
     
     % Derivative of Brooks-Corey

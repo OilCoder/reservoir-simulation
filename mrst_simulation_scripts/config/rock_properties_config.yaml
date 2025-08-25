@@ -157,6 +157,13 @@ rock_properties:
     rt1_high_perm_threshold: 80         # mD - minimum permeability for RT1 (high quality)
     rt2_medium_perm_threshold: 20       # mD - minimum permeability for RT2 (medium quality)
     # Below rt2_threshold = RT6 (barriers/tight)
+    active_rock_types: [1, 2, 6]        # Active rock type indices for processing
+    
+  # Permeability tensor multipliers (for s06)
+  permeability_tensor:
+    kx_multiplier: 1.0                  # Multiplier for x-direction permeability
+    ky_multiplier: 1.0                  # Multiplier for y-direction permeability  
+    kz_multiplier: 0.1                  # Multiplier for z-direction permeability
     
   # Heterogeneity parameters for s09 (spatial variation factors)
   heterogeneity_parameters:

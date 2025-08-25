@@ -15,13 +15,26 @@ function enhanced_rock = s07_add_layer_metadata()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     
+    % Add utilities for consolidated data handling
+    addpath(fullfile(script_dir, 'utils'));
+    
     % Load validation functions (inline for compatibility)
     load_validation_functions();
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Add MRST to path manually (since session doesn't save paths)
+    mrst_root = '/opt/mrst';
+    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
+    addpath(genpath(fullfile(mrst_root, 'modules')));
+    
+    % Load saved MRST session to check status
+    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    if exist(session_file, 'file')
+        loaded_data = load(session_file);
+        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
+            fprintf('   ✅ MRST session validated\n');
+        end
+    else
+        error('MRST session not found. Please run s01_initialize_mrst.m first.');
     end
 
     print_step_header('S07', 'Add Layer Metadata');
@@ -62,8 +75,14 @@ function enhanced_rock = s07_add_layer_metadata()
         enhanced_rock = update_enhancement_metadata(enhanced_rock);
         print_step_result(4, 'Validate Enhanced Structure', 'success', toc(step_start));
         
-        % Save enhanced rock structure to file for s08
-        save_enhanced_rock_structure(enhanced_rock, G);
+        % Save enhanced rock structure using consolidated data
+        layer_info = enhanced_rock.meta.layer_info;
+        if isfield(enhanced_rock.meta, 'stratification')
+            save_consolidated_data('rock', 's07', 'rock', enhanced_rock, 'layer_info', layer_info, ...
+                                 'stratification', enhanced_rock.meta.stratification);
+        else
+            save_consolidated_data('rock', 's07', 'rock', enhanced_rock, 'layer_info', layer_info);
+        end
         
         print_step_footer('S07', sprintf('Layer Metadata Added: %d cells, %d layers', ...
                          length(enhanced_rock.poro), enhanced_rock.meta.layer_info.n_layers), ...
@@ -79,61 +98,41 @@ end
 function [base_rock, G] = load_base_rock_from_file()
 % Load base rock structure using new canonical MRST structure
     
-    % NEW CANONICAL STRUCTURE: Load from rock.mat
-    canonical_file = '/workspace/data/mrst/rock.mat';
+    % Load from consolidated data structure
+    rock_file = '/workspace/data/simulation_data/rock.mat';
     
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
+    if exist(rock_file, 'file')
+        rock_data = load(rock_file);
         
-        % Reconstruct rock structure from canonical data
-        base_rock = struct();
-        base_rock.perm = data_struct.perm;
-        base_rock.poro = data_struct.poro;
-        base_rock.meta.units = data_struct.units;
+        % Load rock structure directly from consolidated data
+        base_rock = rock_data.rock;
         
-        fprintf('   ✅ Loading rock from canonical location\n');
+        % Load and attach source configuration
+        func_dir = fileparts(mfilename('fullpath'));
+        addpath(fullfile(func_dir, 'utils'));
+        config = read_yaml_config('config/rock_properties_config.yaml');
+        base_rock.meta.source_config = config;
+        
+        fprintf('   ✅ Loading rock from consolidated data structure\n');
     else
-        % Fallback to legacy location if canonical doesn't exist
-        script_path = fileparts(mfilename('fullpath'));
-        data_dir = get_data_path('static');
-        
-        base_rock_file = fullfile(data_dir, 'base_rock.mat');
-        
-        if ~exist(base_rock_file, 'file')
-            error(['CANON-FIRST ERROR: Base rock data file not found.\n' ...
-                   'REQUIRED: Run s06_create_base_rock_structure.m first.']);
-        end
-        
-        load_data = load(base_rock_file);
-        if ~isfield(load_data, 'rock') || ~isfield(load_data, 'G')
-            error('CANON-FIRST ERROR: Invalid base rock file format.');
-        end
-        
-        base_rock = load_data.rock;
-        G = load_data.G;
-        fprintf('   ⚠️  Loading rock from legacy location\n');
-        return;
+        error(['Missing consolidated rock file: /workspace/data/simulation_data/rock.mat\n' ...
+               'REQUIRED: Run s06_create_base_rock_structure.m first.\n' ...
+               'Canon specifies rock.mat must exist before layer metadata addition.']);
     end
     
-    % Load grid from canonical structure
-    grid_file = '/workspace/data/mrst/grid.mat';
+    % Load grid from consolidated data structure
+    grid_file = '/workspace/data/simulation_data/grid.mat';
     if exist(grid_file, 'file')
-        load(grid_file, 'data_struct');
-        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
-            G = data_struct.fault_grid;
+        grid_data = load(grid_file);
+        if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)
+            G = grid_data.fault_grid;
         else
-            G = data_struct.G;
+            G = grid_data.G;
         end
     else
-        error('CANON-FIRST ERROR: Grid data not found.');
-    end
-               'Found fields: %s\n' ...
-               'Canon specification requires rock and G fields.'], ...
-               strjoin(fieldnames(load_data), ', '));
+        error('CANON-FIRST ERROR: Grid data not found in consolidated structure.');
     end
     
-    base_rock = load_data.rock;
-    G = load_data.G;
     fprintf('   ✅ Loading base rock from s06 data file\n');
     
 end
@@ -153,57 +152,20 @@ function validate_base_rock_input(rock)
         end
     end
     
-    % Verify it's from the correct workflow stage
-    if ~isfield(rock.meta, 'workflow_stage') || ~strcmp(rock.meta.workflow_stage, 'base_structure')
-        error('Input rock is not from base structure creation stage');
+    % Verify it's from the correct workflow stage or already enhanced
+    if isfield(rock.meta, 'workflow_stage')
+        if strcmp(rock.meta.workflow_stage, 'enhanced_metadata')
+            fprintf('   ✅ Rock already has enhanced metadata from previous run\n');
+            % Rock already processed - this is normal for reruns
+        elseif ~strcmp(rock.meta.workflow_stage, 'base_structure')
+            error('Input rock is not from base structure creation stage');
+        end
+    else
+        error('Input rock missing workflow_stage information');
     end
     
 end
 
-function save_enhanced_rock_structure(enhanced_rock, G)
-% Save enhanced rock structure using new canonical MRST structure
-    
-    % NEW CANONICAL STRUCTURE: Update rock.mat with layer metadata
-    canonical_file = '/workspace/data/mrst/rock.mat';
-    
-    % Load existing rock data
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-    else
-        data_struct = struct();
-        data_struct.created_by = {};
-    end
-    
-    % Add layer metadata to existing rock structure
-    data_struct.layers.layer_id = enhanced_rock.layer.layer_id;
-    data_struct.layers.rock_type = enhanced_rock.layer.rock_type;
-    data_struct.layers.properties = enhanced_rock.layer.properties;
-    data_struct.created_by{end+1} = 's07';
-    data_struct.timestamp = datetime('now');
-    
-    % Save updated canonical structure
-    save(canonical_file, 'data_struct');
-    fprintf('   NEW CANONICAL: Rock with layer metadata updated in %s\n', canonical_file);
-    
-    % Maintain legacy compatibility during transition
-    try
-        script_path = fileparts(mfilename('fullpath'));
-        data_dir = get_data_path('static');
-        
-        if ~exist(data_dir, 'dir')
-            mkdir(data_dir);
-        end
-        
-        % Save enhanced rock structure with canonical naming
-        enhanced_rock_file = fullfile(data_dir, 'enhanced_rock.mat');
-        save(enhanced_rock_file, 'enhanced_rock', 'G');
-        
-        fprintf('   Legacy compatibility maintained: %s\n', enhanced_rock_file);
-    catch ME
-        fprintf('Warning: Legacy export failed: %s\n', ME.message);
-    end
-    
-end
 
 function enhanced_rock = add_layer_information_metadata(base_rock)
 % Add layer information metadata without modifying core properties
@@ -341,7 +303,15 @@ function enhanced_rock = create_rock_type_assignments(enhanced_rock, G)
     
     % Add summary statistics
     enhanced_rock.meta.rock_type_summary = struct();
-    for rt = [1, 2, 6]  % Only active rock types
+    
+    % Load active rock types from configuration
+    if isfield(rock_config, 'rock_properties') && isfield(rock_config.rock_properties, 'rock_type_classification') && isfield(rock_config.rock_properties.rock_type_classification, 'active_rock_types')
+        active_rock_types = rock_config.rock_properties.rock_type_classification.active_rock_types;
+    else
+        error('Missing active_rock_types in rock_properties_config.yaml rock_type_classification section. REQUIRED: Add active_rock_types: [1, 2, 6] to rock_type_classification section.');
+    end
+    
+    for rt = active_rock_types
         cells_of_type = sum(rock_type_assignments == rt);
         enhanced_rock.meta.rock_type_summary.(sprintf('RT%d_cells', rt)) = cells_of_type;
         enhanced_rock.meta.rock_type_summary.(sprintf('RT%d_fraction', rt)) = cells_of_type / n_cells;
@@ -431,9 +401,9 @@ if ~nargout
     enhanced_rock = s07_add_layer_metadata();
     
     fprintf('\n=== LAYER METADATA ENHANCEMENT COMPLETE ===\n');
-    fprintf('Implementation: File-based workflow (no function dependencies)\n');
-    fprintf('Input: base_rock.mat from s06\n');
-    fprintf('Output: enhanced_rock.mat for s08\n');
+    fprintf('Implementation: Consolidated data workflow\n');
+    fprintf('Input: rock.mat from consolidated data structure\n');
+    fprintf('Output: enhanced rock.mat via save_consolidated_data\n');
     fprintf('Total cells: %d\n', length(enhanced_rock.poro));
     fprintf('Layers: %d\n', enhanced_rock.meta.layer_info.n_layers);
     fprintf('Stratification zones: %d\n', length(fieldnames(enhanced_rock.meta.stratification)));

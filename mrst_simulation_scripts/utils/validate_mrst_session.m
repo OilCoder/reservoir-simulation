@@ -116,7 +116,15 @@ function session_loaded = load_saved_s01_session(script_dir)
             
             % Load the saved session data
             loaded_data = load(session_file);
-            session_data = loaded_data.session_data;
+            
+            % Check if mrst_env exists (new format) or session_data (old format)
+            if isfield(loaded_data, 'mrst_env')
+                session_data = loaded_data.mrst_env;
+            elseif isfield(loaded_data, 'session_data')
+                session_data = loaded_data.session_data;
+            else
+                error('Invalid session file format - missing mrst_env or session_data');
+            end
             
             % Restore MATLAB path from saved session
             if isfield(session_data, 'paths') && ~isempty(session_data.paths)

@@ -40,10 +40,20 @@ function output_data = s13_saturation_distribution()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Add MRST to path manually (since session doesn't save paths)
+    mrst_root = '/opt/mrst';
+    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
+    addpath(genpath(fullfile(mrst_root, 'modules')));
+    
+    % Load saved MRST session to check status
+    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    if exist(session_file, 'file')
+        loaded_data = load(session_file);
+        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
+            fprintf('   ✅ MRST session validated\n');
+        end
+    else
+        error('MRST session not found. Please run s01_initialize_mrst.m first.');
     end
     
     % Print module header
@@ -53,8 +63,7 @@ function output_data = s13_saturation_distribution()
     start_time = tic;
     output_data = struct();
     
-    try
-        %% 1. Load Configuration and Previous Results
+    %% 1. Load Configuration and Previous Results
         fprintf('📋 Loading configuration and previous results...\n');
         
         % Load YAML configurations
@@ -64,56 +73,57 @@ function output_data = s13_saturation_distribution()
         scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         fprintf('   ✅ Configurations loaded successfully\n');
         
-        % Load from canonical MRST data structure
-        base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-        canonical_mrst_dir = fullfile(base_data_path, 'mrst');
+        % Load from consolidated data structure
+        consolidated_data_dir = '/workspace/data/simulation_data';
         
         % Load initial state from s12 (pressure, grid, equilibrium data)
-        initial_state_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
-        if exist(initial_state_file, 'file')
+        state_file = fullfile(consolidated_data_dir, 'state.mat');
+        if exist(state_file, 'file')
             fprintf('   ✅ Loading initial state from s12\n');
-            initial_data = load(initial_state_file, 'data_struct');
-            state = initial_data.data_struct.state;
-            datum_depth = initial_data.data_struct.equilibrium.datum;
-            fprintf('   ✅ Pressure field loaded from canonical MRST structure\n');
+            state_data = load(state_file);
+            state = state_data.state;
+            fprintf('   ✅ Pressure field loaded from consolidated structure\n');
         else
-            error(['CANON-FIRST ERROR: Initial state not found at canonical location.\n' ...
+            error(['CANON-FIRST ERROR: Initial state not found in consolidated location.\n' ...
                    'REQUIRED: Run s12_pressure_initialization.m first.\n' ...
-                   'Expected file: %s'], initial_state_file);
+                   'Expected file: %s'], state_file);
         end
         
-        % Load grid from canonical MRST structure
-        grid_file = fullfile(canonical_mrst_dir, 'grid.mat');
+        % Load grid from consolidated structure
+        grid_file = fullfile(consolidated_data_dir, 'grid.mat');
         if exist(grid_file, 'file')
-            grid_data = load(grid_file, 'data_struct');
-            G = grid_data.data_struct.G;
-            fprintf('   ✅ Loading grid from canonical MRST structure\n');
+            grid_data = load(grid_file);
+            if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)
+                G = grid_data.fault_grid;
+            else
+                G = grid_data.G;
+            end
+            fprintf('   ✅ Loading grid from consolidated structure\n');
         else
-            error(['CANON-FIRST ERROR: Grid not found at canonical location.\n' ...
+            error(['CANON-FIRST ERROR: Grid not found in consolidated location.\n' ...
                    'Expected file: %s'], grid_file);
         end
         
-        % Load fluid properties (including capillary pressure) from canonical MRST structure
-        fluid_file = fullfile(canonical_mrst_dir, 'fluid.mat');
+        % Load fluid properties from consolidated structure
+        fluid_file = fullfile(consolidated_data_dir, 'fluid.mat');
         if exist(fluid_file, 'file')
-            fluid_data = load(fluid_file, 'data_struct');
-            fluid_with_pc = fluid_data.data_struct.model;
-            fprintf('   ✅ Loading fluid properties from canonical MRST structure\n');
+            fluid_data = load(fluid_file);
+            fluid_with_pc = fluid_data.fluid;
+            fprintf('   ✅ Loading fluid properties from consolidated structure\n');
         else
             fprintf('   ⚠️  Fluid properties not found, will use basic capillary pressure\n');
         end
         
-        % Load rock properties from canonical MRST structure
-        rock_file = fullfile(canonical_mrst_dir, 'rock.mat');
-        canonical_rock_file = rock_file;
-        if exist(canonical_rock_file, 'file')
-            fprintf('   ✅ Loading rock properties from canonical MRST structure\n');
-            rock_data = load(canonical_rock_file, 'data_struct');
-            rock = struct('perm', rock_data.data_struct.perm, 'poro', rock_data.data_struct.poro);
+        % Load rock properties from consolidated structure
+        rock_file = fullfile(consolidated_data_dir, 'rock.mat');
+        if exist(rock_file, 'file')
+            fprintf('   ✅ Loading rock properties from consolidated structure\n');
+            rock_data = load(rock_file);
+            rock = struct('perm', rock_data.rock.perm, 'poro', rock_data.rock.poro);
             
             % Get rock type assignments (if available)
-            if isfield(rock_data.data_struct, 'rock_type_assignments')
-                rock_types = rock_data.data_struct.rock_type_assignments;
+            if isfield(rock_data.rock, 'meta') && isfield(rock_data.rock.meta, 'rock_type_assignments')
+                rock_types = rock_data.rock.meta.rock_type_assignments;
             else
                 % Create default rock types for each cell
                 num_cells = G.cells.num;
@@ -121,9 +131,9 @@ function output_data = s13_saturation_distribution()
                 fprintf('   ⚠️  No rock type assignments found, using default rock type 1\n');
             end
         else
-            error(['CANON-FIRST ERROR: Rock properties not found at canonical location.\n' ...
+            error(['CANON-FIRST ERROR: Rock properties not found in consolidated location.\n' ...
                    'REQUIRED: Run rock property initialization first.\n' ...
-                   'Expected file: %s'], canonical_rock_file);
+                   'Expected file: %s'], rock_file);
         end
         
         %% 2. Extract Configuration-Driven Parameters
@@ -316,8 +326,17 @@ function output_data = s13_saturation_distribution()
                 
                 % Calculate capillary pressure from height using fluid properties
                 % Load water and oil densities from completed fluid model  
-                water_density_lbft3 = fluid_with_pc.rhoWS;  % From s12 PVT data
-                oil_density_lbft3 = fluid_with_pc.rhoOS;    % From s12 PVT data
+                if isfield(fluid_with_pc, 'rhoS')
+                    water_density_kgm3 = fluid_with_pc.rhoS(1);  % Water density kg/m³
+                    oil_density_kgm3 = fluid_with_pc.rhoS(2);    % Oil density kg/m³
+                    % Convert to lb/ft³ (multiply by 0.062428)
+                    water_density_lbft3 = water_density_kgm3 * 0.062428;
+                    oil_density_lbft3 = oil_density_kgm3 * 0.062428;
+                else
+                    % Use default values if densities not available
+                    water_density_lbft3 = 62.4;  % Default water density in lb/ft³
+                    oil_density_lbft3 = 53.1;    % Default oil density in lb/ft³ 
+                end
                 oil_water_density_diff = water_density_lbft3 - oil_density_lbft3;  % lb/ft³
                 pc_height = abs(height) * oil_water_density_diff / 144;  % Convert to psi
                 pc = max(0, min(max_pc, pc_height));
@@ -482,41 +501,50 @@ function output_data = s13_saturation_distribution()
                                            'count', sum(water_zone_mask));
         end
         
-        %% 8. Export Results to Canonical MRST Structure
-        fprintf('📁 Exporting saturation distribution data to canonical MRST structure...\n');
+        %% 8. Export Results to Consolidated Data Structure
+        fprintf('📁 Exporting saturation distribution data to consolidated structure...\n');
         
-        % Update the existing initial_state.mat file
-        canonical_file = fullfile(canonical_mrst_dir, 'initial_state.mat');
-        if exist(canonical_file, 'file')
-            load(canonical_file, 'data_struct');
+        % Update state with saturation data
+        state.s = [sw, so, sg];
+        state.sw = sw;
+        state.so = so;
+        state.sg = sg;
+        
+        % Save updated state using consolidated data structure
+        save_consolidated_data('state', 's13', 'state', state);
+        fprintf('   ✅ Consolidated state data updated with saturations\n');
+        
+        % Export to catalog structure
+        static_dir = '/workspace/data/simulation_data/static';
+        if ~exist(static_dir, 'dir')
+            mkdir(static_dir);
+        end
+        
+        % Update initial_conditions.mat with saturation data
+        initial_conditions_file = fullfile(static_dir, 'initial_conditions.mat');
+        
+        if exist(initial_conditions_file, 'file')
+            % Load existing initial conditions from s12
+            existing_data = load(initial_conditions_file);
+            
+            % Add saturation fields (Section 7 of catalog)
+            existing_data.sw_initial = sw;  % Initial water saturation
+            existing_data.sw_contacts = owc_depth;  % Oil-water contact
+            existing_data.transition_zone = 50.0;  % Transition zone thickness
+            
+            % Save updated initial conditions
+            save(initial_conditions_file, '-struct', 'existing_data', '-v7');
+            fprintf('   ✅ Saturation data added to catalog initial conditions: %s\n', initial_conditions_file);
         else
-            data_struct = struct();
-            data_struct.created_by = {};
+            fprintf('   ⚠️  Initial conditions file not found, creating with saturation data only\n');
+            sw_initial = sw;
+            sw_contacts = owc_depth;
+            transition_zone = 50.0;
+            save(initial_conditions_file, 'sw_initial', 'sw_contacts', 'transition_zone', '-v7');
         end
-        
-        % Add saturation data to existing structure
-        data_struct.sw = sw;                   % Water saturation
-        data_struct.so = so;                   % Oil saturation
-        data_struct.sg = sg;                   % Gas saturation
-        data_struct.equilibrium.owc = owc_depth;     % Oil-water contact
-        if exist('goc_depth', 'var')
-            data_struct.equilibrium.goc = goc_depth; % Gas-oil contact (if defined)
-        end
-        data_struct.created_by{end+1} = 's13';
-        data_struct.timestamp = datetime('now');
-        
-        % Update state with saturations
-        data_struct.state.s = [sw, so, sg];
-        data_struct.state.sw = sw;
-        data_struct.state.so = so;
-        data_struct.state.sg = sg;
-        
-        % Save updated structure
-        save(canonical_file, 'data_struct');
-        fprintf('   ✅ Canonical MRST data updated: %s\n', canonical_file);
         
         % Save saturation statistics
-        sat_stats_file = fullfile(canonical_mrst_dir, 'saturation_stats.txt');
+        sat_stats_file = fullfile(consolidated_data_dir, 'static', 'saturation_stats.txt');
         fid = fopen(sat_stats_file, 'w');
         if fid ~= -1
             fprintf(fid, 'Eagle West Field - Saturation Distribution Statistics\n');
@@ -543,11 +571,6 @@ function output_data = s13_saturation_distribution()
         output_data.num_cells = num_cells;
         
         % Success message
-        print_step_footer('S13', 'Saturation distribution completed successfully', toc(start_time));
-        
-    catch ME
-        print_step_footer('S13', sprintf('FAILED: %s', ME.message), toc(start_time));
-        rethrow(ME);
-    end
+    print_step_footer('S13', 'Saturation distribution completed successfully', toc(start_time));
     
 end

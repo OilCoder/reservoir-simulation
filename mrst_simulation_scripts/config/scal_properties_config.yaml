@@ -147,6 +147,12 @@ scal_properties:
     pc_method: "leverett"               # Leverett J-function
     height_function_integration: true   # Height function method
     
+    # J-function reference properties (CANON)
+    j_function_reference:
+      porosity: 0.20                    # Reference porosity (fraction)
+      permeability: 100.0               # Reference permeability (mD)
+      surface_tension: 30.0             # Oil-water IFT (dyne/cm)
+    
   # Validation Parameters (CANON)
   validation:
     confidence_level: 0.95              # 95% confidence
@@ -160,6 +166,12 @@ scal_properties:
     relperm_function: "coreyPhaseRelpermAD" # MRST function
     pc_function: "brooksCoreyCapPressureAD" # MRST function
     saturation_solver: "implicit"       # Implicit saturation
+    
+  # Default Corey exponents for fluid phases (for s09)
+  default_corey_exponents:
+    water: 2.0                          # Default water Corey exponent
+    oil: 2.0                            # Default oil Corey exponent
+    gas: 2.0                            # Default gas Corey exponent
     
   # Field-Weighted Average Properties (for reference and validation)
   field_average_properties:

@@ -24,7 +24,7 @@ function targets_results = s19_production_targets()
         if isempty(script_path)
             script_path = pwd();
         end
-        data_dir = get_data_path('static');
+        % Load from canonical MRST data structure
         
         % Load from canonical schedule.mat
         canonical_schedule_file = '/workspace/data/mrst/schedule.mat';
@@ -110,7 +110,7 @@ function targets_results = s19_production_targets()
         data_struct.schedule = schedule;
         
         data_struct.created_by{end+1} = 's19';
-        data_struct.timestamp = datetime('now');
+        data_struct.timestamp = datestr(now);
         
         save(canonical_file, 'data_struct');
         targets_results.export_path = canonical_file;
