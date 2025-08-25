@@ -4,10 +4,9 @@
 **LLM-Optimized** variable inventory designed to help AI understand the complexity and structure of the Eagle West Field MRST simulation project. This inventory maps 900+ variables across their usage contexts, dependencies, and workflow stages.
 
 **Source**: Extracted from all `.m` and `.yaml` files in `mrst_simulation_scripts/`  
-**Date**: 2025-08-15 (FASE 5 Update)  
-**Total Variables**: 1000+ unique identifiers (enhanced with analytics features)  
-**Optimization**: Structured for LLM comprehension and navigation  
-**New Features**: ML-ready analytics, solver diagnostics, canonical data organization
+**Date**: 2025-08-12  
+**Total Variables**: 900+ unique identifiers  
+**Optimization**: Structured for LLM comprehension and navigation
 
 ---
 
@@ -22,12 +21,12 @@ YAML Configs (Input) → MATLAB Processing (Logic) → MRST Structures (Framewor
   Business Rules         Domain Logic               Simulation Engine       Export Data
 ```
 
-### Workflow Dependencies (CORRECTED SEQUENCE - FASE 5)
+### Workflow Dependencies
 ```
-s01 Initialize → s02 Fluids → s05 PEBI → s03 Structure → s04 Faults → s06-s08 Rock → s22 Enhanced Sim → s24 Analytics
-      ↓             ↓           ↓          ↓              ↓             ↓              ↓                ↓
-   MRST Setup    Fluid Def  PEBI Grid  Geo Structure   Fault System  Rock Props   Enhanced Solver   ML Features
-   (Foundation)  (Fluids)   (Geometry) (Geology)       (Faults)      (Reservoir)  (Diagnostics)     (Analytics)
+s01 Initialize → s07 Rock → s17 Wells → s22 Simulation → s24 Analysis
+      ↓             ↓          ↓            ↓              ↓
+   MRST Setup   Rock Properties Well Setup  Run Solver   Results
+   (Foundation)  (Reservoir)   (Production) (Compute)    (Output)
 ```
 
 ### Critical Integration Points
@@ -129,41 +128,6 @@ s01 Initialize → s02 Fluids → s05 PEBI → s03 Structure → s04 Faults → 
 - `material_balance`, `saturation_sum_errors`, `pressure_stats` - Quality checks
 - `validation_results`, `quality_checks`, `consistency_scores` - Validation metrics
 
----
-
-### STAGE 5: ENHANCED ANALYTICS & DIAGNOSTICS (FASE 5 NEW)
-*Variables for ML-ready features, solver diagnostics, and advanced analytics*
-
-#### **ML-Ready Feature Vectors**
-- `grid_features`, `rock_features`, `fluid_features`, `production_features` - Domain feature vectors
-- `ml_vector`, `feature_matrix`, `normalized_features` - Standardized ML inputs
-- `geometric_features`, `petrophysical_features`, `dynamic_features` - Feature categories
-- `quality_features`, `performance_features`, `diagnostic_features` - Quality/performance features
-
-#### **Solver Diagnostics** (s22 Enhanced)
-- `enhanced_diagnostics`, `convergence_history`, `solver_performance` - Diagnostic capture
-- `timestep_analysis`, `linear_solver_stats`, `nonlinear_solver_stats` - Solver statistics
-- `convergence_rates`, `residual_history`, `iteration_counts` - Convergence analysis
-- `solution_quality`, `mass_balance_results`, `energy_balance_results` - Solution validation
-
-#### **Advanced Analytics** (s24)
-- `analytics_results`, `grid_analytics`, `rock_analytics`, `fluid_analytics` - Domain analytics
-- `production_analytics`, `reservoir_analytics`, `economics_analytics` - Performance analytics
-- `heterogeneity_metrics`, `spatial_correlation`, `flow_units` - Characterization metrics
-- `aspect_ratios`, `skewness`, `orthogonality`, `size_field_conformity` - Grid quality metrics
-
-#### **Canonical Data Organization**
-- `canonical_path`, `metadata`, `provenance_info`, `quality_info` - Data organization
-- `by_type`, `by_usage`, `by_phase` - Organizational structure
-- `static_data`, `dynamic_data`, `derived_data`, `visualization_data` - Data categories
-- `native_format`, `oct2py_compatible`, `ml_ready` - Format specifications
-
-#### **Performance Analytics**
-- `performance_metrics`, `timing_results`, `memory_results`, `scalability_results` - Performance data
-- `execution_times`, `bottlenecks`, `optimization_recommendations` - Performance analysis
-- `computational_efficiency`, `solver_efficiency`, `workflow_efficiency` - Efficiency metrics
-- `benchmark_results`, `comparative_analysis`, `improvement_estimates` - Benchmarking
-
 ## 🎯 DOMAIN-BASED LOOKUP (For Quick Navigation)
 
 ### **RESERVOIR PROPERTIES**
@@ -235,46 +199,13 @@ s01 Initialize → s02 Fluids → s05 PEBI → s03 Structure → s04 Faults → 
 - **MRST Standard**: `G.cells.num`, `G.cartDims`, `G.nodes.coords`
 - **Processing**: `dx`, `dy`, `dz`, `cell_volumes`
 
-#### Grid Refinement (TIERED STRATEGY - CANONICAL)
-- **Configuration**: `tiered_strategy`, `well_tiers`, `fault_tiers`, `tier_parameters`
+#### Grid Refinement
+- **Configuration**: `well_refinement`, `fault_refinement`, `refinement_factor`
 - **Processing**: `refined_cells`, `refinement_factors`, `refinement_zones`
-- **Tier Classification**: `critical_tier`, `standard_tier`, `marginal_tier` (wells)
-- **Tier Classification**: `major_tier`, `minor_tier` (faults)
-- **Optimization**: `tier_radius`, `tier_buffer`, `tier_priority`, `coverage_target`
 
 #### Geometry
 - **Structural**: `axis_data`, `surfaces`, `layers`, `structural_data`
 - **Faults**: `fault_faces`, `fault_zones`, `trans_multipliers`
-
----
-
-### **GRID REFINEMENT OPTIMIZATION (CANONICAL)**
-*Variables related to the tiered refinement strategy and computational optimization*
-
-#### Tiered Strategy Configuration
-- **Configuration**: `tiered_strategy.enable`, `apply_tier_based_refinement` - Strategy control
-- **Well Tiers**: `critical.wells`, `standard.wells`, `marginal.wells` - Well classification
-- **Fault Tiers**: `major.faults`, `minor.faults` - Fault classification
-- **Tier Parameters**: `radius`, `buffer`, `factor`, `priority` - Refinement specifics
-
-#### Optimization Variables
-- **Coverage Targets**: `coverage_target` (25%), `well_coverage` (15%), `fault_coverage` (10%)
-- **Mathematical Parameters**: `optimal_well_radius` (165ft), `optimal_fault_buffer` (156ft)
-- **Performance Metrics**: `cell_reduction` (61.5%), `memory_savings` (65%), `time_savings` (50-60%)
-- **Quality Control**: `tier_validation`, `coverage_verification`, `grid_integrity`
-
-#### Tier-Specific Variables
-- **Critical Wells**: `critical_radius` (350ft), `critical_factor` (3x3), `critical_priority` (1)
-- **Standard Wells**: `standard_radius` (250ft), `standard_factor` (2x2), `standard_priority` (2)
-- **Marginal Wells**: `marginal_radius` (150ft), `marginal_factor` (2x2), `marginal_priority` (3)
-- **Major Faults**: `major_buffer` (400ft), `major_factor` (3x3), `major_priority` (1)
-- **Minor Faults**: `minor_buffer` (200ft), `minor_factor` (2x2), `minor_priority` (2)
-
-#### Implementation Variables
-- **Zone Creation**: `create_tiered_well_refinement_zones`, `create_tiered_fault_refinement_zones`
-- **Tier Assignment**: `determine_well_tier`, `determine_fault_tier`
-- **Conflict Resolution**: `priority_based_resolution`, `zone_overlap_handling`
-- **Validation**: `tier_assignment_validation`, `grid_quality_metrics`
 
 ---
 
@@ -302,14 +233,10 @@ s01 Initialize → s02 Fluids → s05 PEBI → s03 Structure → s04 Faults → 
 |--------------|------------|-------------|----------|-----------------|-----------|
 | `rock.perm` | s07_define_rock_types.m | s17_well_completions.m, MRST solver | MRST Core | 🔴 Critical | s07→s17→s22 |
 | `rock.poro` | s07_define_rock_types.m | s14_saturation_distribution.m, MRST solver | MRST Core | 🔴 Critical | s07→s14→s22 |
-| `G.cells.num` | s05_create_pebi_grid.m | All modules using grid | MRST Core | 🔴 Critical | s05→ALL |
-| `G_refined` | s05_create_pebi_grid.m | s07-s22 (all downstream) | MRST Core | 🔴 Critical | s05→ALL |
+| `G.cells.num` | s02_create_grid.m | All modules using grid | MRST Core | 🔴 Critical | s02→ALL |
 | `state.pressure` | s13_pressure_initialization.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s13→s22 |
 | `state.s` | s14_saturation_distribution.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s14→s22 |
 | `W` (wells) | s17_well_completions.m | s22_run_simulation.m | MRST Core | 🔴 Critical | s17→s22 |
-| `tiered_strategy` | grid_config.yaml | s05_create_pebi_grid.m | Config | 🟠 High | YAML→s05 |
-| `well_tiers` | grid_config.yaml | s05_create_pebi_grid.m | Optimization | 🟡 High | YAML→s05 |
-| `fault_tiers` | grid_config.yaml | s05_create_pebi_grid.m | Optimization | 🟡 High | YAML→s05 |
 | `perm_x` | s17_well_completions.m | Well index calculation | Processing | 🟡 High | s17 only |
 | `well_config` | wells_config.yaml | s18_production_controls.m | Config | 🟡 High | YAML→s18 |
 | `solver_config` | solver_config.yaml | s21_solver_setup.m | Config | 🟡 High | YAML→s21 |
@@ -323,17 +250,14 @@ s01 Initialize → s02 Fluids → s05 PEBI → s03 Structure → s04 Faults → 
 | **Cross-module Shared** | `G`, `rock`, `fluid`, `state` | Created once, used everywhere | Core structures |
 | **Temporary Processing** | `perm_x`, `wi`, `dt` | Local calculation variables | Function scope |
 | **File I/O** | `data_dir`, `export_path`, `filename` | Path and file management | System utilities |
-| **Tiered Optimization** | `tiered_strategy` → `tier_assignment` → `G_refined` | YAML→Optimization→MRST | Canonical refinement |
 
 ### Module Interaction Map
 ```
 YAML Configs
     ↓
-s01 (Initialize) → s02 (Fluids) → s03 (Structure) → s04 (Faults) → s05 (PEBI) → s07 (Rock) → s17 (Wells) → s22 (Simulate) → s24 (Results)
-    ↓                ↓               ↓                ↓             ↓            ↓            ↓             ↓               ↓
-mrst_env         fluid.*       structure.*      faults.*     G_refined     rock.*       W.*         states         analysis.*
-                                                                ↓ (pebi)                                                         
-                                                        size_field_optimization                                                       
+s01 (Initialize) → s02 (Grid) → s07 (Rock) → s17 (Wells) → s22 (Simulate) → s24 (Results)
+    ↓                ↓           ↓            ↓             ↓               ↓
+mrst_env         G.*         rock.*       W.*         states         analysis.*
                                                                           
 Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 ```
@@ -362,12 +286,6 @@ Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 3. **Apply Stage**: Use in MRST solver setup
 4. **Monitor Stage**: Track in progress monitoring if applicable
 
-#### **Adding New Grid Refinement Tier**
-1. **Config Stage**: Add tier to `grid_config.yaml` under `tiered_strategy`
-2. **Classification Stage**: Implement tier logic in `determine_well_tier()` or `determine_fault_tier()`
-3. **Processing Stage**: Use tier-specific parameters (radius, buffer, factor, priority)
-4. **Validation Stage**: Verify tier assignment and coverage targets
-
 ### **Typical Variable Scopes**
 - **Global Config**: Available throughout workflow (`config.*`)
 - **MRST Structures**: Available to MRST solver (`G.*`, `rock.*`, `fluid.*`, `state.*`)  
@@ -379,10 +297,6 @@ Cross-cutting: config.*, *_file, *_dir, validation.*, export.*
 2. **Structure Confusion**: `rock_params` (config) ≠ `rock_props` (loaded) ≠ `rock` (MRST)
 3. **File Dependencies**: Must load G before using `G.cells.num`
 4. **MRST Requirements**: MRST expects specific field names and formats
-5. **Grid Refinement**: Must use `G_refined` (from s05) for downstream modules
-6. **PEBI Grid Quality**: Size-field optimization maintains proper aspect ratios and connectivity
-7. **Well Integration**: PEBI grid provides well-centered cells for accurate completion modeling
-8. **Fault Conforming**: PEBI grid edges align with geological faults (no transmissibility multipliers needed)
 
 ### **Quick Decision Tree for LLMs**
 ```
@@ -397,14 +311,7 @@ Working on a specific domain?
 ├─ Wells/Production → Check WELL ENGINEERING section
 ├─ Solver/Numerics → Check NUMERICAL METHODS section  
 ├─ Grid/Geometry → Check GRID & GEOMETRY section
-├─ Grid Construction → Check PEBI GRID CONSTRUCTION section (CANONICAL)
 └─ Files/Data → Check DATA MANAGEMENT section
-
-Working with PEBI grid construction?
-├─ Want fault-conforming grid? → Use compositePebiGrid2D (CANONICAL approach)
-├─ Need size-field optimization? → Use well/fault distance functions for sizing
-├─ Setting quality targets? → Target aspect ratios <10:1, angles >20°
-└─ Well integration? → Use wellLines for PEBI grid construction
 ```
 
 ## 📋 COMPLETE ALPHABETICAL REFERENCE
@@ -446,8 +353,6 @@ Working with PEBI grid construction?
 - **Configuration Variables**: 300+ YAML parameters 
 - **Processing Variables**: 400+ calculation and temporary variables
 - **File I/O Variables**: 150+ path, filename, and export variables
-- **Enhanced Analytics**: 100+ ML features, diagnostics, and quality metrics (FASE 5 NEW)
-- **Total**: 1000+ variables (enhanced from 900+ in previous version)
 
 ### Most Critical Variables (🔴)
 1. `G` - Grid structure (used by all modules)

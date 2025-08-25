@@ -15,6 +15,7 @@ The catalog is designed to provide a comprehensive understanding of available da
 This catalog exists to help stakeholders understand:
 - What simulation data will be available for ML model training and validation
 - How data is structured and organized for efficient access
+- Data volume estimates for storage and processing planning
 - Relationships between different data categories
 - Technical specifications for integration with downstream systems
 
@@ -24,31 +25,31 @@ This catalog exists to help stakeholders understand:
 
 | Document | Description | Key Data Types |
 |----------|-------------|----------------|
-| [01_Static_Data_Inventory.md](01_Static_Data_Inventory.md) | Static reservoir properties and geometry | Grid cells, rock properties, fluid PVT, wells, faults |
-| [02_Dynamic_Data_Inventory.md](02_Dynamic_Data_Inventory.md) | Time-varying simulation results | Pressure fields, saturations, production rates, well data |
-| [03_Solver_Internal_Data.md](03_Solver_Internal_Data.md) | MRST solver diagnostics and convergence | Newton iterations, residuals, timestep controls |
-| [04_Derived_Calculated_Data.md](04_Derived_Calculated_Data.md) | Calculated analytics and KPIs | Recovery factors, material balance, flow diagnostics |
-| [05_Visualization_Outputs.md](05_Visualization_Outputs.md) | Charts, maps, and visual outputs | 3D maps, cross-sections, time series plots |
-| [06_ML_Ready_Features.md](06_ML_Ready_Features.md) | Pre-processed ML datasets | Feature matrices, training sets, normalized data |
-| [07_Metadata_Specifications.md](07_Metadata_Specifications.md) | Data schemas and quality standards | YAML metadata, validation rules, data governance |
-| [08_Data_Access_Guide.md](08_Data_Access_Guide.md) | Access patterns and integration | APIs, loading procedures, performance optimization |
-| [09_Storage_Organization.md](09_Storage_Organization.md) | File organization strategies | by_type, by_usage, by_phase directory structures |
+| [01_Grid_Geometry_Data.md](01_Grid_Geometry_Data.md) | Static reservoir grid and geometric properties | Grid cells, coordinates, connectivity, rock properties |
+| [02_Well_Configuration_Data.md](02_Well_Configuration_Data.md) | Well trajectories, completions, and equipment | Well paths, perforations, control parameters |
+| [03_Solver_Internal_Data.md](03_Solver_Internal_Data.md) | MRST solver states and convergence metrics | Solver iterations, residuals, timestep controls |
+| [04_Production_Performance_Data.md](04_Production_Performance_Data.md) | Well and field production/injection rates | Flow rates, pressures, cumulative volumes |
+| [05_Pressure_Field_Data.md](05_Pressure_Field_Data.md) | Spatial pressure distributions over time | Cell pressures, pressure gradients, contour maps |
+| [06_Saturation_Field_Data.md](06_Saturation_Field_Data.md) | Fluid saturation distributions | Oil, water, gas saturations by cell and time |
+| [07_Economic_Analysis_Data.md](07_Economic_Analysis_Data.md) | Financial metrics and economic indicators | NPV, cash flows, costs, commodity prices |
+| [08_Optimization_Results_Data.md](08_Optimization_Results_Data.md) | Parameter optimization and sensitivity data | Optimal parameters, sensitivity coefficients |
+| [09_Validation_Quality_Data.md](09_Validation_Quality_Data.md) | Data quality metrics and validation results | Error metrics, uncertainty bounds, QC flags |
 
-## Quick Reference: Data Categories and Applications
+## Quick Reference: Data Categories and Estimated Sizes
 
-| Category | Update Frequency | ML Applications |
-|----------|------------------|-----------------|
-| **Static Data** | Once per model | Spatial feature engineering, geological ML |
-| **Dynamic Simulation** | Per timestep | Production forecasting, pressure prediction ML |
-| **Solver Internal** | Per iteration | Convergence prediction, numerical stability ML |
-| **Derived Analytics** | Per timestep | Performance optimization, flow diagnostics ML |
-| **Visualization** | On demand | Dashboard creation, reporting automation |
-| **ML Features** | Batch processing | Direct model training, feature engineering |
-| **Metadata** | Continuous | Data governance, quality assurance ML |
-| **Data Access** | Real-time | System integration, API development |
-| **Storage Organization** | Static | Data management, retrieval optimization |
+| Category | Data Volume | Update Frequency | ML Applications |
+|----------|-------------|------------------|-----------------|
+| **Grid Geometry** | ~50 MB | Static | Spatial feature engineering, geological ML |
+| **Well Configuration** | ~10 MB | Per phase | Well placement optimization, drilling ML |
+| **Solver Internal** | ~500 MB | Per timestep | Convergence prediction, numerical stability ML |
+| **Production Performance** | ~100 MB | Per timestep | Production forecasting, decline curve ML |
+| **Pressure Fields** | ~2.5 GB | Per timestep | Pressure prediction, connectivity analysis ML |
+| **Saturation Fields** | ~7.5 GB | Per timestep | Flood front tracking, sweep efficiency ML |
+| **Economic Analysis** | ~25 MB | Per timestep | Economic optimization, risk assessment ML |
+| **Optimization Results** | ~200 MB | Per scenario | Parameter tuning, automated optimization ML |
+| **Validation/Quality** | ~150 MB | Per timestep | Data quality ML, uncertainty quantification |
 
-
+**Total Estimated Volume**: ~11 GB for complete simulation
 
 ## Primary Use Cases
 
@@ -95,10 +96,17 @@ This catalog exists to help stakeholders understand:
 - Time-series data optimized for temporal queries
 - Spatial data optimized for geographic queries
 
-## Processing and Temporal Considerations
+## Data Volume Estimates (15-Well, 10-Year Simulation)
+
+### Storage Requirements
+- **Raw Simulation Output**: ~8.5 GB
+- **Processed ML-Ready Data**: ~2.5 GB
+- **Metadata and Documentation**: ~50 MB
+- **Quality Control Data**: ~150 MB
+- **Total Storage Needed**: ~11.2 GB
 
 ### Processing Considerations
-- **Memory Requirements**: Adequate RAM for full dataset processing
+- **Memory Requirements**: 16+ GB RAM for full dataset processing
 - **Compute Requirements**: Multi-core CPU for parallel time series processing
 - **I/O Requirements**: SSD storage recommended for large field data access
 

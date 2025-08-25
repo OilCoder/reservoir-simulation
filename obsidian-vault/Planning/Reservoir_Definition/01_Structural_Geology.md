@@ -132,50 +132,32 @@ The Eagle West Field is a structural-stratigraphic hydrocarbon accumulation loca
 - **Total Layers**: 12 (representing major flow units)
 - **Aspect Ratio**: 9.9 (82 ft / 8.3 ft) - within recommended limit of ≤10
 
-### 3.3 PEBI Grid Construction with Size-Field Optimization (CANONICAL APPROACH)
+### 3.3 Local Grid Refinement Needs
 
-**Overview**: Eagle West Field employs fault-conforming PEBI (Perpendicular Bisection) grids with size-field optimization, achieving superior geological accuracy and computational efficiency. Uses natural size transitions instead of artificial subdivision.
+#### Near-Fault Areas (Major Faults_A, B, C, D)
+- **Refinement Zone**: 300.0 ft buffer around major faults
+- **Refinement Factor**: 2 (2x2 subdivision)
+- **Refined Cell Size**: 25.0 ft × 25.0 ft (X × Y)
+- **Refined Layer Thickness**: 4.0 ft (vertical)
+- **Minimum Cell Size**: 25.0 ft (for accurate transmissibility)
+- **Purpose**: Accurate fault transmissibility modeling
+- **Implementation**: Local grid refinement (LGR) blocks with transition smoothing
 
-#### Fault-Conforming Grid Implementation
-**All Major Faults** (Fault_A, Fault_B, Fault_C, Fault_D, Fault_E):
-- **Grid Representation**: Faults are actual grid edges (no transmissibility multipliers needed)
-- **Size-Field Zones**: 
-  - Inner buffer (130 ft): 25 ft cells for high accuracy
-  - Outer buffer (230 ft): 40 ft cells for smooth transition
-- **Conformity**: Grid edges align exactly with fault geometry
-- **Flow Accuracy**: Natural fault boundaries for correct compartmentalization
-- **Sealing Behavior**: Inherent in grid structure, no approximations
+#### Well Drainage Areas
+- **Refinement Zone**: 250.0 ft radius around each wellbore
+- **Refinement Factor**: 2 (2x2 subdivision)
+- **Refined Cell Size**: 20.0 ft × 18.0 ft (X × Y)
+- **Refined Layer Thickness**: 4.0 ft (vertical)
+- **Purpose**: Near-wellbore flow modeling and rate allocation
+- **Transition**: Smooth transition to coarser parent grid
+- **All Wells**: Applied to all 15 producer and injector wells
 
-#### Well Size-Field Optimization
-**All Wells** (15 wells: EW-001 to EW-010, IW-001 to IW-005):
-- **Size-Field Zones**:
-  - Inner zone (100 ft radius): 20 ft cells for maximum accuracy
-  - Middle zone (250 ft radius): 35 ft cells for good resolution
-  - Outer zone (400 ft radius): 50 ft cells for transition
-- **Well-Centered Cells**: Wells positioned at PEBI cell centroids
-- **Natural Transitions**: Smooth size gradients without artificial boundaries
-- **Completion Optimization**: Cell sizes matched to wellbore physics requirements
-- **Coverage**: Variable based on size-field distribution (typically 12-18% of field)
-
-#### PEBI Grid Benefits
-- **Geological Accuracy**: 95%+ improvement in fault flow representation
-- **Well Performance**: 85%+ improvement in near-wellbore accuracy  
-- **Grid Quality**: Natural cell shapes with aspect ratios < 10:1
-- **Fault Conformity**: Exact geological boundaries, no approximations
-- **Construction Efficiency**: 19,500-21,500 cells (variable based on size-field)
-
-#### Implementation
-- **Configuration**: PEBI parameters defined in `grid_config.yaml`
-- **Processing**: Implemented in `s05_create_pebi_grid.m` using MRST UPR module
-- **Size-Field Construction**: Natural transitions with gradient control
-- **Validation**: Automatic coverage target verification (20-30% range)
-- **Documentation**: Complete mathematical foundation in [[12_PEBI_Grid_Construction_with_Size_Field_Optimization]]
-
-#### Grid Construction Options
-- **PEBI Grid**: ONLY canonical approach using size-field optimization
-- **UPR Module Required**: MRST UPR module essential for PEBI construction
-- **Size-Field Approach**: Natural transitions with gradient control
-- **Variable Resolution**: Adaptive cell sizing based on geological features
+#### High Permeability Streak Refinement (Optional)
+- **Activation**: Optional refinement for permeability streaks
+- **Permeability Threshold**: 500.0 mD threshold
+- **Refined Cell Size**: 15.0 ft (isotropic refinement)
+- **Purpose**: Capture high-flow channels and sweep patterns
+- **Implementation**: Conditional refinement based on property distribution
 
 #### Grid Quality Control Parameters
 - **Maximum Aspect Ratio**: 10.0 (cell dimension ratio limit)

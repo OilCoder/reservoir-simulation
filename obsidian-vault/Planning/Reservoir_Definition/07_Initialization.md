@@ -37,7 +37,7 @@ Where:
 
 #### Datum Parameters:
 - **Datum Depth**: 8,000 ft TVDSS (True Vertical Depth Sub-Sea)
-- **Initial Pressure**: 3,600 psi at datum [UPDATED for Eagle West Field]
+- **Initial Pressure**: 2,900 psi at datum
 - **Reference Phase**: Oil phase (undersaturated conditions)
 - **Temperature**: 176°F at datum depth [CORRECTED for consistency]
 

@@ -5,7 +5,7 @@
 This document defines technical specifications and requirements for **native MRST** implementation of a multi-compartment reservoir simulation. It serves as a comprehensive technical guide for developers implementing the simulation system for a mature offshore sandstone reservoir under waterflood conditions using native MATLAB/Octave MRST scripts.
 
 **Technical Specifications:**
-- **Grid Architecture**: Fault-conforming PEBI grid (19,500-21,500 active cells)
+- **Grid Architecture**: 40×40×12 Cartesian tensor grid (19,200 active cells)
 - **Reservoir Model**: 12-layer heterogeneous sandstone with fault compartmentalization  
 - **Fluid System**: 3-phase black oil model with PVT correlations
 - **Well Network**: 15 wells with multi-layer completions
@@ -22,7 +22,6 @@ This document defines technical specifications and requirements for **native MRS
 - **Core modules**: Essential MRST modules for reservoir simulation
 
 ### Essential MRST Modules
-- **upr**: Unstructured Perpendicular Bisection (PEBI) grids - **REQUIRED for PEBI grid construction**
 - **ad-core**: Automatic differentiation framework
 - **ad-blackoil**: Black oil model implementation
 - **ad-props**: Advanced fluid and rock property models
@@ -52,11 +51,11 @@ This document defines technical specifications and requirements for **native MRS
 ## 2. Grid Setup Parameters
 
 ### Grid Specifications
-- **Grid Type**: Fault-conforming PEBI (Perpendicular Bisection) grid
-- **Approximate Cell Count**: 19,500-21,500 cells (variable due to size-field optimization)
+- **Grid Type**: Cartesian tensor grid
+- **Dimensions**: 40×40×12 cells (19,200 active cells)
 - **Field Extent**: 3280 ft × 2950 ft × 100 ft (1000m × 899m × 30.5m)
 - **Top Depth**: 2438m (8000 ft datum)
-- **Cell Resolution**: Variable size-field (20-82 ft horizontal, 8.3 ft vertical)
+- **Cell Resolution**: 82 ft × 74 ft × 8.3 ft (25.0m × 22.6m × 2.5m)
 
 ### Layer Configuration
 - **Layer Count**: 12 vertical layers
@@ -70,18 +69,17 @@ This document defines technical specifications and requirements for **native MRS
 ### Fault System Implementation
 - **Fault Count**: 5 major fault planes
 - **Fault Types**: Sealing and partially-sealing barriers
-- **Implementation**: Fault-conforming grid edges (native PEBI geometry, no transmissibility multipliers needed)
+- **Implementation**: Transmissibility multipliers on fault faces
 - **Fault Orientation**: Primarily NE-SW trending normal faults
-- **Compartmentalization**: 3 main flow units with natural grid-based barriers
+- **Compartmentalization**: 3 main flow units with restricted inter-communication
 
 ### Grid Quality Requirements
-- **Aspect Ratio**: Maximum 10:1 for numerical stability (variable due to size-field)
-- **Cell Angles**: Minimum 20° internal angles for PEBI cells
-- **Size Transitions**: Maximum 30% size change per distance unit (gradient limit)
+- **Aspect Ratio**: 9.9:1 (82 ft / 8.3 ft) - within maximum 10:1 for numerical stability
+- **Orthogonality**: Minimum 30° face angles for corner-point grids
 - **Volume Consistency**: Verified against geological framework
-- **Connectivity**: Validated flow paths with fault-conforming geometry
+- **Connectivity**: Validated flow paths between wells and boundaries
 - **Active Cells**: Non-zero porosity and permeability validation
-- **Total Cells**: 19,500-21,500 active cells (size-field optimized for accuracy vs computational efficiency)
+- **Total Cells**: 19,200 active cells (balanced for accuracy vs computational efficiency)
 
 ---
 
@@ -196,7 +194,7 @@ This document defines technical specifications and requirements for **native MRS
 - **Quality Control**: Statistical validation against geological model
 
 ### Rock Property Specifications
-**Layer-by-Layer Implementation (PEBI grid):**
+**Layer-by-Layer Implementation (40×40×12 grid):**
 - **Upper Zone** (Layers 1-3): Sandstone - 19.5% avg porosity, 85 mD avg permeability, Kv/Kh=0.5
 - **Layer 4**: Shale barrier - 5.0% porosity, 0.01 mD permeability, Kv/Kh=0.1
 - **Middle Zone** (Layers 5-7): Sandstone - 22.8% avg porosity, 165 mD avg permeability, Kv/Kh=0.5
@@ -214,7 +212,7 @@ This document defines technical specifications and requirements for **native MRS
 - **Relative Permeability**: Special core analysis (SCAL) data
 
 ### Initial Reservoir Conditions
-- **Pressure**: Hydrostatic gradient with 3600 psi at datum
+- **Pressure**: Hydrostatic gradient with 2900 psi at datum
 - **Oil-Water Contact**: 8150 ft subsea
 - **Initial Water Saturation**: 20% in oil zone
 - **Initial Oil Saturation**: 80% in oil zone
@@ -311,10 +309,8 @@ mrst_simulation_scripts/
 ├── python/                      # Python implementation
 │   ├── __init__.py
 │   ├── s01_initialize_mrst.py   # MRST setup and validation
-│   ├── s02_define_fluids.py     # Fluid property setup
-│   ├── s03_structural_framework.py # Structural framework
-│   ├── s04_add_faults.py        # Fault system integration
-│   ├── s05_create_pebi_grid.py  # PEBI grid construction
+│   ├── s02_create_grid.py       # Grid construction
+│   ├── s03_define_fluids.py     # Fluid property setup
 │   ├── s99_run_workflow.py      # Main orchestrator
 │   ├── utils/
 │   │   ├── __init__.py
@@ -340,7 +336,7 @@ mrst_simulation_scripts/
 ### System Architecture Requirements
 1. **Python Environment**: Python 3.8+ with scientific computing stack
 2. **MRST Interface**: oct2py or matlab.engine for MRST function access
-3. **Grid System**: Fault-conforming PEBI grid using MRST UPR module (compositePebiGrid2D)
+3. **Grid System**: Cartesian tensor grid with fault transmissibility multipliers
 4. **Property Framework**: Multi-zone rock properties with spatial correlation
 5. **Well System**: 15-well network with multi-layer completions [CORRECTED]
 6. **Control System**: Adaptive timestep scheduling with constraint handling  
@@ -348,7 +344,6 @@ mrst_simulation_scripts/
 8. **State Management**: Pressure-saturation initialization from equilibrium
 9. **Execution Engine**: Full-field simulation with HDF5 restart capability
 10. **Output System**: HDF5/NetCDF data export and matplotlib/pyvista visualization
-11. **UPR Module**: MRST unstructured grid capabilities for PEBI construction
 
 ### Quality Assurance Requirements
 - **Grid Validation**: Aspect ratios $< 10:1$, connectivity matrix rank validation

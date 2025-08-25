@@ -69,48 +69,48 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 
 ## Simulation Parameters Summary
 
-| **Parameter**              | **Value**                         | **Units** | **Notes**                        |
-| -------------------------- | --------------------------------- | --------- | -------------------------------- |
-| **RESERVOIR GEOMETRY**     |                                   |           |                                  |
-| Model Area                 | 2,600                             | acres     | Simulation grid extent           |
-| Depth (Datum)              | 8,000                             | ft TVDSS  | Pressure reference               |
-| Gross Thickness            | 238                               | ft        | Total stratigraphic interval     |
-| Net Pay                    | 125                               | ft        | Flow contributing layers         |
-| Net-to-Gross               | 52.5                              | %         | Average across model             |
-| **STRUCTURAL FRAMEWORK**   |                                   |           |                                  |
-| Structural Type            | Faulted Anticline                 | -         | For grid construction            |
-| Structural Relief          | 340                               | ft        | Top to base structure            |
-| Fault Compartments         | 2                                 | -         | Northern & Southern blocks       |
-| Major Faults               | 5                                 | -         | For transmissibility multipliers |
-| **LITHOLOGY & PROPERTIES** |                                   |           |                                  |
-| Primary Lithology          | Sandstone                         | -         | Main reservoir rock              |
-| Secondary Lithologies      | Shale, Limestone                  | -         | Barrier/seal layers              |
-| Porosity Range             | 20-25                             | %         | Sandstone reservoir zones        |
-| Permeability Range         | 120-200                           | mD        | Horizontal permeability          |
-| Kv/Kh Ratio                | 0.15-0.25                         | -         | Vertical flow factor             |
-| **FLUID SYSTEM**           |                                   |           |                                  |
-| Phase System               | Oil-Gas-Water                     | -         | 3-phase simulation               |
-| Oil API Gravity            | 32                                | °API      | Light crude oil                  |
-| Initial GOR                | 450                               | scf/STB   | Solution gas ratio               |
-| Bubble Point               | 2,100                             | psi       | At reservoir temperature         |
-| Oil Viscosity @ Tres       | 0.92                              | cp        | At bubble point                  |
-| Water Salinity             | 35,000                            | ppm TDS   | Formation brine                  |
-| **PRESSURE CONDITIONS**    |                                   |           |                                  |
-| Initial Pressure           | 2,900                             | psi       | @ 8,000 ft datum                 |
-| Reservoir Temperature      | 176                               | °F        | Constant throughout              |
-| Pressure Gradient          | 0.433                             | psi/ft    | Hydrostatic gradient             |
-| **FLUID CONTACTS**         |                                   |           |                                  |
-| Oil-Water Contact          | 8,150                             | ft TVDSS  | Sharp contact                    |
-| Gas-Oil Contact            | None                              | -         | Initially undersaturated         |
-| Transition Zone            | 50                                | ft        | Capillary pressure controlled    |
-| **WELL CONFIGURATION**     |                                   |           |                                  |
-| Total Wells                | 15                                | -         | 10 producers + 5 injectors       |
-| Producer Wells             | 10                                | -         | Oil production wells             |
-| Injector Wells             | 5                                 | -         | Water injection wells            |
-| Development Phases         | 6                                 | -         | Phased implementation            |
-| Development Timeline       | 10                                | years     | Full field development           |
-| Peak Production Target     | 18,500                            | STB/day   | Maximum field capacity           |
-| Well Types                 | Vertical/Horizontal/Multi-lateral | -         | Multiple completion designs      |
+| **Parameter**              | **Value**                | **Units** | **Notes**                 |
+| -------------------------- | ------------------------ | --------- | ------------------------- |
+| **RESERVOIR GEOMETRY**     |                          |           |                           |
+| Model Area                 | 2,600                    | acres     | Simulation grid extent    |
+| Depth (Datum)              | 8,000                    | ft TVDSS  | Pressure reference        |
+| Gross Thickness            | 238                      | ft        | Total stratigraphic interval |
+| Net Pay                    | 125                      | ft        | Flow contributing layers  |
+| Net-to-Gross               | 52.5                     | %         | Average across model      |
+| **STRUCTURAL FRAMEWORK**   |                          |           |                           |
+| Structural Type            | Faulted Anticline        | -         | For grid construction     |
+| Structural Relief          | 340                      | ft        | Top to base structure     |
+| Fault Compartments         | 2                        | -         | Northern & Southern blocks |
+| Major Faults               | 5                        | -         | For transmissibility multipliers |
+| **LITHOLOGY & PROPERTIES** |                          |           |                           |
+| Primary Lithology          | Sandstone                | -         | Main reservoir rock       |
+| Secondary Lithologies      | Shale, Limestone         | -         | Barrier/seal layers       |
+| Porosity Range             | 20-25                    | %         | Sandstone reservoir zones |
+| Permeability Range         | 120-200                  | mD        | Horizontal permeability   |
+| Kv/Kh Ratio                | 0.15-0.25                | -         | Vertical flow factor      |
+| **FLUID SYSTEM**           |                          |           |                           |
+| Phase System               | Oil-Gas-Water            | -         | 3-phase simulation        |
+| Oil API Gravity            | 32                       | °API      | Light crude oil           |
+| Initial GOR                | 450                      | scf/STB   | Solution gas ratio        |
+| Bubble Point               | 2,100                    | psi       | At reservoir temperature  |
+| Oil Viscosity @ Tres       | 0.92                     | cp        | At bubble point           |
+| Water Salinity             | 35,000                   | ppm TDS   | Formation brine           |
+| **PRESSURE CONDITIONS**    |                          |           |                           |
+| Initial Pressure           | 2,900                    | psi       | @ 8,000 ft datum          |
+| Reservoir Temperature      | 176                      | °F        | Constant throughout       |
+| Pressure Gradient          | 0.433                    | psi/ft    | Hydrostatic gradient      |
+| **FLUID CONTACTS**         |                          |           |                           |
+| Oil-Water Contact          | 8,150                    | ft TVDSS  | Sharp contact             |
+| Gas-Oil Contact            | None                     | -         | Initially undersaturated  |
+| Transition Zone            | 50                       | ft        | Capillary pressure controlled |
+| **WELL CONFIGURATION**     |                          |           |                           |
+| Total Wells                | 15                       | -         | 10 producers + 5 injectors |
+| Producer Wells             | 10                       | -         | Oil production wells      |
+| Injector Wells             | 5                        | -         | Water injection wells     |
+| Development Phases         | 6                        | -         | Phased implementation     |
+| Development Timeline       | 10                       | years     | Full field development    |
+| Peak Production Target     | 18,500                   | STB/day   | Maximum field capacity    |
+| Well Types                 | Vertical/Horizontal/Multi-lateral | -  | Multiple completion designs |
 
 ---
 
@@ -119,17 +119,14 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 ### Grid Specifications
 
 **Recommended Grid Design:**
-
-- Grid dimensions: 41 × 41 × 12 cells (I × J × K) [CORRECTED for detailed simulation]
+- Grid dimensions: 40 × 40 × 12 cells (I × J × K) [CORRECTED for detailed simulation]
 - Cell dimensions: 82 × 74 × 8.3 ft (X × Y × Z) [UPDATED for field extent]
-- Total active cells: 20,172 (high resolution) [CORRECTED for realistic simulation]
-- Refinement strategy: **Tiered optimization** (20-30% coverage target) [CANONICAL APPROACH]
-- Refinement areas: Critical wells, major faults, with tier-based prioritization
+- Total active cells: 19,200 (high resolution) [CORRECTED for realistic simulation]
+- Refinement areas: Near wells, fault zones, high permeability streaks
 
 ### Key Initialization Parameters
 
 **Reservoir Conditions:**
-
 - Initial pressure: 2,900 psi at datum depth
 - Reference depth: 8,000 ft TVDSS
 - Oil-water contact: 8,150 ft TVDSS
@@ -137,7 +134,6 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 - Reservoir temperature: 176°F
 
 **Fluid System:**
-
 - Phase system: Three-phase (oil-gas-water)
 - API gravity: 32°
 - Initial GOR: 450 scf/STB
@@ -145,7 +141,6 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 ### Well Configuration
 
 **Field Development Configuration:**
-
 - Total wells: 15 (10 producers + 5 injectors)
 - Development phases: 6 phases over 10 years
 - Peak field production target: 18,500 STB/day
@@ -172,27 +167,22 @@ Each document in this reservoir definition follows a standardized format designe
 The documents are designed with clear data flow for simulation model construction:
 
 **Grid Design & Fault Modeling:**
-
 - Structural Geology (01) → Grid geometry and fault systems
 - Stratigraphy (02) → Layer architecture and flow units
 
 **Static Model Construction:**
-
 - Rock Properties (03) → Porosity and permeability distributions
 - Reservoir Architecture (04) → Heterogeneity and connectivity
 
 **3-Phase System Setup:**
-
 - Fluid Properties (03) → PVT data and phase behavior
 - Saturation Functions (05) → Relative permeability and capillary pressure
 
 **Model Initialization:**
-
 - Initial Conditions (06) → Pressure and saturation initialization
 - Aquifer Support (07) → Boundary conditions and pressure support
 
 **Well Model Implementation:**
-
 - Wells & Completion (08) → Well placement and completion design
 - Production History (09) → Well controls and operational constraints
 
