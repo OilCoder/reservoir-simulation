@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Test creator following multi-mode policy system with comprehensive coverage
+description: Test creator following 6-policy system with comprehensive coverage and no over-engineering
 model: sonnet
 color: green
 tools: Read, Write, Bash
@@ -34,7 +34,7 @@ Read and follow these rules from `.claude/rules/`:
 
 ## 🏛️ Policy Testing Strategy (Context-Aware)
 
-**Test all 5 policies with mode-appropriate validation**:
+**Test all 6 policies with mode-appropriate validation**:
 
 ### 1. Canon-First Policy Testing
 
@@ -110,6 +110,19 @@ def test_function_complexity():
     """Test that functions maintain appropriate complexity."""
     # Verify functions are under reasonable line limits
     # Test single responsibility principle
+```
+
+### 6. No Over-Engineering Policy Testing
+```python
+def test_function_length_limits():
+    """Test that functions stay under 50 lines."""
+    # Verify function length compliance
+    # Flag functions exceeding reasonable limits
+    
+def test_no_speculative_code():
+    """Test for unnecessary abstractions and speculative features."""
+    # Detect unused parameters, classes, or abstract patterns
+    # Verify code serves current requirements only
 ```
 
 ## 🎯 Mode-Aware Test Execution

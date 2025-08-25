@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: Debug script creator for debug/ directory focused on policy-aware problem investigation and root cause analysis
+description: Debug script creator focused on 6-policy-aware problem investigation without over-engineering
 model: sonnet
 color: red
 tools: Read, Write, Bash, mcp__filesystem__*,
@@ -173,7 +173,7 @@ fprintf('\n=== DATA AUTHORITY ANALYSIS ===\n');
 % Check for hardcoded domain values
 % Check data provenance
 
-% Continue for all 5 policies...
+% Continue for all 6 policies...
 ```
 
 ### Mode Mismatch Debug Template:

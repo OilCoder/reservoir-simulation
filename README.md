@@ -37,9 +37,41 @@ A complete MRST-based simulation workflow for the Eagle West Field with:
 │   └── Spanish/            # Spanish documentation
 ├── 🧪 tests/              # Test files (gitignored)
 ├── 🐛 debug/              # Debug scripts (gitignored)
-├── 📊 data/               # Canonical data organization (by_type/by_usage/by_phase)
+├── 📊 data/               # Simplified 6-file data structure
+│   └── simulation_data/   # Complete Eagle West Field model (6 canonical files)
 └── 🧠 CLAUDE.md           # Main project memory and instructions
 ```
+
+## 📊 Data Structure
+
+**Simple 6-File Eagle West Field Model**
+
+```
+data/simulation_data/
+├── grid.mat           # Complete geometry with faults and structure
+├── rock.mat           # Final petroPhysical properties with heterogeneity  
+├── fluid.mat          # Complete 3-phase fluid system with PVT
+├── state.mat          # Initial pressure and saturation distribution
+├── wells.mat          # 15-well system with completions and controls
+└── schedule.mat       # Development plan and solver configuration
+```
+
+### Script Contributions
+| File | Created By | Updated By | Contains |
+|------|------------|------------|----------|
+| `grid.mat` | s03 (PEBI grid) | s04 (structure), s05 (faults) | Complete geometry with 5 faults |
+| `rock.mat` | s06 (base props) | s07 (layers), s08 (heterogeneity) | Spatially varying properties |
+| `fluid.mat` | s02 (basic fluid) | s09 (relperm), s10 (capillary), s11 (PVT) | Complete 3-phase system |
+| `state.mat` | s12 (pressure) | s13 (saturations), s14 (aquifer) | Initial conditions |
+| `wells.mat` | s15 (placement) | s16 (completions) | 15 wells with controls |
+| `schedule.mat` | s17 (controls) | s18 (schedule), s19 (targets) | Development plan |
+
+### Key Features
+- **Single Location**: All data in `/workspace/data/simulation_data/`
+- **MRST Ready**: Standard MRST structures for direct simulation use
+- **Complete Model**: 2,600-acre Eagle West Field with 41×41×12 grid
+- **15 Wells**: 10 producers (EW-001 to EW-010) + 5 injectors (IW-001 to IW-005)
+- **5 Major Faults**: Fault_A through Fault_E with transmissibility effects
 
 ## 🚀 Quick Start
 
@@ -261,7 +293,7 @@ GitHub Actions automatically:
 - **Complete Workflow**: 25/25 integrated simulation scripts (s01-s25, s99) - ALL WORKING
 - **Corrected Dependencies**: s01→s02→s05→s03→s04→s06→s07→s08 sequence
 - **PEBI Grid Construction**: Fault-conforming geometry with size-field optimization
-- **Canonical Data Organization**: Native .mat format with by_type/by_usage/by_phase structure
+- **Simplified Data Structure**: 6 canonical .mat files with complete Eagle West Field model
 - **Enhanced Analytics**: ML-ready features and solver diagnostics (s22, s24)
 - **100% Documentation Coverage**: All 9 YAML config files fully documented
 - **Eagle West Field Model**: Realistic offshore field with 41×41×12 grid

@@ -35,7 +35,7 @@ Read and follow these rules from `.claude/rules/`:
 
 ## 🏛️ Policy System (Immutable Principles)
 
-**CONTEXT-AWARE APPLICATION**: Follow all 5 policies with mode-appropriate strictness:
+**CONTEXT-AWARE APPLICATION**: Follow all 6 policies with mode-appropriate strictness:
 
 ### 1. Canon-First Policy (Context-Aware)
 **Adjust behavior based on validation mode**:
@@ -86,6 +86,13 @@ config['api_key'] = config.get('api_key', prototype_defaults.get('api_key'))
 - **No speculative abstractions** unless explicitly requested
 - **Clarity over cleverness** in all implementations
 - **Minimalism** in design and data structures
+
+### 6. No Over-Engineering Policy
+- **Function length limit**: Under 50 lines whenever possible
+- **No speculative code** for imagined future needs  
+- **Eliminate unnecessary complexity** and abstractions
+- **Choose simplest solution** that works for current requirements
+- **Avoid design patterns** when simple functions suffice
 
 ## 🎯 Mode Detection and Application
 

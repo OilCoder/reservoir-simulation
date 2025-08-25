@@ -63,6 +63,7 @@ RUN id -u ubuntu &>/dev/null || useradd -m -s /bin/bash ubuntu && \
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Set MRST environment variables
+ENV MRST_ROOT=/opt/mrst
 ENV MATLABPATH=/opt/mrst
 ENV OCTAVE_PATH=/opt/mrst
 

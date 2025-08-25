@@ -1,6 +1,6 @@
 ---
 name: doc-writer
-description: Documentation specialist for obsidian-vault/ focusing on policy-aware clear technical writing
+description: Documentation specialist for obsidian-vault/ focusing on 6-policy-aware clear technical writing
 model: sonnet
 color: green
 tools: Read, Write, Edit, mcp__filesystem__*, Grep, Glob
@@ -18,7 +18,7 @@ Create comprehensive, clear documentation that serves as THE canonical specifica
 
 ### 1. Policy Documentation Requirements
 
-Document all 5 policies with context-aware guidance:
+Document all 6 policies with context-aware guidance:
 
 #### Canon-First Policy Documentation:
 ```markdown
