@@ -1,0 +1,67 @@
+# Production Configuration for Eagle West Field MRST Simulation
+# Extracted hardcoded values from s17_production_controls.m
+# Date: 2025-08-22
+
+production_controls:
+  # Conversion Constants (Data Authority Policy - No hardcoding)
+  conversion_constants:
+    stb_to_m3: 0.159                    # Convert STB to m³
+    bbl_to_m3: 0.159                    # Convert BBL to m³ 
+    psi_to_pa: 6895                     # Convert psi to Pa
+    f_to_k_offset: 273.15               # Fahrenheit to Kelvin conversion
+    f_to_c_multiplier: 0.5556           # (F-32) * 5/9 = (F-32) * 0.5556
+    f_to_c_offset: 32                   # Fahrenheit offset for Celsius conversion
+
+  # Equipment Defaults (Data Authority Policy)
+  equipment_defaults:
+    esp_efficiency: 0.72                # Typical ESP efficiency
+    pump_efficiency: 0.78               # Typical injection pump efficiency
+    standard_frequency_hz: 60           # Standard electrical frequency
+    injection_temperature_f: 90         # Surface injection temperature (°F)
+
+  # Water Quality Specifications (Data Authority Policy)
+  water_quality_specs:
+    max_tss_ppm: 5                      # Maximum total suspended solids (ppm)
+    max_oil_content_ppm: 30             # Maximum oil content (ppm)
+    max_particle_size_microns: 2        # Maximum particle size (microns)
+    min_ph: 6.5                         # Minimum pH
+    max_ph: 8.5                         # Maximum pH
+
+  # Control Switching Thresholds (Data Authority Policy)
+  control_switching:
+    producer_bhp_margin_psi: 50         # Switch rate->BHP when within 50 psi of min
+    producer_bhp_recovery_psi: 100      # Switch BHP->rate when 100 psi above min
+    injector_bhp_margin_psi: 100        # Switch rate->BHP when within 100 psi of max
+    injector_bhp_recovery_psi: 200      # Switch BHP->rate when 200 psi below max
+    safety_water_cut_limit: 0.9         # Safety limit for water cut before switching
+    gor_reduction_factor: 0.9           # Factor for GOR limit recovery switching
+
+  # Rate Constraints (Data Authority Policy)
+  rate_constraints:
+    min_injection_rate_factor: 0.1      # Minimum injection rate as fraction of target
+    max_injection_rate_factor: 1.5      # Maximum injection rate as fraction of target
+    max_liquid_rate_safety_factor: 20   # Safety factor when water cut limit = 1.0
+    production_efficiency: 0.9          # Expected vs target production efficiency
+
+  # Development Parameters (Data Authority Policy)
+  development_parameters:
+    phase_duration_years: 1             # Each development phase duration
+    check_frequency_days: 1             # Control switching check frequency
+    initial_water_cut_percent: 20       # Starting water cut percentage
+    water_cut_increase_per_phase: 5     # Water cut increase per phase (%)
+    initial_gor_scf_stb: 1200           # Starting gas-oil ratio (SCF/STB)
+    gor_increase_per_phase: 100         # GOR increase per development phase
+    vrr_target: 1.2                     # Voidage replacement ratio target
+
+  # Field-Level Constraints (Data Authority Policy)
+  field_constraints:
+    total_liquid_rate_limit_bbl_day: 55000  # Field-wide liquid rate limit
+    voidage_replacement_range: [1.1, 1.2]  # VRR range by phase
+    pressure_maintenance_priority: true     # Prioritize pressure maintenance
+
+  # Pump System Specifications (Data Authority Policy)
+  pump_systems:
+    injection_pump:
+      type: "centrifugal"
+      pressure_margin_psi: 500           # Surface pressure + wellhead pressure margin
+      vfd_control: true                   # Variable frequency drive availability

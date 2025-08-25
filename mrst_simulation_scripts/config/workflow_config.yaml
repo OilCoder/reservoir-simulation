@@ -1,0 +1,71 @@
+# Workflow Configuration - Eagle West Field MRST Simulation
+# CANONICAL: Configuration for workflow orchestrator s99_run_workflow.m
+# Author: Claude Code AI System
+# Date: 2025-08-22
+
+workflow_settings:
+  default_timeout_seconds: 600
+  validation_stop_phase: 3
+  results_directory: "data/mrst_simulation/results"
+  table_format_enabled: true
+  verbose_output: true
+
+phase_settings:
+  estimated_times:
+    s01: 30   # Initialize MRST Environment
+    s02: 45   # Define Fluids (3-phase)
+    s03: 120  # PEBI Grid Construction (Canonical)
+    s04: 90   # Structural Framework
+    s05: 75   # Add Fault System
+    s06: 60   # Create Base Rock Structure
+    s07: 60   # Add Layer Metadata
+    s08: 120  # Apply Spatial Heterogeneity
+    s09: 90   # Relative Permeability
+    s10: 75   # Capillary Pressure
+    s11: 120  # PVT Tables
+    s12: 90   # Pressure Initialization
+    s13: 75   # Saturation Distribution
+    s14: 60   # Aquifer Configuration
+    s15: 90   # Well Placement (15 wells)
+    s16: 80   # Well Completions
+    s17: 70   # Production Controls
+    s18: 100  # Development Schedule (6 phases)
+    s19: 85   # Production Targets
+    s20: 60   # Solver Configuration (ad-fi)
+    s21: 120  # Export to OPM Format
+    s23: 120  # Quality Validation
+    s24: 150  # Production Analysis
+    s25: 180  # Reservoir Analysis
+
+  criticality:
+    s01: true   # Initialize MRST Environment
+    s02: true   # Define Fluids (3-phase)
+    s03: true   # PEBI Grid Construction (Canonical)
+    s04: true   # Structural Framework
+    s05: true   # Add Fault System
+    s06: true   # Create Base Rock Structure
+    s07: true   # Add Layer Metadata
+    s08: false  # Apply Spatial Heterogeneity
+    s09: true   # Relative Permeability
+    s10: true   # Capillary Pressure
+    s11: true   # PVT Tables
+    s12: true   # Pressure Initialization
+    s13: true   # Saturation Distribution
+    s14: true   # Aquifer Configuration
+    s15: true   # Well Placement (15 wells)
+    s16: true   # Well Completions
+    s17: true   # Production Controls
+    s18: true   # Development Schedule (6 phases)
+    s19: true   # Production Targets
+    s20: true   # Solver Configuration (ad-fi)
+    s21: true   # Export to OPM Format
+    s23: false  # Quality Validation
+    s24: false  # Production Analysis
+    s25: false  # Reservoir Analysis
+
+output_settings:
+  ascii_art_header: true
+  status_emojis: true
+  table_format: true
+  summary_export: true
+  timestamp_format: "yyyymmdd_HHMMSS"

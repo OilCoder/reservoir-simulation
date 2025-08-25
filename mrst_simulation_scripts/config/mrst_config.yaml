@@ -1,0 +1,105 @@
+# MRST Configuration for Eagle West Field Simulation
+# Source: Canon-First Policy Implementation
+# Date: 2025-08-22
+
+mrst:
+  # Installation Paths (CANON - No hardcoded defaults)
+  installation:
+    # Primary path sources (check in this order)
+    path_sources:
+      - "environment_variable"    # MRST_ROOT environment variable
+      - "config_file"            # This YAML configuration
+      - "user_home"              # User's home directory
+      - "system_standard"        # Standard system locations
+    
+    # Environment Variable
+    environment_variable: "MRST_ROOT"
+    
+    # Configuration-specified path (when MRST_ROOT not set)
+    # REQUIRED: User must provide this if MRST_ROOT environment variable not set
+    config_path: ""  # User must specify: e.g., "/opt/mrst" or "/home/user/mrst"
+    
+    # Search paths for automatic discovery (fallback only)
+    search_paths:
+      - "${HOME}/mrst"
+      - "${HOME}/MRST"
+      - "/opt/mrst"
+      - "/usr/local/mrst"
+    
+  # Required Modules (CANON from Eagle West Field specification)
+  required_modules:
+    core_modules:
+      - "ad-core"           # Automatic differentiation core
+      - "ad-blackoil"       # Black oil model
+      - "ad-props"          # Fluid properties
+      - "upr"               # Unstructured PEBI grids
+    
+    optional_modules:
+      - "solvers"           # Advanced solvers
+      - "plotting"          # Visualization tools
+    
+  # Session Configuration
+  session:
+    persistent: true              # Enable session persistence
+    save_path: "session/"        # Local session directory
+    auto_save: true              # Automatically save session state
+    
+  # Validation Requirements
+  validation:
+    required_directories:
+      - "core"                   # MRST core functions
+      - "modules"                # MRST modules directory
+      - "autodiff"               # Automatic differentiation
+    
+    required_functions:
+      - "cartGrid"               # Grid generation
+      - "computeGeometry"        # Grid geometry
+      - "mrstModule"             # Module loading
+    
+    core_paths:
+      - "core/utils"
+      - "core/gridprocessing"
+      - "core/plotting"
+      - "core/utils/gridtools"
+      - "core/utils/units"
+      - "core/solvers"
+      - "core/utils/settings_manager"
+      - "core/params"
+      - "core/params/rock"
+      - "core/params/wells_and_bc"
+    
+  # Error Handling (CANON - Fail Fast Policy)
+  error_handling:
+    fail_on_missing_installation: true
+    fail_on_missing_modules: true
+    fail_on_validation_failure: true
+    
+    # Error message templates
+    missing_installation_message: |
+      MRST installation not found.
+      REQUIRED: Set MRST_ROOT environment variable or update config_path in mrst_config.yaml
+      Example: export MRST_ROOT=/opt/mrst
+      Or edit: mrst_simulation_scripts/config/mrst_config.yaml
+      
+    missing_modules_message: |
+      Required MRST modules not found: {missing_modules}
+      REQUIRED: Install missing modules in MRST installation
+      See: MRST documentation for module installation
+      
+  # Version Information
+  compatibility:
+    minimum_mrst_version: "2020a"
+    supported_platforms:
+      - "linux"
+      - "darwin"    # macOS
+      - "windows"
+    
+    octave_support: true
+    matlab_support: true
+    
+  # Metadata
+  metadata:
+    config_version: "1.0"
+    canon_source: "Canon-First Policy Implementation"
+    field_name: "Eagle_West"
+    last_updated: "2025-08-22"
