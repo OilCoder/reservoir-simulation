@@ -32,7 +32,7 @@ A complete MRST-based simulation workflow for the Eagle West Field with:
 │   ├── s01_initialize_mrst.m - s25_reservoir_analysis.m
 │   ├── s99_run_workflow.m  # Complete workflow runner
 │   └── tests/              # MRST test files
-├── 📖 obsidian-vault/      # Documentation system
+├── 📖 docs/      # Documentation system
 │   ├── Planning/Reservoir_Definition/  # Technical documentation
 │   └── Spanish/            # Spanish documentation
 ├── 🧪 tests/              # Test files (gitignored)
@@ -109,7 +109,7 @@ claude --continue
 ```
 
 ### 4. Use the Variable Inventory for LLM Context
-- **Primary Reference**: `obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`
+- **Primary Reference**: `docs/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`
 - **900+ variables** organized by workflow stages and domains
 - **LLM-optimized structure** for understanding project complexity
 
@@ -258,14 +258,14 @@ GitHub Actions automatically:
 ## 📚 Documentation
 
 ### 🎯 Critical References for LLMs
-- **[VARIABLE_INVENTORY.md](obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md)** - 900+ variables with LLM-optimized structure
+- **[VARIABLE_INVENTORY.md](docs/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md)** - 900+ variables with LLM-optimized structure
 - **[CLAUDE.md](CLAUDE.md)** - Project memory and AI assistant instructions
-- **[12_Technical_Variable_Mapping.md](obsidian-vault/Planning/Reservoir_Definition/12_Technical_Variable_Mapping.md)** - Standardized variable naming
+- **[12_Technical_Variable_Mapping.md](docs/Planning/Reservoir_Definition/12_Technical_Variable_Mapping.md)** - Standardized variable naming
 
 ### 📊 MRST Simulation Documentation
-- **[01_Structural_Geology.md](obsidian-vault/Planning/Reservoir_Definition/01_Structural_Geology.md)** - Field structure and grid design (41×41×12 cells)
-- **[05_Wells_Completions.md](obsidian-vault/Planning/Reservoir_Definition/05_Wells_Completions.md)** - 15 wells (10 producers, 5 injectors)
-- **[10_Solver_Configuration.md](obsidian-vault/Planning/Reservoir_Definition/10_Solver_Configuration.md)** - MRST solver setup
+- **[01_Structural_Geology.md](docs/Planning/Reservoir_Definition/01_Structural_Geology.md)** - Field structure and grid design (41×41×12 cells)
+- **[05_Wells_Completions.md](docs/Planning/Reservoir_Definition/05_Wells_Completions.md)** - 15 wells (10 producers, 5 injectors)
+- **[10_Solver_Configuration.md](docs/Planning/Reservoir_Definition/10_Solver_Configuration.md)** - MRST solver setup
 
 ### 🔧 Development Standards
 - **[Project Rules](.claude/rules/)** - 8 comprehensive coding rules

@@ -79,7 +79,7 @@
     },
     "doc-writer": {
       "description": "Documentation specialist with policy-aware technical writing and multi-mode guidance",
-      "folders": ["obsidian-vault/"],
+      "folders": ["docs/"],
       "policies": ["canon-first", "data-authority", "fail-fast", "exception-handling", "kiss-principle"],
       "rules": [1, 5, 6, 7, 8],
       "validation_modes": ["suggest", "warn", "strict"],
@@ -125,7 +125,7 @@
     "languages": ["python", "octave"],
     "rules_path": ".claude/rules/",
     "policies_path": ".claude/policies/",
-    "documentation_path": "obsidian-vault/",
+    "documentation_path": "docs/",
     "logging": {
       "enabled": true,
       "path": ".claude/logs/",

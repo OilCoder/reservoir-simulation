@@ -51,7 +51,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 │ ├── s01_initialize_mrst.m → s25_reservoir_analysis.m
 │ ├── s99_run_workflow.m # Complete workflow runner
 │ └── utils/ # MRST utility functions  
-├── 📖 obsidian-vault/ # Documentation system
+├── 📖 docs/ # Documentation system
 │ ├── Planning/Reservoir_Definition/ # Technical documentation (CANONICAL)
 │ │ ├── VARIABLE_INVENTORY.md # 900+ variables with LLM optimization
 │ └── Spanish/ # Spanish documentation
@@ -282,7 +282,7 @@ data/simulation_data/
 
 ### Configuration System (100% Documented)
 
-**9 YAML Configuration Files** (all documented in obsidian-vault/Planning/):
+**9 YAML Configuration Files** (all documented in docs/Planning/):
 
 - `fault_config.yaml` - 5 major faults (Fault_A through Fault_E)
 - `grid_config.yaml` - 41×41×12 grid dimensions
@@ -332,7 +332,7 @@ Located in `.claude/policies/` with context-aware enforcement:
 
 ### Primary References for AI Assistants
 
-1. **VARIABLE_INVENTORY.md** (`/workspaces/reservoir-simulation/obsidian-vault/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`)
+1. **VARIABLE_INVENTORY.md** (`/workspaces/reservoir-simulation/docs/Planning/Reservoir_Definition/VARIABLE_INVENTORY.md`)
 
    - **900+ variables** organized by workflow stages and domains
    - **LLM-optimized structure** with decision trees and context helpers
@@ -388,7 +388,7 @@ Working on a specific domain?
 PROJECT_STRUCTURE_REFERENCE:
 
 - **Primary**: VARIABLE_INVENTORY.md for complete project understanding
-- **Secondary**: obsidian-vault/Planning/Reservoir_Definition/ for technical specifications
+- **Secondary**: docs/Planning/Reservoir_Definition/ for technical specifications
 - **Tertiary**: Individual YAML configs for specific parameters
 - Structure follows 4-stage workflow: YAML→MATLAB→MRST→Results
 
@@ -467,12 +467,12 @@ For current policy information, see:
 
 - **THIS FILE (CLAUDE.md)** - Project memory and AI guidance (CANONICAL)
 - **VARIABLE_INVENTORY.md** - Variable reference and workflow stages (CANONICAL)
-- **obsidian-vault/Planning/Reservoir_Definition/** - Technical specifications (CANONICAL)
+- **docs/Planning/Reservoir_Definition/** - Technical specifications (CANONICAL)
 - **README.md** - Current project status and overview (CANONICAL)
 
 ### Language and Testing
 
-- **English only in code** - Spanish allowed only in obsidian-vault/Spanish/ documentation
+- **English only in code** - Spanish allowed only in docs/Spanish/ documentation
 - **Tests are mandatory** - Every MRST script needs corresponding test
 - **No speculative abstractions** - Write only what's needed for current requirement
 
@@ -512,7 +512,7 @@ For current policy information, see:
 - Maintain consistency with canonical naming conventions
 
 **Policy-Aware Documentation Authority**:
-- obsidian-vault/Planning/ contains authoritative specifications for Eagle West Field
+- docs/Planning/ contains authoritative specifications for Eagle West Field
 - YAML configs implement specifications with policy compliance
 - Code implements specifications following all 6 policies with context-aware validation
 - Missing specifications → appropriate response based on validation mode (suggest/warn/strict)
