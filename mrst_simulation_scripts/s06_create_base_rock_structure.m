@@ -17,20 +17,9 @@ function rock = s06_create_base_rock_structure()
     % Load validation functions (inline for compatibility)
     load_validation_functions();
 
-    % Add MRST to path manually (since session doesn't save paths)
-    mrst_root = '/opt/mrst';
-    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
-    addpath(genpath(fullfile(mrst_root, 'modules')));
-    
-    % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
-    if exist(session_file, 'file')
-        loaded_data = load(session_file);
-        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
-            fprintf('   ✅ MRST session validated\n');
-        end
-    else
-        error('MRST session not found. Please run s01_initialize_mrst.m first.');
+    % Verify MRST session from s01
+    if ~check_and_load_mrst_session()
+        error('MRST session not found. Run s01_initialize_mrst.m first');
     end
 
     print_step_header('S06', 'Create Base Rock Structure');

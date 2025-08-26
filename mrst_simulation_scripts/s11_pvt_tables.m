@@ -4,16 +4,11 @@ function fluid_complete = s11_pvt_tables()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST to path manually (consistent with working pattern)
-    mrst_root = '/opt/mrst';
-    addpath(genpath(fullfile(mrst_root, 'core'))); 
-    addpath(genpath(fullfile(mrst_root, 'modules')));
-    
-    % Load MRST session (non-blocking check)
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
-    if exist(session_file, 'file')
-        load(session_file);
+    % Verify MRST session from s01
+    if ~check_and_load_mrst_session()
+        error('MRST session not found. Run s01_initialize_mrst.m first');
     end
+    suppress_compatibility_warnings();
     print_step_header('S11', 'Define PVT Tables (MRST Native)');
     
     total_start_time = tic;

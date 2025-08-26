@@ -3,7 +3,16 @@ function fluid = s02_define_fluids()
 
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils'));
+    
+    % Enable clean user output by suppressing compatibility warnings
+    suppress_compatibility_warnings();
+    
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
+    
+    % Verify MRST session from s01
+    if ~check_and_load_mrst_session()
+        error('MRST session not found. Run s01_initialize_mrst.m first');
+    end
     
     print_step_header('S02', 'Define Fluid Properties');
     

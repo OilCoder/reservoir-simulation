@@ -20,9 +20,9 @@ function fault_data = s05_add_faults()
     addpath(fullfile(script_dir, 'utils', 'faults'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Validate MRST session - basic check only
-    if ~exist('cartGrid', 'file')
-        error('MRST not initialized. Run s01_initialize_mrst() first.');
+    % Verify MRST session from s01
+    if ~check_and_load_mrst_session()
+        error('MRST session not found. Run s01_initialize_mrst.m first');
     end
 
     print_step_header('S05', 'Add Fault System');

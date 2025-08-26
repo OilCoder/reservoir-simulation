@@ -118,9 +118,9 @@ function data_path = get_data_path_impl(subfolder)
     end
 end
 
-% Only print loading message once using global flag
+% Only print loading message once using global flag (silent for clean output)
 global PRINT_UTILS_LOADED;
 if isempty(PRINT_UTILS_LOADED)
     PRINT_UTILS_LOADED = true;
-    fprintf('Print utilities loaded successfully\n');
+    % Silent loading - no message needed for clean user output
 end

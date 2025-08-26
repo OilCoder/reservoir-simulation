@@ -42,6 +42,9 @@ function config = read_yaml_config(config_file, silent_mode)
             fprintf('Loading configuration: %s\n', config_file);
         end
         
+        % Suppress warnings during YAML parsing to prevent noise
+        original_warning_state = warning('off', 'all');
+        
         % Use simple YAML parser for our specific format
         if exist('yaml_parser', 'file')
             % Use YAML parser if available
@@ -51,7 +54,14 @@ function config = read_yaml_config(config_file, silent_mode)
             config = parse_simple_yaml(config_file);
         end
         
+        % Restore warnings
+        warning(original_warning_state);
+        
     catch ME
+        % Restore warnings in case of error
+        if exist('original_warning_state', 'var')
+            warning(original_warning_state);
+        end
         error('Failed to parse YAML file %s: %s', config_file, ME.message);
     end
     
@@ -63,9 +73,9 @@ function config = read_yaml_config(config_file, silent_mode)
     % FIXED: Add validation for nested structure parsing
     validate_nested_structures(config, config_file);
     
-    % Display success message unless in silent mode
+    % Display concise success message unless in silent mode
     if ~silent_mode
-        fprintf('Successfully loaded configuration from: %s\n', config_file);
+        fprintf('Configuration loaded successfully\n');
     end
 
 end
