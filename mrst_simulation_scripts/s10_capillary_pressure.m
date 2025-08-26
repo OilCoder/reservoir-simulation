@@ -9,7 +9,9 @@ function fluid_with_pc = s10_capillary_pressure()
     addpath(genpath(fullfile(mrst_root, 'modules')));
     
     % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
+    workspace_root = '/workspace';
+    session_file = fullfile(workspace_root, 'data', 'mrst', 'session', 's01_mrst_session.mat');
     if exist(session_file, 'file')
         loaded_data = load(session_file);
         if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
@@ -70,7 +72,8 @@ function [fluid, G] = step_1_load_fluid_data()
 % Step 1 - Load fluid structure from consolidated data structure
     
     % Load from consolidated fluid.mat
-    fluid_file = '/workspace/data/simulation_data/fluid.mat';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    fluid_file = '/workspace/data/mrst/fluid.mat';
     
     if exist(fluid_file, 'file')
         fluid_data = load(fluid_file);
@@ -78,13 +81,14 @@ function [fluid, G] = step_1_load_fluid_data()
         
         fprintf('   ✅ Loading fluid from consolidated data structure\n');
     else
-        error(['Missing consolidated fluid file: /workspace/data/simulation_data/fluid.mat\n' ...
+        error(['Missing consolidated fluid file: /workspace/data/mrst/fluid.mat\n' ...
                'REQUIRED: Run s09_relative_permeability.m first.\n' ...
                'Canon specifies fluid.mat must exist before capillary pressure.']);
     end
     
     % Load grid from consolidated structure
-    grid_file = '/workspace/data/simulation_data/grid.mat';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    grid_file = '/workspace/data/mrst/grid.mat';
     if exist(grid_file, 'file')
         grid_data = load(grid_file);
         if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)

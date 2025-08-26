@@ -28,6 +28,11 @@ function pebi_data = s03_create_pebi_grid()
     addpath(fullfile(script_dir, 'utils')); 
     addpath(fullfile(script_dir, 'utils', 'pebi'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
+    
+    % Ensure save_consolidated_data utility is available
+    if ~exist('save_consolidated_data', 'file')
+        error('save_consolidated_data utility not found. Check utils directory.');
+    end
 
     % Verify MRST session from s01
     if ~check_and_load_mrst_session()

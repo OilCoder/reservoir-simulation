@@ -184,7 +184,9 @@ function mrst_env = s01_initialize_mrst()
     mrst_env.functions_available = functions_available;
     
     % Save session for other workflow scripts
-    session_dir = fullfile(script_dir, 'session');
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
+    workspace_root = '/workspace';
+    session_dir = fullfile(workspace_root, 'data', 'mrst', 'session');
     if ~exist(session_dir, 'dir')
         mkdir(session_dir);
     end

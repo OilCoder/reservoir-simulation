@@ -24,7 +24,9 @@ function final_rock = s08_apply_spatial_heterogeneity()
     addpath(genpath(fullfile(mrst_root, 'modules')));
     
     % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
+    workspace_root = '/workspace';
+    session_file = fullfile(workspace_root, 'data', 'mrst', 'session', 's01_mrst_session.mat');
     if exist(session_file, 'file')
         loaded_data = load(session_file);
         if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
@@ -90,7 +92,8 @@ function [enhanced_rock, G] = load_enhanced_rock_from_file()
 % Load enhanced rock structure using consolidated data structure
     
     % Load from consolidated data structure
-    rock_file = '/workspace/data/simulation_data/rock.mat';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    rock_file = '/workspace/data/mrst/rock.mat';
     
     if exist(rock_file, 'file')
         rock_data = load(rock_file);
@@ -106,13 +109,14 @@ function [enhanced_rock, G] = load_enhanced_rock_from_file()
         
         fprintf('   ✅ Loading enhanced rock from consolidated data structure\n');
     else
-        error(['Missing consolidated rock file: /workspace/data/simulation_data/rock.mat\n' ...
+        error(['Missing consolidated rock file: /workspace/data/mrst/rock.mat\n' ...
                'REQUIRED: Run s07_add_layer_metadata.m first.\n' ...
                'Canon specifies rock.mat must exist before spatial heterogeneity application.']);
     end
     
     % Load grid from consolidated data structure
-    grid_file = '/workspace/data/simulation_data/grid.mat';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    grid_file = '/workspace/data/mrst/grid.mat';
     if exist(grid_file, 'file')
         grid_data = load(grid_file);
         if isfield(grid_data, 'fault_grid') && ~isempty(grid_data.fault_grid)

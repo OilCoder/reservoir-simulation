@@ -22,8 +22,9 @@ function pebi_data = export_pebi_results(G_pebi, well_points, fault_lines, size_
 % Author: Claude Code AI System
 % Policy: KISS Principle compliant (<30 lines)
 
-    % Export grid to canonical file locations
-    export_grid_files(G_pebi);
+    % Export grid to canonical file locations using consolidated data structure
+    % CANON-FIRST POLICY: Contribute to grid.mat as specified in documentation
+    save_consolidated_data('grid', 's03', 'G_pebi', G_pebi, 'well_points', well_points, 'fault_lines', fault_lines, 'size_function', size_function);
     
     % Create comprehensive output structure
     pebi_data = struct();

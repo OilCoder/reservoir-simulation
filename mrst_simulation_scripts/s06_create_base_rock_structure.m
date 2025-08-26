@@ -67,13 +67,7 @@ function G = load_grid_structure()
     canonical_file = '/workspace/data/mrst/grid.mat';
     
     if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-        % Use fault grid if available, otherwise use base grid
-        if isfield(data_struct, 'fault_grid') && ~isempty(data_struct.fault_grid)
-            G = data_struct.fault_grid;
-        else
-            G = data_struct.G;
-        end
+        load(canonical_file, 'G');
         fprintf('   ✅ Loading grid from canonical location\n');
     else
         error(['Missing canonical grid file: /workspace/data/mrst/grid.mat\n' ...
@@ -318,7 +312,8 @@ function save_base_rock_structure(rock, G)
 % Save base rock structure to data file using canonical organization and simulation catalog
     
     % CATALOG STRUCTURE: Update static_data.mat with rock properties
-    static_dir = '/workspace/data/simulation_data/static';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    static_dir = '/workspace/data/mrst/static';
     if ~exist(static_dir, 'dir')
         mkdir(static_dir);
     end

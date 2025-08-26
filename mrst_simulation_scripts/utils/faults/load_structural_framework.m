@@ -23,8 +23,8 @@ function G = load_structural_framework()
     canonical_file = '/workspace/data/mrst/grid.mat';
     
     if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-        G = data_struct.G;
+        load(canonical_file, 'G_pebi');
+        G = G_pebi;
         fprintf('   ✅ Loading grid with structure from canonical location\n');
         return;
     end

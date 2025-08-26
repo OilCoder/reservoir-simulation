@@ -39,32 +39,13 @@ function structural_data = export_structural_data(G, surfaces, layers)
     end
     structural_file = fullfile(static_dir, 'structural_framework.mat');
     
-    % Also maintain legacy location for compatibility
-    legacy_dir = '/workspace/data/mrst';
-    if ~exist(legacy_dir, 'dir')
-        mkdir(legacy_dir);
-    end
-    canonical_file = fullfile(legacy_dir, 'grid.mat');
+    % Update canonical grid.mat using save_consolidated_data
+    % CANON-FIRST POLICY: Use standard utility for all grid updates
+    save_consolidated_data('grid', 's04', 'G_pebi', G, 'structure_layers', layers, 'structure_surfaces', surfaces);
     
-    % Load existing grid data
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'data_struct');
-    else
-        data_struct = struct();
-        data_struct.created_by = {};
-    end
-    
-    % Add structural information and grid to data structure
-    data_struct.G = G;
-    data_struct.structure.layers = layers;
-    data_struct.structure.surfaces = surfaces;
-    data_struct.created_by{end+1} = 's04';
-    data_struct.timestamp = datestr(now);
-    
-    % Save to both locations following data catalog
+    % Save detailed structural data to catalog
     save(structural_file, 'structural_data');
-    save(canonical_file, 'data_struct');
     
     fprintf('     Structural data saved to: %s\n', structural_file);
-    fprintf('     Legacy compatibility: %s\n', canonical_file);
+    fprintf('     ✅ Canonical grid.mat updated with structural data\n');
 end

@@ -25,8 +25,9 @@ function success = check_and_load_mrst_session()
     
     try
         % Step 1: Locate session file
-        script_dir = fileparts(fileparts(mfilename('fullpath'))); % Go up from utils/
-        session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+        % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
+        workspace_root = '/workspace';
+        session_file = fullfile(workspace_root, 'data', 'mrst', 'session', 's01_mrst_session.mat');
         
         if ~exist(session_file, 'file')
             fprintf('❌ MRST session file not found: %s\n', session_file);

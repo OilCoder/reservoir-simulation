@@ -36,9 +36,11 @@ function structural_data = s04_structural_framework()
     end
 
     % Validate grid file exists
-    grid_file = fullfile(script_dir, '..', 'data', 'simulation_data', 'static', 'static_data.mat');
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    workspace_root = '/workspace';
+    grid_file = fullfile(workspace_root, 'data', 'mrst', 'grid.mat');
     if ~exist(grid_file, 'file')
-        error('PEBI grid not found. Run s03_create_pebi_grid() first.');
+        error('PEBI grid not found. Run s03_create_pebi_grid() first.\nExpected location: %s', grid_file);
     end
 
     print_step_header('S04', 'Setup Structural Framework');

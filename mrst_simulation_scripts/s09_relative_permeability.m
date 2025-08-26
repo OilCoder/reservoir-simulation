@@ -25,7 +25,9 @@ function fluid = s09_relative_permeability()
     addpath(genpath(fullfile(mrst_root, 'modules')));
     
     % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
+    workspace_root = '/workspace';
+    session_file = fullfile(workspace_root, 'data', 'mrst', 'session', 's01_mrst_session.mat');
     if exist(session_file, 'file')
         loaded_data = load(session_file);
         if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
@@ -72,15 +74,17 @@ end
 function [rock, G] = load_rock_data(script_dir)
 % Load rock properties and grid data from consolidated structure
     % Load rock properties from consolidated location
-    rock_file = '/workspace/data/simulation_data/rock.mat';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    rock_file = '/workspace/data/mrst/rock.mat';
     if ~exist(rock_file, 'file')
         error('Rock properties file not found: %s. REQUIRED: Complete rock property workflow (s06-s08) first.', rock_file);
     end
     rock_data = load(rock_file);
     rock = rock_data.rock;
     
-    % Load grid from consolidated location  
-    grid_file = '/workspace/data/simulation_data/grid.mat';
+    % Load grid from consolidated location
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    grid_file = '/workspace/data/mrst/grid.mat';
     if ~exist(grid_file, 'file')
         error('Grid file not found: %s. REQUIRED: Run s03_create_pebi_grid.m first.', grid_file);
     end
@@ -223,7 +227,8 @@ end
 function export_fluid_structure(fluid, G, scal_config)
 % Export fluid structure to files
     script_dir = fileparts(mfilename('fullpath'));
-    static_dir = '/workspace/data/simulation_data/static';
+    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    static_dir = '/workspace/data/mrst/static';
     
     if ~exist(static_dir, 'dir')
         mkdir(static_dir);
