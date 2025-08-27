@@ -65,7 +65,7 @@ end
 function [control_data, config] = load_control_data(script_dir)
 % Load production control data and configuration
     % Load production control data from s17
-    controls_file = '/workspace/data/simulation_data/static/production_controls.mat';
+    controls_file = '/workspace/data/simulation_data/production_controls.mat';
     if ~exist(controls_file, 'file')
         error('Production controls file not found: %s. REQUIRED: Run s17_production_controls.m first.', controls_file);
     end
@@ -149,14 +149,14 @@ end
 function export_path = export_development_schedule(schedule_results)
 % Export development schedule data
     script_dir = fileparts(mfilename('fullpath'));
-    static_dir = '/workspace/data/simulation_data/static';
+    data_dir = '/workspace/data/simulation_data';
     
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
     end
     
-    % Export main schedule file
-    schedule_file = fullfile(static_dir, 'development_schedule.mat');
+    % Export main schedule file to canonical location
+    schedule_file = fullfile(data_dir, 'schedule.mat');
     save(schedule_file, '-struct', 'schedule_results', '-v7');
     
     % Export MRST schedule separately

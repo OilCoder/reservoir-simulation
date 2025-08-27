@@ -85,7 +85,7 @@ end
 
 function model_data = load_model_data(script_dir)
 % Load required model data from previous steps
-    data_dir = '/workspace/data/simulation_data/static';
+    data_dir = '/workspace/data/simulation_data';
     
     % Load grid
     grid_file = fullfile(data_dir, 'pebi_grid.mat');
@@ -126,31 +126,31 @@ end
 function export_path = export_solver_configuration(config, model_data, black_oil_model, nonlinear_solver, timestep_control, simulation_schedule)
 % Export solver configuration and data for simulation
     script_dir = fileparts(mfilename('fullpath'));
-    static_dir = '/workspace/data/simulation_data/static';
+    data_dir = '/workspace/data/simulation_data';
     
-    % Create directories if they don't exist
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    % Create directory if it doesn't exist
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
     end
     
     % Export solver configuration
-    solver_config_file = fullfile(static_dir, 'solver_configuration.mat');
+    solver_config_file = fullfile(data_dir, 'solver_configuration.mat');
     save(solver_config_file, 'config', 'nonlinear_solver', 'timestep_control', '-v7');
     
     % Export simulation parameters
-    export_simulation_parameters(static_dir, config);
+    export_simulation_parameters(data_dir, config);
     
     % Export model setup
-    model_file = fullfile(static_dir, 'simulation_model.mat');
+    model_file = fullfile(data_dir, 'simulation_model.mat');
     save(model_file, 'black_oil_model', 'simulation_schedule', '-v7');
     
-    export_path = static_dir;
-    fprintf('Solver configuration exported to: %s\n', static_dir);
+    export_path = data_dir;
+    fprintf('Solver configuration exported to: %s\n', data_dir);
 end
 
-function export_simulation_parameters(static_dir, config)
+function export_simulation_parameters(data_dir, config)
 % Export simulation parameters to .mat file
-    simulation_parameters_file = fullfile(static_dir, 'simulation_parameters.mat');
+    simulation_parameters_file = fullfile(data_dir, 'simulation_parameters.mat');
     
     % Load time step limits from configuration
     if isfield(config.solver_configuration, 'timestep_control') && isfield(config.solver_configuration.timestep_control, 'time_step_limits_days')

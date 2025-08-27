@@ -4,14 +4,14 @@ function export_pvt_results(fluid_complete)
 % INPUT:
 %   fluid_complete - Complete MRST fluid structure with PVT tables
 
-    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/static/
-    static_dir = '/workspace/data/simulation_data/static';
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/
+    data_dir = '/workspace/data/simulation_data';
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
     end
     
-    % Create fluid_properties.mat according to catalog specification
-    fluid_properties_file = fullfile(static_dir, 'fluid_properties.mat');
+    % Create fluid.mat according to canonical specification
+    fluid_file = fullfile(data_dir, 'fluid.mat');
     
     % PVT Data Structure (Section 4 of catalog)
     if isfield(fluid_complete, 'pvto') && ~isempty(fluid_complete.pvto)
@@ -61,13 +61,13 @@ function export_pvt_results(fluid_complete)
     end
     
     % Save catalog-compliant fluid properties
-    save(fluid_properties_file, 'pressure_table', 'oil_fvf', 'oil_viscosity', ...
+    save(fluid_file, 'pressure_table', 'oil_fvf', 'oil_viscosity', ...
          'water_fvf', 'water_viscosity', 'saturation_table', 'krw_table', ...
          'kro_table', 'pcow_table', 'oil_density', 'water_density', ...
          'oil_viscosity_ref', 'water_viscosity_ref', 'connate_water_sat', ...
          'residual_oil_sat', 'fluid_for_save', '-v7');
     
-    fprintf('     Fluid properties saved to catalog location: %s\n', fluid_properties_file);
+    fprintf('     Fluid data saved to canonical location: %s\n', fluid_file);
     
     % Save using consolidated data structure (final fluid contributor)  
     script_path = fileparts(mfilename('fullpath'));

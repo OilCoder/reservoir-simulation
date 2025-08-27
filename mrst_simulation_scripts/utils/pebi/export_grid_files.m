@@ -16,14 +16,14 @@ function export_grid_files(G_pebi)
 % Author: Claude Code AI System
 % Policy: KISS Principle compliant (<30 lines)
 
-    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/static/
-    static_dir = '/workspace/data/simulation_data/static';
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/
+    data_dir = '/workspace/data/simulation_data';
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
     end
     
     % Create static_data.mat according to catalog specification
-    static_data_file = fullfile(static_dir, 'static_data.mat');
+    grid_data_file = fullfile(data_dir, 'grid.mat');
     
     % Grid Geometry (Section 1 of catalog)
     grid_x = G_pebi.nodes.coords(:,1);
@@ -41,12 +41,12 @@ function export_grid_files(G_pebi)
     well_types = {};
     
     % Save catalog-compliant static data
-    save(static_data_file, 'grid_x', 'grid_y', 'grid_z', ...
+    save(grid_data_file, 'grid_x', 'grid_y', 'grid_z', ...
          'cell_centers_x', 'cell_centers_y', 'cell_centers_z', ...
          'well_names', 'well_i', 'well_j', 'well_k', 'well_types', ...
          'G_pebi', '-v7');
     
-    fprintf('     Static data saved to catalog location: %s\n', static_data_file);
+    fprintf('     Grid data saved to canonical location: %s\n', grid_data_file);
     
     % Legacy compatibility
     try

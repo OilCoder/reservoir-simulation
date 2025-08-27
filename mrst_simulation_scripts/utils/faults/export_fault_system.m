@@ -45,14 +45,14 @@ end
 function export_to_canonical_files(G, fault_geometries, fault_intersections, trans_multipliers)
 % Export fault data to canonical file location and simulation data catalog
     
-    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/static/
-    static_dir = '/workspace/data/simulation_data/static';
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
+    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/
+    data_dir = '/workspace/data/simulation_data';
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
     end
     
     % Create fault_properties.mat according to catalog specification
-    fault_properties_file = fullfile(static_dir, 'fault_properties.mat');
+    fault_properties_file = fullfile(data_dir, 'fault_properties.mat');
     
     % Fault Geometry (Section 6 of catalog)
     n_faults = length(fault_geometries);

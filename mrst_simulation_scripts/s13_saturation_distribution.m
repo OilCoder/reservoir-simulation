@@ -40,21 +40,15 @@ function output_data = s13_saturation_distribution()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST to path manually (since session doesn't save paths)
-    mrst_root = '/opt/mrst';
-    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
-    addpath(genpath(fullfile(mrst_root, 'modules')));
-    
-    % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
-    if exist(session_file, 'file')
-        loaded_data = load(session_file);
-        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
-            fprintf('   ✅ MRST session validated\n');
-        end
-    else
-        error('MRST session not found. Please run s01_initialize_mrst.m first.');
+    % Modern session management (CANONICAL PATTERN)
+    if ~check_and_load_mrst_session()
+        error(['FAIL-FAST ERROR: MRST session not found or invalid.\n' ...
+               'REQUIRED: Run s01_initialize_mrst.m first to establish MRST session.\n' ...
+               'This ensures proper MRST paths and module loading for simulation scripts.']);
     end
+    
+    % Suppress compatibility warnings for clean user output
+    suppress_compatibility_warnings();
     
     % Print module header
     print_step_header('S13', 'SATURATION DISTRIBUTION');
@@ -66,15 +60,13 @@ function output_data = s13_saturation_distribution()
     %% 1. Load Configuration and Previous Results
         fprintf('📋 Loading configuration and previous results...\n');
         
-        % Load YAML configurations
-        addpath(fullfile(script_dir, 'utils'));
+        % Load YAML configurations (utils already in path from session management)
         init_config = read_yaml_config('config/initialization_config.yaml', true);
-        addpath(fullfile(script_dir, 'utils'));
         scal_config = read_yaml_config('config/scal_properties_config.yaml', true);
         fprintf('   ✅ Configurations loaded successfully\n');
         
-        % Load from consolidated data structure
-        consolidated_data_dir = '/workspace/data/simulation_data';
+        % Load from canonical data structure (Canon-First Policy)
+        consolidated_data_dir = '/workspace/data/mrst';
         
         % Load initial state from s12 (pressure, grid, equilibrium data)
         state_file = fullfile(consolidated_data_dir, 'state.mat');
@@ -514,18 +506,18 @@ function output_data = s13_saturation_distribution()
         save_consolidated_data('state', 's13', 'state', state);
         fprintf('   ✅ Consolidated state data updated with saturations\n');
         
-        % Export to catalog structure
-        static_dir = '/workspace/data/simulation_data/static';
-        if ~exist(static_dir, 'dir')
-            mkdir(static_dir);
+        % Export to canonical structure
+        data_dir = '/workspace/data/simulation_data';
+        if ~exist(data_dir, 'dir')
+            mkdir(data_dir);
         end
         
-        % Update initial_conditions.mat with saturation data
-        initial_conditions_file = fullfile(static_dir, 'initial_conditions.mat');
+        % Update state.mat with saturation data
+        state_file = fullfile(data_dir, 'state.mat');
         
-        if exist(initial_conditions_file, 'file')
+        if exist(state_file, 'file')
             % Load existing initial conditions from s12
-            existing_data = load(initial_conditions_file);
+            existing_data = load(state_file);
             
             % Add saturation fields (Section 7 of catalog)
             existing_data.sw_initial = sw;  % Initial water saturation
@@ -533,14 +525,14 @@ function output_data = s13_saturation_distribution()
             existing_data.transition_zone = 50.0;  % Transition zone thickness
             
             % Save updated initial conditions
-            save(initial_conditions_file, '-struct', 'existing_data', '-v7');
-            fprintf('   ✅ Saturation data added to catalog initial conditions: %s\n', initial_conditions_file);
+            save(state_file, '-struct', 'existing_data', '-v7');
+            fprintf('   ✅ Saturation data added to catalog initial conditions: %s\n', state_file);
         else
             fprintf('   ⚠️  Initial conditions file not found, creating with saturation data only\n');
             sw_initial = sw;
             sw_contacts = owc_depth;
             transition_zone = 50.0;
-            save(initial_conditions_file, 'sw_initial', 'sw_contacts', 'transition_zone', '-v7');
+            save(state_file, 'sw_initial', 'sw_contacts', 'transition_zone', '-v7');
         end
         
         % Save saturation statistics
