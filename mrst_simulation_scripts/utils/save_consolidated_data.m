@@ -27,13 +27,9 @@ function save_consolidated_data(file_type, script_name, varargin)
     % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
     workspace_root = '/workspace';
     data_dir = fullfile(workspace_root, 'data', 'mrst');
-    metadata_dir = fullfile(data_dir, 'metadata');
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
-    end
-    if ~exist(metadata_dir, 'dir')
-        mkdir(metadata_dir);
     end
     
     % Prepare file path
@@ -68,7 +64,7 @@ function update_workflow_metadata(file_type, script_name, filepath, variable_nam
 % Update workflow.yaml with execution information
 
     workspace_root = '/workspace';
-    metadata_file = fullfile(workspace_root, 'data', 'mrst', 'metadata', 'workflow.yaml');
+    metadata_file = fullfile(workspace_root, 'data', 'simulation_data', 'metadata', 'workflow.yaml');
     timestamp = datestr(now, 'yyyy-mm-dd HH:MM:SS');
     
     % Create basic metadata entry (simplified for initial implementation)
@@ -82,7 +78,7 @@ function update_workflow_metadata(file_type, script_name, filepath, variable_nam
     
     % For now, create a simple log file (can be enhanced to update YAML)
     workspace_root = '/workspace';
-    log_file = fullfile(workspace_root, 'data', 'mrst', 'metadata', 'execution.log');
+    log_file = fullfile(workspace_root, 'data', 'simulation_data', 'metadata', 'execution.log');
     log_entry = sprintf('[%s] %s -> %s.mat: %s\n', timestamp, script_name, file_type, strjoin(variable_names, ', '));
     
     % Append to log file

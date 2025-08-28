@@ -11,6 +11,9 @@ function switching_logic = setup_switching_logic(control_results, config)
 % DATA AUTHORITY: All parameters from config files, no hardcoded values
 % KISS PRINCIPLE: Single responsibility - only switching logic setup
 
+    % WARNING SUPPRESSION: Clean output for utility functions
+    warning('off', 'all');
+
     fprintf('\n Control Switching Logic:\n');
     fprintf(' ─────────────────────────────────────────────────────────────\n');
     
@@ -71,7 +74,9 @@ function producers_logic = create_producer_switching_logic(producer_controls, sw
             sprintf('GOR < %.0f SCF/STB', pc.control_switching.gor_limit * switching_params.gor_reduction_factor)
         };
         
-        producers_logic.(pc.name) = psl;
+        % Use valid field name for structure assignment
+        valid_field_name = make_valid_field_name(pc.name);
+        producers_logic.(valid_field_name) = psl;
     end
 
 end
@@ -101,7 +106,17 @@ function injectors_logic = create_injector_switching_logic(injector_controls)
             'Stable injection performance'
         };
         
-        injectors_logic.(ic.name) = isl;
+        % Use valid field name for structure assignment
+        valid_field_name = make_valid_field_name(ic.name);
+        injectors_logic.(valid_field_name) = isl;
     end
 
+end
+
+function valid_name = make_valid_field_name(field_name)
+% MAKE_VALID_FIELD_NAME - Convert field name to valid Octave field name
+% KISS PRINCIPLE: Simple helper to handle invalid field names
+    
+    % Replace hyphens with underscores for valid field names
+    valid_name = strrep(field_name, '-', '_');
 end

@@ -1,4 +1,4 @@
-function mwell = create_single_mrst_well(well, wi, G, init_config)
+function mwell = create_single_mrst_well(well, wi, G, init_config, wells_config)
 % CREATE_SINGLE_MRST_WELL - Create single MRST-compatible well structure
 %
 % INPUTS:
@@ -18,7 +18,7 @@ function mwell = create_single_mrst_well(well, wi, G, init_config)
     mwell.type = well.type;  % 'producer' or 'injector'
     
     % Well location and completion
-    mwell.cells = well.cell_index;
+    mwell.cells = well.cells;
     mwell.WI = wi.well_index;  % Well index from Peaceman calculation
     mwell.dir = 'z';  % Default direction
     mwell.r = wi.wellbore_radius_m;
@@ -32,7 +32,7 @@ function mwell = create_single_mrst_well(well, wi, G, init_config)
     end
     
     % Set pressure limits and controls
-    mwell = set_well_controls(mwell, well, init_config);
+    mwell = set_well_controls(mwell, well, init_config, wells_config);
     
     % Display MRST well structure details
     fprintf('   ■ %s: MRST well (cells: %d, WI: %.2e, BHP: %.0f-%.0f psi, rate: %.0f m³/day)\n', ...

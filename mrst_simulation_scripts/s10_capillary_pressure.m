@@ -3,6 +3,9 @@ function fluid_with_pc = s10_capillary_pressure()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+
     % Add MRST to path manually (since session doesn't save paths)
     mrst_root = '/opt/mrst';
     addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories

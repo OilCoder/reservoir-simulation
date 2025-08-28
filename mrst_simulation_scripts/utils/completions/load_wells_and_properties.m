@@ -24,12 +24,12 @@ function [wells_data, rock_props, G, wells_config, init_config] = load_wells_and
     % Load wells data from canonical MRST structure
     wells_file = fullfile(canonical_mrst_dir, 'wells.mat');
     if exist(wells_file, 'file')
-        wells_data_struct = load(wells_file, 'data_struct');
-        % Convert canonical structure back to wells_results format for compatibility
+        wells_mat = load(wells_file, 'wells_results');
+        % Extract wells data from wells_results structure
         wells_data = struct();
-        wells_data.producer_wells = wells_data_struct.data_struct.placement.producers;
-        wells_data.injector_wells = wells_data_struct.data_struct.placement.injectors;
-        wells_data.total_wells = wells_data_struct.data_struct.placement.count;
+        wells_data.producer_wells = wells_mat.wells_results.producer_wells;
+        wells_data.injector_wells = wells_mat.wells_results.injector_wells;
+        wells_data.total_wells = wells_mat.wells_results.total_wells;
         fprintf('   ✅ Wells loaded from canonical MRST structure\n');
     else
         error(['CANON-FIRST ERROR: Wells data not found at canonical location.\n' ...
@@ -40,10 +40,10 @@ function [wells_data, rock_props, G, wells_config, init_config] = load_wells_and
     % Load rock properties from canonical MRST structure
     rock_file = fullfile(canonical_mrst_dir, 'rock.mat');
     if exist(rock_file, 'file')
-        rock_data = load(rock_file, 'data_struct');
-        rock_props = struct('perm', rock_data.data_struct.perm, 'poro', rock_data.data_struct.poro);
-        if isfield(rock_data.data_struct, 'rock_type_assignments')
-            rock_types = rock_data.data_struct.rock_type_assignments;
+        rock_data = load(rock_file, 'rock');
+        rock_props = struct('perm', rock_data.rock.perm, 'poro', rock_data.rock.poro);
+        if isfield(rock_data.rock, 'rock_type_assignments')
+            rock_types = rock_data.rock.rock_type_assignments;
         end
         fprintf('   ✅ Rock properties loaded from canonical MRST structure\n');
     else
@@ -55,8 +55,8 @@ function [wells_data, rock_props, G, wells_config, init_config] = load_wells_and
     % Load grid from canonical MRST structure
     grid_file = fullfile(canonical_mrst_dir, 'grid.mat');
     if exist(grid_file, 'file')
-        grid_data = load(grid_file, 'data_struct');
-        G = grid_data.data_struct.G;
+        grid_data = load(grid_file, 'G');
+        G = grid_data.G;
         fprintf('   ✅ Grid loaded from canonical MRST structure\n');
     else
         error(['CANON-FIRST ERROR: Grid not found at canonical location.\n' ...

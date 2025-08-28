@@ -27,6 +27,9 @@ function config = read_yaml_config(config_file, silent_mode)
 % Date: August 7, 2025
 
     % Handle optional arguments
+    % WARNING SUPPRESSION: Clean output for utility functions
+    warning('off', 'all');
+    
     if nargin < 2
         silent_mode = false;
     end
@@ -57,7 +60,7 @@ function config = read_yaml_config(config_file, silent_mode)
         % Restore warnings
         warning(original_warning_state);
         
-    catch ME
+    catch ME;
         % Restore warnings in case of error
         if exist('original_warning_state', 'var')
             warning(original_warning_state);
@@ -325,7 +328,7 @@ function config = parse_simple_yaml(filename)
         
         fclose(fid);
         
-    catch ME
+    catch ME;
         fclose(fid);
         rethrow(ME);
     end

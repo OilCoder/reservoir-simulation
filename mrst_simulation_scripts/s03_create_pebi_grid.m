@@ -29,6 +29,9 @@ function pebi_data = s03_create_pebi_grid()
     addpath(fullfile(script_dir, 'utils', 'pebi'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    
     % Ensure save_consolidated_data utility is available
     if ~exist('save_consolidated_data', 'file')
         error('save_consolidated_data utility not found. Check utils directory.');

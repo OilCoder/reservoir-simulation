@@ -13,6 +13,9 @@ function output_data = s12_pressure_initialization()
     addpath(genpath(fullfile(mrst_root, 'core'))); 
     addpath(genpath(fullfile(mrst_root, 'modules')));
     
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    
     % Load MRST session (non-blocking check)
     session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
     if exist(session_file, 'file')
@@ -27,8 +30,8 @@ function output_data = s12_pressure_initialization()
     init_config = read_yaml_config('config/initialization_config.yaml', true);
     params = init_config.initialization;
     
-    % Load grid from consolidated structure
-    grid_file = '/workspace/data/simulation_data/grid.mat';
+    % Load grid from consolidated structure (canonical path)
+    grid_file = '/workspace/data/mrst/grid.mat';
     if ~exist(grid_file, 'file')
         error(['Missing consolidated grid file: %s\n' ...
                'REQUIRED: Run s03-s05 workflow to generate grid data.'], grid_file);
@@ -88,11 +91,15 @@ function output_data = s12_pressure_initialization()
     northern_pressure = params.compartmentalization.northern_compartment.pressure_datum_psi;
     southern_pressure = params.compartmentalization.southern_compartment.pressure_datum_psi;
     
+    % Extract boundary factors from configuration
+    northern_boundary_factor = params.compartmentalization.northern_compartment.boundary_factor;
+    southern_boundary_factor = params.compartmentalization.southern_compartment.boundary_factor;
+    
     for i = 1:num_cells
         y_coord = cell_y(i);
-        if y_coord > y_min + 0.6 * y_range
+        if y_coord > y_min + northern_boundary_factor * y_range
             pressure(i) = pressure(i) + (northern_pressure - datum_pressure);
-        elseif y_coord < y_min + 0.4 * y_range
+        elseif y_coord < y_min + southern_boundary_factor * y_range
             pressure(i) = pressure(i) + (southern_pressure - datum_pressure);
         end
     end
@@ -105,41 +112,17 @@ function output_data = s12_pressure_initialization()
     state.pressure = pressure;
     state.pressure_Pa = pressure * params.unit_conversions.pressure.psi_to_pa;
     
-    % Export results to catalog structure
-    static_dir = '/workspace/data/simulation_data/static';
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
-    end
+    % Create pressure metadata for state.mat (canonical pattern)
+    pressure_metadata = struct();
+    pressure_metadata.pressure_initial = reshape(pressure, [], 1);
+    pressure_metadata.pressure_gradient = [oil_gradient; water_gradient];
+    pressure_metadata.pressure_datum = datum_depth;
+    pressure_metadata.fluid_contacts = struct('owc_depth', owc_depth);
+    pressure_metadata.compartmentalization = struct('northern_pressure', northern_pressure, 'southern_pressure', southern_pressure);
+    pressure_metadata.equilibration = struct('datum_depth', datum_depth, 'datum_pressure', datum_pressure);
     
-    % Create initial_conditions.mat according to catalog specification
-    initial_conditions_file = fullfile(static_dir, 'initial_conditions.mat');
-    
-    % Initial Conditions Snapshot (Section 7 of catalog)
-    pressure_initial = reshape(pressure, [], 1);  % Reshape to vector for now
-    pressure_gradient = [oil_gradient; water_gradient];  % Store both gradients
-    pressure_datum = datum_depth;
-    
-    % Placeholder for saturation field (will be updated by s13)
-    sw_initial = [];
-    sw_contacts = owc_depth;
-    transition_zone = 10.0;  % Default transition zone thickness
-    
-    % Placeholder stress fields (geomechanical)
-    sigma_v = [];
-    sigma_h_min = [];
-    sigma_h_max = [];
-    pore_pressure = pressure_initial;
-    
-    % Save catalog-compliant initial conditions
-    save(initial_conditions_file, 'pressure_initial', 'pressure_gradient', ...
-         'pressure_datum', 'sw_initial', 'sw_contacts', 'transition_zone', ...
-         'sigma_v', 'sigma_h_min', 'sigma_h_max', 'pore_pressure', ...
-         'state', '-v7');
-    
-    fprintf('     Initial conditions saved to catalog location: %s\n', initial_conditions_file);
-    
-    % Save using consolidated data structure
-    save_consolidated_data('state', 's12', 'state', state);
+    % Save using consolidated data structure (canonical pattern)
+    save_consolidated_data('state', 's12', 'state', state, 'pressure_metadata', pressure_metadata);
     print_step_result(3, 'Create State and Export Data', 'success', toc(step_start));
     
     % Create output

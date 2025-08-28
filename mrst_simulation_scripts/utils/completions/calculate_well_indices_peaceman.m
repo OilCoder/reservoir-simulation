@@ -17,7 +17,8 @@ function well_indices = calculate_well_indices_peaceman(wells_data, rock_props, 
     script_path = fileparts(mfilename('fullpath'));
     addpath(script_path);
     
-    all_wells = [wells_data.producer_wells; wells_data.injector_wells];
+    % Combine cell arrays properly (producer_wells and injector_wells are cell arrays)
+    all_wells = [wells_data.producer_wells(:); wells_data.injector_wells(:)];
     well_indices = [];
     
     % Validate unit conversions
@@ -30,8 +31,8 @@ function well_indices = calculate_well_indices_peaceman(wells_data, rock_props, 
     
     % Calculate for each well
     for i = 1:length(all_wells)
-        well = all_wells(i);
-        cell_idx = well.cell_index;
+        well = all_wells{i};  % Access cell array element
+        cell_idx = well.cells;  % Use .cells field instead of .cell_index
         
         % Initialize well index structure
         wi = struct();

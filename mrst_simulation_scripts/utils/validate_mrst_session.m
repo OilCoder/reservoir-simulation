@@ -107,9 +107,18 @@ function session_loaded = load_saved_s01_session(script_dir)
     session_loaded = false;
     
     try
-        % Look for saved session file in local session folder
+        % Look for saved session file - first check canonical location, then local
+        canonical_session_file = '/workspace/data/mrst/session/s01_mrst_session.mat';
         script_dir = fileparts(fileparts(mfilename('fullpath'))); % Go up one level from utils/
-        session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+        local_session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
+        
+        if exist(canonical_session_file, 'file')
+            session_file = canonical_session_file;
+        elseif exist(local_session_file, 'file')
+            session_file = local_session_file;
+        else
+            session_file = canonical_session_file; % Use canonical for error message
+        end
         
         if exist(session_file, 'file')
             fprintf('   Loading saved MRST session from: %s\n', session_file);
@@ -134,6 +143,21 @@ function session_loaded = load_saved_s01_session(script_dir)
                     end
                 end
                 fprintf('   Restored %d MRST paths from saved session\n', length(session_data.paths));
+            end
+            
+            % Restore MRST modules from saved session
+            if isfield(session_data, 'modules_loaded') && ~isempty(session_data.modules_loaded)
+                if exist('mrstModule', 'file')
+                    try
+                        % Load the same modules that s01 loaded
+                        warning('off', 'all');
+                        mrstModule('add', session_data.modules_loaded{:});
+                        warning('on', 'all');
+                        fprintf('   Restored %d MRST modules from saved session\n', length(session_data.modules_loaded));
+                    catch
+                        fprintf('   Warning: Could not restore MRST modules\n');
+                    end
+                end
             end
             
             % Restore global variables if they exist

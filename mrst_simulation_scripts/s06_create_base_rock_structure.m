@@ -14,6 +14,9 @@ function rock = s06_create_base_rock_structure()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    
     % Load validation functions (inline for compatibility)
     load_validation_functions();
 

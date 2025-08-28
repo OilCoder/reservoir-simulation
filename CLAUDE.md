@@ -150,13 +150,15 @@ Task tool with:
 │   └── Planning/Reservoir_Definition/
 │       ├── VARIABLE_INVENTORY.md # 900+ variables (LLM-optimized)
 │       └── ... (technical specs)
-├── 📊 data/simulation_data/      # Datos consolidados (6 archivos .mat)
+├── 📊 data/mrst/                 # Datos consolidados MRST (6 archivos .mat)
 │   ├── grid.mat                  # Complete geometry with faults
 │   ├── rock.mat                  # Petrophys properties with heterogeneity  
 │   ├── fluid.mat                 # 3-phase fluid system with PVT
 │   ├── state.mat                 # Initial pressure/saturation distribution
 │   ├── wells.mat                 # 15-well system with completions
-│   └── schedule.mat              # Development plan and solver config
+│   ├── schedule.mat              # Development plan and solver config
+│   └── session/
+│       └── s01_mrst_session.mat  # MRST initialization state
 └── 🧠 CLAUDE.md                  # Esta guía (CANONICAL)
 ```
 
@@ -232,7 +234,7 @@ octave mrst_simulation_scripts/s99_run_workflow.m  # Complete workflow
 - **Faults**: 5 major faults (Fault_A through Fault_E)
 - **Wells**: 15 total (10 producers EW-001 to EW-010, 5 injectors IW-001 to IW-005)
 - **Development**: 6-phase plan over 10 years
-- **Data Location**: `/workspace/data/simulation_data/` ONLY
+- **Data Location**: `/workspace/data/mrst/` ONLY
 
 ---
 

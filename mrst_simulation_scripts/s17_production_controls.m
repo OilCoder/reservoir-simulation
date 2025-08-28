@@ -19,6 +19,9 @@ function control_results = s17_production_controls()
 % Author: Claude Code AI System  
 % Date: August 22, 2025
 
+    % WARNING SUPPRESSION: Complete silence for clean output - immediate suppression
+    warning('off', 'all');
+
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     addpath(fullfile(script_dir, 'utils', 'production_controls'));

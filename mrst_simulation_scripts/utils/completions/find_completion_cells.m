@@ -17,7 +17,7 @@ function [completion_cells, completion_WI] = find_completion_cells(well, wi, G)
     completion_WI = [];
     
     % For PEBI grids, find cells at different z-levels near the well
-    well_xy = G.cells.centroids(well.cell_index, 1:2);
+    well_xy = G.cells.centroids(well.cells(1), 1:2);  % Use first cell
     z_min = min(G.cells.centroids(:,3));
     z_max = max(G.cells.centroids(:,3));
     

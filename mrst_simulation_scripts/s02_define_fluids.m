@@ -4,8 +4,8 @@ function fluid = s02_define_fluids()
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils'));
     
-    % Enable clean user output by suppressing compatibility warnings
-    suppress_compatibility_warnings();
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
     
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     

@@ -13,7 +13,8 @@ function wellbore_design = design_wellbore_completions(wells_data, wells_config,
 % Date: August 22, 2025
 
     wellbore_design = struct();
-    all_wells = [wells_data.producer_wells; wells_data.injector_wells];
+    % Combine producer and injector wells (stored as cell arrays)
+    all_wells = [wells_data.producer_wells(:); wells_data.injector_wells(:)];
     
     % Add completion design functions to path
     script_path = fileparts(mfilename('fullpath'));
@@ -40,7 +41,7 @@ function wellbore_design = design_wellbore_completions(wells_data, wells_config,
     wellbore_design.wells = [];
     
     for i = 1:length(all_wells)
-        well = all_wells(i);
+        well = all_wells{i};
         
         wb = struct();
         wb.name = well.name;
@@ -49,7 +50,7 @@ function wellbore_design = design_wellbore_completions(wells_data, wells_config,
         
         % Wellbore geometry (CANON-FIRST)
         wb.radius_m = wellbore_design.standard_radius_m;
-        wb.radius_ft = well.wellbore_radius;
+        wb.radius_ft = well.wellbore_radius_ft;
         wb.skin_factor = well.skin_factor;
         
         % Completion design based on well type

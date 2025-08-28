@@ -51,22 +51,30 @@ function phase_result = execute_workflow_phase(phase, workflow_results)
 end
 
 function output_data = dispatch_phase_execution(phase_id)
-    % Dispatch phase execution to appropriate function
-    % Using explicit mapping rather than dynamic evaluation for safety
+    % Dispatch phase execution to appropriate function with safe dispatch
+    % Following Exception Handling Policy: explicit validation over eval()
     
-    switch phase_id
-        case {'s01', 's02', 's03', 's04', 's05', 's09', 's10', 's11', 's12', 's13', 's14', 's15', 's16', 's17', 's18', 's19', 's20', 's21', 's23', 's24', 's25'}
-            % Function-based phases
-            func_name = sprintf('%s()', phase_id);
-            output_data = eval(func_name);
-            
-        case {'s06', 's07', 's08'}
-            % File-based phases
-            script_name = sprintf('%s.m', phase_id);
-            run(script_name);
-            output_data = sprintf('%s executed', script_name);
-            
-        otherwise
-            error('Unknown phase ID: %s', phase_id);
+    % Validate phase_id exists in known scripts (Fail Fast Policy)
+    valid_phases = {'s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', ...
+                   's09', 's10', 's11', 's12', 's13', 's14', 's15', 's16', ...
+                   's17', 's18', 's19', 's20'};
+    
+    if ~ismember(phase_id, valid_phases)
+        error('Invalid phase ID: %s. Valid phases: s01-s20', phase_id);
+    end
+    
+    % All current scripts (s01-s20) are function-based - safe dispatch
+    try
+        func_handle = str2func(phase_id);
+        output_data = func_handle();
+    catch ME
+        % Explicit error for missing function (Fail Fast Policy)  
+        % Octave-compatible string search
+        if ~isempty(strfind(ME.message, 'Undefined function'))
+            error('Script function not found: %s.m\nREQUIRED: Ensure %s.m exists and defines function %s()', ...
+                  phase_id, phase_id, phase_id);
+        else
+            rethrow(ME);  % Re-throw other execution errors
+        end
     end
 end

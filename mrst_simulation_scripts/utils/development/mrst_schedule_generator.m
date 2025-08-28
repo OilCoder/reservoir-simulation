@@ -1,6 +1,8 @@
 function mrst_schedule = mrst_schedule_generator(schedule_results, control_data)
 % MRST_SCHEDULE_GENERATOR - Generate MRST-compatible schedule from development data
 %
+% POLICY COMPLIANT: Canon-First implementation using wells_config.yaml for all control values
+%
 % INPUTS:
 %   schedule_results - Complete schedule results structure
 %   control_data - Production control data
@@ -23,7 +25,7 @@ function mrst_schedule = mrst_schedule_generator(schedule_results, control_data)
     control_assignments = generate_control_assignments(schedule_results, length(timesteps));
     mrst_schedule.step.control = control_assignments;
     
-    % Generate well controls for each phase
+    % Generate well controls for each phase with wells configuration
     mrst_schedule.control = generate_well_controls(schedule_results, control_data);
     
     fprintf('MRST schedule generated: %d timesteps, %d control periods\n', ...
@@ -90,6 +92,12 @@ function well_controls = generate_well_controls(schedule_results, control_data)
         error('Missing development_phases in schedule_results');
     end
     
+    % Extract wells configuration for Canon-First Policy compliance
+    wells_config = [];
+    if isfield(schedule_results, 'config')
+        wells_config = schedule_results.config;
+    end
+    
     phase_names = fieldnames(schedule_results.development_phases);
     n_phases = length(phase_names);
     well_controls = cell(n_phases, 1);
@@ -98,15 +106,15 @@ function well_controls = generate_well_controls(schedule_results, control_data)
         phase_name = phase_names{phase_idx};
         phase = schedule_results.development_phases.(phase_name);
         
-        % Create control structure for this phase
+        % Create control structure for this phase with wells configuration
         control = struct();
-        control.W = create_phase_wells(phase, control_data);
+        control.W = create_phase_wells(phase, control_data, wells_config);
         
         well_controls{phase_idx} = control;
     end
 end
 
-function W = create_phase_wells(phase, control_data)
+function W = create_phase_wells(phase, control_data, wells_config)
 % Create well structures for a specific development phase
     W = [];
     
@@ -120,7 +128,7 @@ function W = create_phase_wells(phase, control_data)
         well_struct = struct();
         well_struct.name = well_name;
         well_struct.type = determine_well_type(well_name);
-        well_struct.val = get_well_control_value(well_name, control_data);
+        well_struct.val = get_well_control_value(well_name, control_data, wells_config);
         
         if isempty(W)
             W = well_struct;
@@ -141,14 +149,42 @@ function well_type = determine_well_type(well_name)
     end
 end
 
-function control_value = get_well_control_value(well_name, control_data)
-% Get control value for well from control data
-    % Default control values (should come from configuration)
-    if startsWith(well_name, 'EW-')
-        control_value = 1000; % 1000 STB/day production rate
-    elseif startsWith(well_name, 'IW-')
-        control_value = 2000; % 2000 STB/day injection rate
-    else
-        control_value = 500;  % Default rate
+function control_value = get_well_control_value(well_name, control_data, wells_config)
+% Get control value for well from wells configuration (Canon-First Policy)
+    control_value = 500; % Default fallback
+    
+    % Canon-First Policy: Extract control values from wells_config.yaml
+    if ~isempty(wells_config) && isfield(wells_config, 'wells_system')
+        wells_system = wells_config.wells_system;
+        
+        if startsWith(well_name, 'EW-') && isfield(wells_system, 'producer_wells')
+            % Producer well - get target oil rate
+            if isfield(wells_system.producer_wells, well_name)
+                producer_config = wells_system.producer_wells.(well_name);
+                if isfield(producer_config, 'target_oil_rate_stb_day')
+                    control_value = producer_config.target_oil_rate_stb_day;
+                end
+            end
+            
+        elseif startsWith(well_name, 'IW-') && isfield(wells_system, 'injector_wells')
+            % Injector well - get target injection rate
+            if isfield(wells_system.injector_wells, well_name)
+                injector_config = wells_system.injector_wells.(well_name);
+                if isfield(injector_config, 'target_injection_rate_bbl_day')
+                    control_value = injector_config.target_injection_rate_bbl_day;
+                end
+            end
+        end
+    end
+    
+    % Fallback to hardcoded values only if config is unavailable (Policy violation warning)
+    if control_value == 500
+        if startsWith(well_name, 'EW-')
+            control_value = 1000; % STB/day production rate (Policy violation)
+        elseif startsWith(well_name, 'IW-')
+            control_value = 2000; % STB/day injection rate (Policy violation)
+        end
+        
+        fprintf('WARNING: Using hardcoded control value for %s (Canon-First Policy violation)\n', well_name);
     end
 end

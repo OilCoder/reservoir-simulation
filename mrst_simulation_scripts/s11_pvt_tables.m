@@ -8,7 +8,8 @@ function fluid_complete = s11_pvt_tables()
     if ~check_and_load_mrst_session()
         error('MRST session not found. Run s01_initialize_mrst.m first');
     end
-    suppress_compatibility_warnings();
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
     print_step_header('S11', 'Define PVT Tables (MRST Native)');
     
     total_start_time = tic;
@@ -17,9 +18,9 @@ function fluid_complete = s11_pvt_tables()
     step_start = tic;
     addpath('utils/pvt_processing');
     
-    % Load from consolidated data structure
-    fluid_file = '/workspace/data/simulation_data/fluid.mat';
-    grid_file = '/workspace/data/simulation_data/grid.mat';
+    % Load from canonical data structure (Canon-First Policy)
+    fluid_file = '/workspace/data/mrst/fluid.mat';
+    grid_file = '/workspace/data/mrst/grid.mat';
     
     % Explicit validation before loading files
     if ~exist(fluid_file, 'file')

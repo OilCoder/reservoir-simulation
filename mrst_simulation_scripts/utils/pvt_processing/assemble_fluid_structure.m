@@ -41,7 +41,12 @@ fluid_complete.surface.temperature_k = surface_temp_k;
 fluid_complete.surface.pressure_pa = surface_pressure_pa;
 
 % ----------------------------------------
-% Step 4 – Add Fluid Model Configuration
+% Step 4 – Add MRST Phases Field (Required for MRST Compatibility)
+% ----------------------------------------
+fluid_complete.phases = 'wog';  % Water-Oil-Gas system
+
+% ----------------------------------------
+% Step 5 – Add Fluid Model Configuration
 % ----------------------------------------
 if isfield(config, 'mrst_fluid_config')
     fluid_complete.model_config = config.mrst_fluid_config;

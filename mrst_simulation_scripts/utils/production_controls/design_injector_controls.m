@@ -11,6 +11,9 @@ function injector_controls = design_injector_controls(completion_data, config)
 % DATA AUTHORITY: All parameters from config files, no hardcoded values
 % KISS PRINCIPLE: Single responsibility - only injector control design
 
+    % WARNING SUPPRESSION: Clean output for utility functions
+    warning('off', 'all');
+
     fprintf('\n Injector Control Systems:\n');
     fprintf(' ──────────────────────────────────────────────────────────────────\n');
     
@@ -25,13 +28,13 @@ function injector_controls = design_injector_controls(completion_data, config)
     pump_sys = config.production_controls.pump_systems;
     
     % Get injector wells from completion data
-    all_wells = completion_data.wells_data.placement.injectors;
+    all_wells = completion_data.wells_data.injector_wells;
     injectors_config = config.wells_system.injector_wells;
     
     % Design controls for each injector
     for i = 1:length(all_wells)
-        well = all_wells(i);
-        well_config = injectors_config.(well.name);
+        well = all_wells{i};
+        well_config = get_well_config_by_name(injectors_config, well.name);
         
         ic = create_injector_control_structure(well, well_config, conv, equip, ...
                                              switching, water_qual, rate_const, pump_sys);
@@ -98,4 +101,36 @@ function ic = create_injector_control_structure(well, well_config, conv, equip, 
     ic.pump_system.efficiency = equip.pump_efficiency;
     ic.pump_system.vfd_control = pump_sys.injection_pump.vfd_control;
 
+end
+
+function well_config = get_well_config_by_name(wells_config, well_name)
+% GET_WELL_CONFIG_BY_NAME - Get well configuration by name (handles hyphens)
+% KISS PRINCIPLE: Simple helper to handle invalid field names
+    
+    % Convert well name to valid field name (replace hyphens with underscores)
+    field_name = strrep(well_name, '-', '_');
+    
+    % Try to access with converted field name first
+    if isfield(wells_config, field_name)
+        well_config = wells_config.(field_name);
+    elseif isfield(wells_config, well_name)
+        % Fallback to original name if it exists
+        well_config = wells_config.(well_name);
+    else
+        % If neither works, search through all fields
+        field_names = fieldnames(wells_config);
+        found = false;
+        for i = 1:length(field_names)
+            fn = field_names{i};
+            % Check if this field has the same name after converting back
+            if strcmp(strrep(fn, '_', '-'), well_name) || strcmp(fn, well_name)
+                well_config = wells_config.(fn);
+                found = true;
+                break;
+            end
+        end
+        if ~found
+            error('Well configuration not found for: %s', well_name);
+        end
+    end
 end

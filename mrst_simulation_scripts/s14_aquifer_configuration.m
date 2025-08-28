@@ -28,26 +28,16 @@ function output_data = s14_aquifer_configuration()
 % Author: Claude Code AI System
 % Date: January 30, 2025
 
-    % Load print utilities for consistent table format
+    % Modern session management and warning suppression
     script_dir = fileparts(mfilename('fullpath'));
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
-
-    % Add MRST to path manually (since session doesn't save paths)
-    mrst_root = '/opt/mrst';
-    addpath(genpath(fullfile(mrst_root, 'core'))); % Add all core subdirectories
-    addpath(genpath(fullfile(mrst_root, 'modules')));
     
-    % Load saved MRST session to check status
-    session_file = fullfile(script_dir, 'session', 's01_mrst_session.mat');
-    if exist(session_file, 'file')
-        loaded_data = load(session_file);
-        if isfield(loaded_data, 'mrst_env') && strcmp(loaded_data.mrst_env.status, 'ready')
-            fprintf('   ✅ MRST session validated\n');
-        end
-    else
-        error('MRST session not found. Please run s01_initialize_mrst.m first.');
-    end
+    % Load and validate MRST session with fail-fast validation
+    check_and_load_mrst_session();
+    
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
     
     % Print module header
     print_step_header('S14', 'AQUIFER CONFIGURATION');
@@ -65,7 +55,7 @@ function output_data = s14_aquifer_configuration()
         
         % Load from canonical MRST data structure
         base_data_path = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'data');
-        canonical_mrst_dir = fullfile(base_data_path, 'simulation_data');
+        canonical_mrst_dir = fullfile(base_data_path, 'mrst');
         
         % Load initial state from s12/s13 (pressure, saturations, equilibrium data)
         state_file = fullfile(canonical_mrst_dir, 'state.mat');
@@ -139,7 +129,7 @@ function output_data = s14_aquifer_configuration()
             % Convert to feet using CANON unit conversion factor
             if ~isfield(init_config.initialization, 'unit_conversions') || ~isfield(init_config.initialization.unit_conversions.length, 'm_to_ft')
                 error(['CANON-FIRST ERROR: Missing m_to_ft conversion factor in initialization_config.yaml\n' ...
-                       'UPDATE CANON: obsidian-vault/Planning/Initial_Conditions.md\n' ...
+                       'UPDATE CANON: docs/Planning/Initial_Conditions.md\n' ...
                        'Must define exact unit conversion factors for Eagle West Field.']);
             end
             m_to_ft = init_config.initialization.unit_conversions.length.m_to_ft;
@@ -168,7 +158,7 @@ function output_data = s14_aquifer_configuration()
         % Extract unit conversion factor from CANON configuration (CANON-FIRST)
         if ~isfield(init_config.initialization, 'unit_conversions') || ~isfield(init_config.initialization.unit_conversions.pressure, 'psi_to_pa')
             error(['CANON-FIRST ERROR: Missing psi_to_pa conversion factor in initialization_config.yaml\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Initial_Conditions.md\n' ...
+                   'UPDATE CANON: docs/Planning/Initial_Conditions.md\n' ...
                    'Must define exact pressure unit conversion factors for Eagle West Field.']);
         end
         psi_to_pa = init_config.initialization.unit_conversions.pressure.psi_to_pa;
@@ -179,14 +169,14 @@ function output_data = s14_aquifer_configuration()
         fluid_config = read_yaml_config('config/fluid_properties_config.yaml', true);
         if ~isfield(fluid_config, 'fluid_properties') || ~isfield(fluid_config.fluid_properties, 'water_viscosity')
             error(['CANON-FIRST ERROR: Missing water_viscosity in fluid_properties_config.yaml\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Fluid_Properties.md\n' ...
+                   'UPDATE CANON: docs/Planning/Fluid_Properties.md\n' ...
                    'Must define exact water viscosity for Eagle West Field.']);
         end
         water_viscosity = fluid_config.fluid_properties.water_viscosity;  % cp from CANON YAML
         % Extract water compressibility from YAML (CANON-FIRST)
         if ~isfield(aquifer_params, 'aquifer_compressibility_1_psi')
             error(['CANON-FIRST ERROR: Missing aquifer_compressibility_1_psi in initialization_config.yaml\n' ...
-                   'UPDATE CANON: obsidian-vault/Planning/Initial_Conditions.md\n' ...
+                   'UPDATE CANON: docs/Planning/Initial_Conditions.md\n' ...
                    'Must define exact aquifer compressibility for Eagle West Field.']);
         end
         water_compressibility = aquifer_params.aquifer_compressibility_1_psi; % /psi from CANON YAML

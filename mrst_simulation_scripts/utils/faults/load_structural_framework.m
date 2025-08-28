@@ -19,32 +19,19 @@ function G = load_structural_framework()
 % Author: Claude Code (Policy-compliant refactor)
 % Date: 2025-08-22
 
-    % Canon-first: Try canonical location first
+    % Canon-first: Use canonical location (Data Catalog line 122)
     canonical_file = '/workspace/data/mrst/grid.mat';
     
-    if exist(canonical_file, 'file')
-        load(canonical_file, 'G_pebi');
-        G = G_pebi;
-        fprintf('   ✅ Loading grid with structure from canonical location\n');
-        return;
-    end
-    
-    % Fallback to legacy location with clear warning
-    func_dir = fileparts(mfilename('fullpath'));
-    addpath(fullfile(func_dir, '..'));
-    data_dir = get_data_path('static');
-    structural_file = fullfile(data_dir, 'structural_framework.mat');
-    
     % Fail-fast validation
-    if ~exist(structural_file, 'file')
-        error(['CANON-FIRST ERROR: Structural framework not found.\n' ...
+    if ~exist(canonical_file, 'file')
+        error(['CANON-FIRST ERROR: Grid not found.\n' ...
                'REQUIRED: Run s04_structural_framework first.\n' ...
-               'Expected: %s'], structural_file);
+               'Expected: %s'], canonical_file);
     end
     
-    % Load structural data with warning
-    load(structural_file, 'structural_data');
-    G = structural_data.grid;
-    fprintf('   ⚠️  Loading structural data from legacy location\n');
+    % Load grid data from canonical location
+    load(canonical_file, 'G_pebi');
+    G = G_pebi;
+    fprintf('   ✅ Loading grid with structure from canonical location\n');
 
 end

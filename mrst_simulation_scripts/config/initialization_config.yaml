@@ -78,6 +78,7 @@ initialization:
       pressure_datum_psi: 3590.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 5.0       # ±5 psi from datum
       owc_depth_ft_tvdss: 8145.0       # Compartment-specific OWC
+      boundary_factor: 0.6              # Northern compartment Y-coordinate boundary (fraction)
       
     # Southern Compartment  
     southern_compartment:
@@ -85,6 +86,7 @@ initialization:
       pressure_datum_psi: 3610.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 8.0       # ±8 psi from datum
       owc_depth_ft_tvdss: 8155.0       # Compartment-specific OWC
+      boundary_factor: 0.4              # Southern compartment Y-coordinate boundary (fraction)
       
     # Inter-compartment Communication
     communication_factor: 0.15          # Limited by Fault E

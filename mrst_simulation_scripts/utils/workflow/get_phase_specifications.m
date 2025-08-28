@@ -34,9 +34,5 @@ function phase_specs = get_phase_specifications()
         struct('phase_id', 's18', 'script_name', 's18_development_schedule', 'description', 'Development Schedule (6 phases)');
         struct('phase_id', 's19', 'script_name', 's19_production_targets', 'description', 'Production Targets');
         struct('phase_id', 's20', 'script_name', 's20_solver_setup', 'description', 'Solver Configuration (ad-fi)');
-        struct('phase_id', 's21', 'script_name', 's21_export_to_opm', 'description', 'Export to OPM Format');
-        struct('phase_id', 's23', 'script_name', 's23_quality_validation', 'description', 'Quality Validation');
-        struct('phase_id', 's24', 'script_name', 's24_production_analysis', 'description', 'Production Analysis');
-        struct('phase_id', 's25', 'script_name', 's25_reservoir_analysis', 'description', 'Reservoir Analysis');
     };
 end

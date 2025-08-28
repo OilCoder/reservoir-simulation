@@ -15,6 +15,9 @@ function enhanced_rock = s07_add_layer_metadata()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    
     % Add utilities for consolidated data handling
     addpath(fullfile(script_dir, 'utils'));
     

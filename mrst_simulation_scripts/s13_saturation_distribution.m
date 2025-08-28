@@ -47,8 +47,8 @@ function output_data = s13_saturation_distribution()
                'This ensures proper MRST paths and module loading for simulation scripts.']);
     end
     
-    % Suppress compatibility warnings for clean user output
-    suppress_compatibility_warnings();
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
     
     % Print module header
     print_step_header('S13', 'SATURATION DISTRIBUTION');

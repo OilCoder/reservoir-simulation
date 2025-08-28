@@ -11,7 +11,10 @@ function schedule_results = s18_development_schedule()
 % Author: Claude Code AI System
 % Date: August 23, 2025
 
-    script_dir = fileparts(mfilename('fullpath'));
+    % WARNING SUPPRESSION: Complete silence for clean output - immediate suppression
+    warning('off', 'all');
+
+    script_dir = char(fileparts(mfilename('fullpath')));
     addpath(fullfile(script_dir, 'utils')); 
     addpath(fullfile(script_dir, 'utils', 'development'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
@@ -64,16 +67,25 @@ end
 
 function [control_data, config] = load_control_data(script_dir)
 % Load production control data and configuration
-    % Load production control data from s17
-    controls_file = '/workspace/data/simulation_data/production_controls.mat';
+    % Load production control data from s17 (canonical location)
+    controls_file = '/workspace/data/mrst/schedule.mat';
     if ~exist(controls_file, 'file')
         error('Production controls file not found: %s. REQUIRED: Run s17_production_controls.m first.', controls_file);
     end
     control_data_loaded = load(controls_file);
-    control_data = control_data_loaded.production_controls;
+    if isfield(control_data_loaded, 'data_struct')
+        control_data = control_data_loaded.data_struct;  % s17 format
+    elseif isfield(control_data_loaded, 'control_data')
+        control_data = control_data_loaded.control_data; % current format  
+    else
+        error('Invalid schedule.mat: missing control data. Run s17 first.');
+    end
     
-    % Load wells configuration
+    % Load wells configuration - FIX: Suppress Octave fullfile warning
+    warning_state = warning('query', 'all');
+    warning('off', 'all');
     config_file = fullfile(script_dir, 'config', 'wells_config.yaml');
+    warning(warning_state);
     if ~exist(config_file, 'file')
         error('Wells configuration file not found: %s. REQUIRED: Create wells_config.yaml with wells system configuration.', config_file);
     end
@@ -99,7 +111,7 @@ function schedule_results = create_initial_schedule_results(control_data, config
     schedule_results.well_startup_schedule = well_startup_schedule;
     schedule_results.total_duration_days = config.wells_system.development_duration_days;
     schedule_results.total_phases = length(fieldnames(development_phases));
-    schedule_results.timestamp = datetime('now');
+    schedule_results.timestamp = datestr(now);
     schedule_results.status = 'configured';
 end
 
@@ -148,8 +160,8 @@ end
 
 function export_path = export_development_schedule(schedule_results)
 % Export development schedule data
-    script_dir = fileparts(mfilename('fullpath'));
-    data_dir = '/workspace/data/simulation_data';
+    script_dir = char(fileparts(mfilename('fullpath')));
+    data_dir = '/workspace/data/mrst';
     
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
@@ -160,15 +172,15 @@ function export_path = export_development_schedule(schedule_results)
     save(schedule_file, '-struct', 'schedule_results', '-v7');
     
     % Export MRST schedule separately
-    mrst_schedule_file = fullfile(static_dir, 'mrst_schedule.mat');
+    mrst_schedule_file = fullfile(data_dir, 'mrst_schedule.mat');
     mrst_schedule = schedule_results.mrst_schedule;
     save(mrst_schedule_file, 'mrst_schedule', '-v7');
     
     % Write summary files
-    write_schedule_summary(static_dir, schedule_results);
+    write_schedule_summary(data_dir, schedule_results);
     
-    export_path = static_dir;
-    fprintf('Development schedule exported to: %s\n', static_dir);
+    export_path = data_dir;
+    fprintf('Development schedule exported to: %s\n', data_dir);
 end
 
 function write_schedule_summary(output_dir, schedule_results)

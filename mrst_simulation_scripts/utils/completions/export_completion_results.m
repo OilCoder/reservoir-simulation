@@ -19,10 +19,19 @@ function export_path = export_completion_results(completion_results)
     % Update the canonical wells.mat file with completion data
     canonical_mrst_dir = '/workspace/data/mrst';
     
-    % Load existing wells data
+    % Load existing wells data from canonical MRST structure
     wells_file = fullfile(canonical_mrst_dir, 'wells.mat');
     if exist(wells_file, 'file')
-        load(wells_file, 'data_struct');
+        wells_vars = load(wells_file);  % Load all variables
+        data_struct = struct();
+        if isfield(wells_vars, 'wells_results')
+            data_struct = wells_vars.wells_results;
+        elseif isfield(wells_vars, 'W')
+            data_struct.W = wells_vars.W;
+        end
+        if ~isfield(data_struct, 'created_by')
+            data_struct.created_by = {'s15'};  % Previous script that created wells
+        end
     else
         data_struct = struct();
         data_struct.created_by = {};

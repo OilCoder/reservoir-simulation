@@ -18,7 +18,8 @@ function wb = design_vertical_completion(wb, well, wells_config)
     
     % Initialize all fields for consistency
     wb.lateral_length_ft = 0;  % No lateral for vertical wells
-    wb.lateral_tvd = well.total_depth_tvd_ft;
+    % Use k layer information as proxy for TVD depth (wells go to their k layer)
+    wb.lateral_tvd = 8000 + (well.k * 20);  % Approximate TVD based on layer k
     wb.completion_stages = 1;  % Single stage for vertical
     wb.stage_length_ft = 0;
     

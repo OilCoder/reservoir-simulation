@@ -20,11 +20,15 @@ function completion_results = s16_well_completions()
     addpath(fullfile(script_dir, 'utils', 'completions'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
-    % Add MRST session validation
-    [success, message] = validate_mrst_session(script_dir);
-    if ~success
-        error('MRST validation failed: %s', message);
+    % Modern session management (CANONICAL PATTERN)
+    if ~check_and_load_mrst_session()
+        error(['FAIL-FAST ERROR: MRST session not found or invalid.\n' ...
+               'REQUIRED: Run s01_initialize_mrst.m first to establish MRST session.\n' ...
+               'This ensures proper MRST paths and module loading for simulation scripts.']);
     end
+    
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
     print_step_header('S16', 'Well Completion Design');
     
     total_start_time = tic;
@@ -69,8 +73,10 @@ function completion_results = s16_well_completions()
         print_step_result(6, 'Export Completion Data', 'success', toc(step_start));
         
         completion_results.status = 'success';
-        completion_results.total_wells = length([completion_results.wells_data.producer_wells; ...
-                                                 completion_results.wells_data.injector_wells]);
+        % Safe cell array concatenation for total well count
+        producer_count = length(completion_results.wells_data.producer_wells);
+        injector_count = length(completion_results.wells_data.injector_wells);
+        completion_results.total_wells = producer_count + injector_count;
         completion_results.creation_time = datestr(now);
         
         print_step_footer('S16', sprintf('Well Completions Designed (%d wells)', ...

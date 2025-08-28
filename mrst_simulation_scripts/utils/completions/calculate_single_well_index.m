@@ -16,7 +16,7 @@ function wi = calculate_single_well_index(wi, well, perm_x, perm_y, perm_z, r_eq
 % Date: August 22, 2025
 
     % Convert wellbore radius to meters
-    rw = well.wellbore_radius * ft_to_m;
+    rw = well.wellbore_radius_ft * ft_to_m;
     skin = well.skin_factor;
     
     % Calculate geometric factor and effective length

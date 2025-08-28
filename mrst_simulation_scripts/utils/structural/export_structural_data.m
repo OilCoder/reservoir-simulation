@@ -14,7 +14,7 @@ function structural_data = export_structural_data(G, surfaces, layers)
 %   structural_data - Complete structural framework structure
 %
 % CONFIGURATION:
-%   - Uses CANONICAL structure at /workspace/data/simulation_data/grid.mat
+%   - Uses CANONICAL structure at /workspace/data/mrst/grid.mat
 %   - Updates existing grid data with structural information
 %
 % CANONICAL REFERENCE:
@@ -32,20 +32,9 @@ function structural_data = export_structural_data(G, surfaces, layers)
     structural_data.layers = layers;
     structural_data.status = 'completed';
     
-    % Save to canonical simulation data structure
-    data_dir = '/workspace/data/simulation_data';
-    if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
-    end
-    structural_file = fullfile(data_dir, 'structural_framework.mat');
-    
     % Update canonical grid.mat using save_consolidated_data
     % CANON-FIRST POLICY: Use standard utility for all grid updates
     save_consolidated_data('grid', 's04', 'G_pebi', G, 'structure_layers', layers, 'structure_surfaces', surfaces);
     
-    % Save detailed structural data to catalog
-    save(structural_file, 'structural_data');
-    
-    fprintf('     Structural data saved to: %s\n', structural_file);
     fprintf('     ✅ Canonical grid.mat updated with structural data\n');
 end

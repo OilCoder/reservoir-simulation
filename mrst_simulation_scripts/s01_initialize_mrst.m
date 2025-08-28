@@ -183,6 +183,15 @@ function mrst_env = s01_initialize_mrst()
     mrst_env.initialization_method = 'manual_paths';
     mrst_env.functions_available = functions_available;
     
+    % Save current paths for session restoration
+    current_paths = path();
+    if ischar(current_paths)
+        % Split path string by pathsep (: on Unix, ; on Windows)
+        mrst_env.paths = strsplit(current_paths, pathsep());
+    else
+        mrst_env.paths = {};
+    end
+    
     % Save session for other workflow scripts
     % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/session/ as authoritative location
     workspace_root = '/workspace';

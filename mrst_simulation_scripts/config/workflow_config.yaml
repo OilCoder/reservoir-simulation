@@ -32,10 +32,6 @@ phase_settings:
     s18: 100  # Development Schedule (6 phases)
     s19: 85   # Production Targets
     s20: 60   # Solver Configuration (ad-fi)
-    s21: 120  # Export to OPM Format
-    s23: 120  # Quality Validation
-    s24: 150  # Production Analysis
-    s25: 180  # Reservoir Analysis
 
   criticality:
     s01: true   # Initialize MRST Environment
@@ -58,10 +54,6 @@ phase_settings:
     s18: true   # Development Schedule (6 phases)
     s19: true   # Production Targets
     s20: true   # Solver Configuration (ad-fi)
-    s21: true   # Export to OPM Format
-    s23: false  # Quality Validation
-    s24: false  # Production Analysis
-    s25: false  # Reservoir Analysis
 
 output_settings:
   ascii_art_header: true

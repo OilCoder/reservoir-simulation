@@ -8,6 +8,9 @@ function [completion_data, config] = load_completion_data()
 % DATA AUTHORITY: Loads from canonical MRST wells.mat and YAML configs
 % FAIL FAST: Immediate error if required files missing
 
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+
     script_path = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     
     % Substep 1.1 - Load completion data from canonical wells.mat

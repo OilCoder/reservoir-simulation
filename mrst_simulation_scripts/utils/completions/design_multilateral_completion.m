@@ -16,14 +16,35 @@ function wb = design_multilateral_completion(wb, well, wells_config)
     wb.completion_type = 'multi_lateral_junction';
     wb.completion_layers = well.completion_layers;
     
-    % Multi-lateral specifications
-    wb.lateral_1_length_ft = well.lateral_1_length;
-    wb.lateral_2_length_ft = well.lateral_2_length;
+    % Multi-lateral specifications - get from YAML config if not in well data
+    if isfield(well, 'lateral_1_length') && ~isempty(well.lateral_1_length)
+        wb.lateral_1_length_ft = well.lateral_1_length;
+    elseif isfield(wells_config.wells_system.producer_wells, well.name) && isfield(wells_config.wells_system.producer_wells.(well.name), 'lateral_1_length_ft')
+        wb.lateral_1_length_ft = wells_config.wells_system.producer_wells.(well.name).lateral_1_length_ft;
+    elseif isfield(wells_config.wells_system.injector_wells, well.name) && isfield(wells_config.wells_system.injector_wells.(well.name), 'lateral_1_length_ft')
+        wb.lateral_1_length_ft = wells_config.wells_system.injector_wells.(well.name).lateral_1_length_ft;
+    else
+        error(['CANON-FIRST ERROR: Missing lateral_1_length_ft for well %s\n' ...
+               'UPDATE CANON: wells_config.yaml must define lateral_1_length_ft for multi-lateral wells'], well.name);
+    end
+    
+    if isfield(well, 'lateral_2_length') && ~isempty(well.lateral_2_length)
+        wb.lateral_2_length_ft = well.lateral_2_length;
+    elseif isfield(wells_config.wells_system.producer_wells, well.name) && isfield(wells_config.wells_system.producer_wells.(well.name), 'lateral_2_length_ft')
+        wb.lateral_2_length_ft = wells_config.wells_system.producer_wells.(well.name).lateral_2_length_ft;
+    elseif isfield(wells_config.wells_system.injector_wells, well.name) && isfield(wells_config.wells_system.injector_wells.(well.name), 'lateral_2_length_ft')
+        wb.lateral_2_length_ft = wells_config.wells_system.injector_wells.(well.name).lateral_2_length_ft;
+    else
+        error(['CANON-FIRST ERROR: Missing lateral_2_length_ft for well %s\n' ...
+               'UPDATE CANON: wells_config.yaml must define lateral_2_length_ft for multi-lateral wells'], well.name);
+    end
+    
     wb.junction_type = 'level_4_mechanical';
     
     % Standard fields for consistency
     wb.lateral_length_ft = wb.lateral_1_length_ft + wb.lateral_2_length_ft;  % Total lateral length
-    wb.lateral_tvd = well.total_depth_tvd_ft;
+    % Use k layer information as proxy for TVD depth (wells go to their k layer)
+    wb.lateral_tvd = 8000 + (well.k * 20);  % Approximate TVD based on layer k
     
     % Multi-stage completion for each lateral from CANON configuration
     if ~isfield(wells_config.wells_system.completion_parameters, 'horizontal_completion') || ~isfield(wells_config.wells_system.completion_parameters.horizontal_completion, 'multilateral_stage_length_ft')

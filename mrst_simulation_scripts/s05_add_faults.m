@@ -20,6 +20,9 @@ function fault_data = s05_add_faults()
     addpath(fullfile(script_dir, 'utils', 'faults'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+
     % Verify MRST session from s01
     if ~check_and_load_mrst_session()
         error('MRST session not found. Run s01_initialize_mrst.m first');

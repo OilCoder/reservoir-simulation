@@ -20,12 +20,13 @@ function completion_intervals = define_completion_intervals(wells_data, G, wells
     
     completion_intervals.layer_definitions = define_layer_intervals(wells_config);
     
-    all_wells = [wells_data.producer_wells; wells_data.injector_wells];
+    % Combine cell arrays properly (producer_wells and injector_wells are cell arrays)
+    all_wells = [wells_data.producer_wells(:); wells_data.injector_wells(:)];
     completion_intervals.wells = [];
     
     % Define intervals for each well
     for i = 1:length(all_wells)
-        well = all_wells(i);
+        well = all_wells{i};  % Access cell array element
         
         ci = struct();
         ci.name = well.name;

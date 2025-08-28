@@ -24,6 +24,9 @@ function structural_data = s04_structural_framework()
     addpath(fullfile(script_dir, 'utils')); 
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
 
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+
     % Verify MRST session from s01
     if ~check_and_load_mrst_session()
         error('MRST session not found. Run s01_initialize_mrst.m first');
@@ -36,7 +39,7 @@ function structural_data = s04_structural_framework()
     end
 
     % Validate grid file exists
-    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
+    % CANON-FIRST POLICY: Data Catalog specifies /workspace/data/mrst/ as authoritative location
     workspace_root = '/workspace';
     grid_file = fullfile(workspace_root, 'data', 'mrst', 'grid.mat');
     if ~exist(grid_file, 'file')

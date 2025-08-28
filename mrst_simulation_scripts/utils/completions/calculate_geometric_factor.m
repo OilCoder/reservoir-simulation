@@ -19,10 +19,20 @@ function [geometric_factor, effective_length] = calculate_geometric_factor(well,
             effective_length = dz_m;
         case 'horizontal'
             geometric_factor = 1.5;  % Higher productivity
-            effective_length = well.lateral_length * ft_to_m;  % Convert to m
+            % Check for horizontal length field in well data (not available in s15 output)
+            if isfield(well, 'horizontal_length_ft')
+                effective_length = well.horizontal_length_ft * ft_to_m;
+            else
+                effective_length = dz_m;  % Default to vertical if no horizontal data
+            end
         case 'multi_lateral'
             geometric_factor = 2.2;  % Highest productivity
-            effective_length = (well.lateral_1_length + well.lateral_2_length) * ft_to_m;  % Convert to m
+            % Check for multi-lateral length fields in well data (not available in s15 output)
+            if isfield(well, 'lateral_1_length_ft') && isfield(well, 'lateral_2_length_ft')
+                effective_length = (well.lateral_1_length_ft + well.lateral_2_length_ft) * ft_to_m;
+            else
+                effective_length = dz_m;  % Default to vertical if no multi-lateral data
+            end
     end
 
 end

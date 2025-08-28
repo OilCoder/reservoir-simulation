@@ -19,15 +19,16 @@ function mrst_wells = create_mrst_well_structures(wells_data, well_indices, G, i
     addpath(script_path);
     
     mrst_wells = [];
-    all_wells = [wells_data.producer_wells; wells_data.injector_wells];
+    % Combine cell arrays properly (producer_wells and injector_wells are cell arrays)
+    all_wells = [wells_data.producer_wells(:); wells_data.injector_wells(:)];
     
     % Create well structures for MRST
     for i = 1:length(all_wells)
-        well = all_wells(i);
+        well = all_wells{i};  % Access cell array element
         wi = well_indices(i);
         
         % Create single MRST well structure
-        mwell = create_single_mrst_well(well, wi, G, init_config);
+        mwell = create_single_mrst_well(well, wi, G, init_config, wells_config);
         
         mrst_wells = [mrst_wells; mwell];
     end

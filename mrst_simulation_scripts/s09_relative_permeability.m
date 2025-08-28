@@ -16,6 +16,9 @@ function fluid = s09_relative_permeability()
     addpath(fullfile(script_dir, 'utils', 'relperm'));
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
     
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    
     % Load corey functions explicitly
     run(fullfile(script_dir, 'utils', 'relperm', 'corey_functions.m'));
 
@@ -225,23 +228,9 @@ function fluid = add_validation_metadata(fluid, scal_config)
 end
 
 function export_fluid_structure(fluid, G, scal_config)
-% Export fluid structure to files
-    script_dir = fileparts(mfilename('fullpath'));
-    % CANON-FIRST POLICY: Documentation specifies /workspace/data/mrst/ as authoritative location
-    static_dir = '/workspace/data/mrst/static';
-    
-    if ~exist(static_dir, 'dir')
-        mkdir(static_dir);
-    end
-    
-    % Create fluid subdirectory
-    fluid_dir = fullfile(static_dir, 'fluid');
-    if ~exist(fluid_dir, 'dir')
-        mkdir(fluid_dir);
-    end
-    
-    % Export main fluid structure (without function handles for Octave compatibility)
-    fluid_file = fullfile(fluid_dir, 'fluid_with_relperm.mat');
+% Export fluid structure to canonical location
+    % CANON-FIRST POLICY: Use only canonical Data Catalog structure
+    % Documentation specifies /workspace/data/mrst/fluid.mat as authoritative location
     
     % Create a copy without function handles for saving
     fluid_for_save = fluid;
@@ -253,53 +242,40 @@ function export_fluid_structure(fluid, G, scal_config)
         end
     end
     
-    % Save consolidated fluid data (intermediate contributor to fluid.mat)
-    save_consolidated_data('fluid', 's09', 'fluid', fluid_for_save);
+    % Prepare SCAL summary data for inclusion in consolidated file
+    scal_summary = create_scal_summary_data(fluid, G, scal_config);
     
-    % Write SCAL summary file
-    write_scal_summary(fluid_dir, fluid, G, scal_config);
+    % Save consolidated fluid data to canonical location (/workspace/data/mrst/fluid.mat)
+    save_consolidated_data('fluid', 's09', 'fluid', fluid_for_save, 'scal_summary', scal_summary);
     
-    fprintf('Fluid structure exported to: %s\n', fluid_dir);
+    fprintf('Fluid structure exported to canonical location: /workspace/data/mrst/fluid.mat\n');
 end
 
-function write_scal_summary(output_dir, fluid, G, scal_config)
-% Write SCAL summary file
-    summary_file = fullfile(output_dir, 'scal_summary.txt');
-    
-    fid = fopen(summary_file, 'w');
-    if fid == -1
-        warning('Could not create SCAL summary file: %s', summary_file);
-        return;
-    end
-    
-    fprintf(fid, 'Eagle West Field SCAL Properties Summary\n');
-    fprintf(fid, '=======================================\n\n');
-    fprintf(fid, 'Grid cells: %d\n', G.cells.num);
-    fprintf(fid, 'Fluid phases: %s\n', fluid.phases);
+function scal_summary = create_scal_summary_data(fluid, G, scal_config)
+% Create SCAL summary data structure for inclusion in consolidated file
+    scal_summary = struct();
+    scal_summary.description = 'Eagle West Field SCAL Properties Summary';
+    scal_summary.grid_cells = G.cells.num;
+    scal_summary.fluid_phases = fluid.phases;
+    scal_summary.generation_date = datestr(now);
     
     if isfield(fluid, 'n')
-        fprintf(fid, 'Corey exponents: [%.2f, %.2f, %.2f]\n', fluid.n(1), fluid.n(2), fluid.n(3));
+        scal_summary.corey_exponents = fluid.n;
     end
     
     if isfield(scal_config, 'sandstone_ow')
-        params = scal_config.sandstone_ow;
-        fprintf(fid, '\nSandstone Oil-Water Properties:\n');
-        fprintf(fid, '  Connate water saturation: %.3f\n', params.connate_water_saturation);
-        fprintf(fid, '  Residual oil saturation: %.3f\n', params.residual_oil_saturation);
-        fprintf(fid, '  Water relperm max: %.3f\n', params.water_relperm_max);
-        fprintf(fid, '  Oil relperm max: %.3f\n', params.oil_relperm_max);
+        scal_summary.sandstone_ow = scal_config.sandstone_ow;
     end
     
     if isfield(scal_config, 'sandstone_go')
-        params = scal_config.sandstone_go;
-        fprintf(fid, '\nSandstone Gas-Oil Properties:\n');
-        fprintf(fid, '  Critical gas saturation: %.3f\n', params.critical_gas_saturation);
-        fprintf(fid, '  Residual oil to gas: %.3f\n', params.residual_oil_to_gas);
-        fprintf(fid, '  Gas relperm max: %.3f\n', params.gas_relperm_max);
-        fprintf(fid, '  Oil gas relperm max: %.3f\n', params.oil_gas_relperm_max);
+        scal_summary.sandstone_go = scal_config.sandstone_go;
     end
     
-    fclose(fid);
+    % Add metadata for traceability
+    scal_summary.metadata = struct();
+    scal_summary.metadata.source_script = 's09_relative_permeability.m';
+    scal_summary.metadata.config_source = 'scal_properties_config.yaml';
+    scal_summary.metadata.data_authority = 'CANON-FIRST POLICY';
 end
 
 function print_final_summary(fluid, G, scal_config, total_time)

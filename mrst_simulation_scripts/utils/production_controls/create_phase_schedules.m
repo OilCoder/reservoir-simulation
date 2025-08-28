@@ -11,6 +11,9 @@ function phase_schedules = create_phase_schedules(control_results, config)
 % DATA AUTHORITY: All parameters from config files, no hardcoded values
 % KISS PRINCIPLE: Single responsibility - only phase schedule creation
 
+    % WARNING SUPPRESSION: Clean output for utility functions
+    warning('off', 'all');
+
     fprintf('\n Phase-Based Development Schedules:\n');
     fprintf(' ──────────────────────────────────────────────────────────────\n');
     
@@ -47,14 +50,14 @@ function max_phase = determine_max_phase(wells_system)
     % Check producer wells
     producer_names = fieldnames(wells_system.producer_wells);
     for i = 1:length(producer_names)
-        well_config = wells_system.producer_wells.(producer_names{i});
+        well_config = get_well_config_by_name(wells_system.producer_wells, producer_names{i});
         max_phase = max(max_phase, well_config.phase);
     end
     
     % Check injector wells
     injector_names = fieldnames(wells_system.injector_wells);
     for i = 1:length(injector_names)
-        well_config = wells_system.injector_wells.(injector_names{i});
+        well_config = get_well_config_by_name(wells_system.injector_wells, injector_names{i});
         max_phase = max(max_phase, well_config.phase);
     end
 
@@ -82,7 +85,7 @@ function ps = create_single_phase_schedule(phase_number, config, dev_params)
         calculate_phase_targets(ps, config.wells_system);
     
     % Calculate derived parameters (Data Authority)
-    ps.expected_oil_rate_stb_day = ps.target_oil_rate_stb_day * dev_params.production_efficiency;
+    ps.expected_oil_rate_stb_day = ps.target_oil_rate_stb_day * config.production_controls.rate_constraints.production_efficiency;
     ps.water_cut_percent = dev_params.initial_water_cut_percent + phase_number * dev_params.water_cut_increase_per_phase;
     ps.gor_scf_stb = dev_params.initial_gor_scf_stb + phase_number * dev_params.gor_increase_per_phase;
     ps.vrr_target = dev_params.vrr_target;
@@ -101,7 +104,7 @@ function [active_producers, active_injectors, wells_added] = determine_phase_wel
     producer_names = fieldnames(wells_system.producer_wells);
     for i = 1:length(producer_names)
         well_name = producer_names{i};
-        well_config = wells_system.producer_wells.(well_name);
+        well_config = get_well_config_by_name(wells_system.producer_wells, well_name);
         if well_config.phase <= phase_number
             active_producers{end+1} = well_name;
         end
@@ -114,7 +117,7 @@ function [active_producers, active_injectors, wells_added] = determine_phase_wel
     injector_names = fieldnames(wells_system.injector_wells);
     for i = 1:length(injector_names)
         well_name = injector_names{i};
-        well_config = wells_system.injector_wells.(well_name);
+        well_config = get_well_config_by_name(wells_system.injector_wells, well_name);
         if well_config.phase <= phase_number
             active_injectors{end+1} = well_name;
         end
@@ -135,15 +138,47 @@ function [total_oil_rate, total_injection_rate] = calculate_phase_targets(phase_
     % Calculate total oil rate from active producers
     for i = 1:length(phase_schedule.active_producers)
         well_name = phase_schedule.active_producers{i};
-        well_config = wells_system.producer_wells.(well_name);
+        well_config = get_well_config_by_name(wells_system.producer_wells, well_name);
         total_oil_rate = total_oil_rate + well_config.target_oil_rate_stb_day;
     end
     
     % Calculate total injection rate from active injectors
     for i = 1:length(phase_schedule.active_injectors)
         well_name = phase_schedule.active_injectors{i};
-        well_config = wells_system.injector_wells.(well_name);
+        well_config = get_well_config_by_name(wells_system.injector_wells, well_name);
         total_injection_rate = total_injection_rate + well_config.target_injection_rate_bbl_day;
     end
 
+end
+
+function well_config = get_well_config_by_name(wells_config, well_name)
+% GET_WELL_CONFIG_BY_NAME - Get well configuration by name (handles hyphens)
+% KISS PRINCIPLE: Simple helper to handle invalid field names
+    
+    % Convert well name to valid field name (replace hyphens with underscores)
+    field_name = strrep(well_name, '-', '_');
+    
+    % Try to access with converted field name first
+    if isfield(wells_config, field_name)
+        well_config = wells_config.(field_name);
+    elseif isfield(wells_config, well_name)
+        % Fallback to original name if it exists
+        well_config = wells_config.(well_name);
+    else
+        % If neither works, search through all fields
+        field_names = fieldnames(wells_config);
+        found = false;
+        for i = 1:length(field_names)
+            fn = field_names{i};
+            % Check if this field has the same name after converting back
+            if strcmp(strrep(fn, '_', '-'), well_name) || strcmp(fn, well_name)
+                well_config = wells_config.(fn);
+                found = true;
+                break;
+            end
+        end
+        if ~found
+            error('Well configuration not found for: %s', well_name);
+        end
+    end
 end

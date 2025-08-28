@@ -13,9 +13,14 @@ function [top_depth_ft, bottom_depth_ft] = get_layer_depths_from_grid(G, well, l
 % Author: Claude Code AI System
 % Date: August 22, 2025
 
-    % Convert well surface coordinates to grid coordinates
-    well_x = well.surface_coords(1);  % ft
-    well_y = well.surface_coords(2);  % ft
+    % Use well cell centroids since surface_coords not available from s15 output
+    if ~isempty(well.cells)
+        well_cell = well.cells(1);  % Use first cell for location reference
+        well_x = G.cells.centroids(well_cell, 1);  % x coordinate
+        well_y = G.cells.centroids(well_cell, 2);  % y coordinate
+    else
+        error('CANON-FIRST ERROR: Well %s has no cell assignments from s15', well.name);
+    end
     
     % Find cells near well location for the specific layer
     xy_distances = sqrt((G.cells.centroids(:,1) - well_x).^2 + ...

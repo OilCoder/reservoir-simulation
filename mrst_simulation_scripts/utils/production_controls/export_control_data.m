@@ -10,6 +10,9 @@ function export_path = export_control_data(control_results)
 % DATA AUTHORITY: Uses canonical MRST data directory structure
 % KISS PRINCIPLE: Single responsibility - only data export
 
+    % WARNING SUPPRESSION: Clean output for utility functions
+    warning('off', 'all');
+    
     % Canon-First: Use canonical MRST data directory
     data_dir = '/workspace/data/mrst';
     if ~exist(data_dir, 'dir')
@@ -151,7 +154,12 @@ end
 function write_switching_summary(fid, switching_logic)
 % WRITE_SWITCHING_SUMMARY - Write control switching section
     fprintf(fid, 'CONTROL SWITCHING:\n');
-    fprintf(fid, '  Switching Enabled: %s\n', switching_logic.enabled ? 'Yes' : 'No');
+    if switching_logic.enabled
+        enabled_text = 'Yes';
+    else
+        enabled_text = 'No';
+    end
+    fprintf(fid, '  Switching Enabled: %s\n', enabled_text);
     fprintf(fid, '  Check Frequency: %d day(s)\n', switching_logic.check_frequency_days);
     fprintf(fid, '  Producer Wells: %d with switching logic\n', ...
         length(fieldnames(switching_logic.producers)));

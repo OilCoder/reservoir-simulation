@@ -4,8 +4,8 @@ function export_pvt_results(fluid_complete)
 % INPUT:
 %   fluid_complete - Complete MRST fluid structure with PVT tables
 
-    % CATALOG STRUCTURE: Save to /workspace/data/simulation_data/
-    data_dir = '/workspace/data/simulation_data';
+    % CATALOG STRUCTURE: Save to /workspace/data/mrst/ (Canon-First Policy)
+    data_dir = '/workspace/data/mrst';
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
     end
@@ -75,27 +75,6 @@ function export_pvt_results(fluid_complete)
     addpath(fullfile(script_path, 'utils'));
     save_consolidated_data('fluid', 's11', 'fluid', fluid_for_save);
     fprintf('     ✅ Saved to fluid.mat: fluid\n');
-    
-    % Maintain legacy compatibility during transition
-    try
-        base_data_path = fullfile('/workspace', 'data');
-        legacy_static_dir = fullfile(base_data_path, 'by_type', 'static', 'fluid');
-        if ~exist(legacy_static_dir, 'dir')
-            mkdir(legacy_static_dir);
-        end
-        
-        % Save complete fluid structure
-        fluid_file = fullfile(legacy_static_dir, 'complete_fluid_blackoil.mat');
-        save(fluid_file, 'fluid_complete');
-        fprintf('     Legacy compatibility maintained: %s\n', fluid_file);
-        
-        % Create comprehensive PVT summary
-        summary_file = fullfile(legacy_static_dir, 'pvt_comprehensive_summary.txt');
-        write_pvt_summary(fluid_complete, summary_file);
-        fprintf('     PVT summary saved: %s\n', summary_file);
-    catch ME
-        fprintf('Warning: Legacy export failed: %s\n', ME.message);
-    end
 end
 
 function write_pvt_summary(fluid_complete, filename)
