@@ -1,0 +1,26 @@
+Eagle West Field Well Placement Summary
+======================================
+
+Total Wells: 15
+Producers: 10
+Injectors: 5
+Grid Dimensions: 41x41x12
+
+Producer Wells:
+  EW-001: (15,10,3) - vertical trajectory
+  EW-002: (25,15,2) - vertical trajectory
+  EW-003: (20,25,6) - horizontal trajectory
+  EW-004: (8,36,3) - vertical trajectory
+  EW-005: (30,20,2) - horizontal trajectory
+  EW-006: (8,18,4) - vertical trajectory
+  EW-007: (22,8,3) - multi_lateral trajectory
+  EW-008: (35,12,6) - horizontal trajectory
+  EW-009: (22,35,4) - vertical trajectory
+  EW-010: (28,28,5) - multi_lateral trajectory
+
+Injector Wells:
+  IW-001: (5,10,6) - vertical trajectory
+  IW-002: (35,35,7) - vertical trajectory
+  IW-003: (14,23,8) - horizontal trajectory
+  IW-004: (32,8,9) - vertical trajectory
+  IW-005: (15,38,10) - multi_lateral trajectory

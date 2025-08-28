@@ -1,0 +1,80 @@
+Eagle West Field - Phase Development Schedules
+Generated: 28-Aug-2025 20:24:55
+==============================================
+
+PHASE 1 - PHASE_1:
+  Timeline: Day 0 to 365 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-001
+  Active Producers: EW-001
+  Active Injectors: 
+  Target Oil Rate: 1500 STB/day
+  Expected Oil Rate: 1350 STB/day
+  Water Cut: 25%
+  GOR: 1300 SCF/STB
+
+PHASE 2 - PHASE_2:
+  Timeline: Day 365 to 730 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-002, IW-001
+  Active Producers: EW-001, EW-002
+  Active Injectors: IW-001
+  Target Oil Rate: 3300 STB/day
+  Expected Oil Rate: 2970 STB/day
+  Water Cut: 30%
+  GOR: 1400 SCF/STB
+  Injection Rate: 4000 BWD
+  VRR Target: 1.20
+
+PHASE 3 - PHASE_3:
+  Timeline: Day 730 to 1095 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-003, EW-004, IW-002
+  Active Producers: EW-001, EW-002, EW-003, EW-004
+  Active Injectors: IW-001, IW-002
+  Target Oil Rate: 7100 STB/day
+  Expected Oil Rate: 6390 STB/day
+  Water Cut: 35%
+  GOR: 1500 SCF/STB
+  Injection Rate: 8500 BWD
+  VRR Target: 1.20
+
+PHASE 4 - PHASE_4:
+  Timeline: Day 1095 to 1460 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-005, EW-006, EW-007, IW-003
+  Active Producers: EW-001, EW-002, EW-003, EW-004, EW-005, EW-006, EW-007
+  Active Injectors: IW-001, IW-002, IW-003
+  Target Oil Rate: 14000 STB/day
+  Expected Oil Rate: 12600 STB/day
+  Water Cut: 40%
+  GOR: 1600 SCF/STB
+  Injection Rate: 14500 BWD
+  VRR Target: 1.20
+
+PHASE 5 - PHASE_5:
+  Timeline: Day 1460 to 1825 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-008, EW-009, IW-004
+  Active Producers: EW-001, EW-002, EW-003, EW-004, EW-005, EW-006, EW-007, EW-008, EW-009
+  Active Injectors: IW-001, IW-002, IW-003, IW-004
+  Target Oil Rate: 18000 STB/day
+  Expected Oil Rate: 16200 STB/day
+  Water Cut: 45%
+  GOR: 1700 SCF/STB
+  Injection Rate: 19500 BWD
+  VRR Target: 1.20
+
+PHASE 6 - PHASE_6:
+  Timeline: Day 1825 to 2190 (366 days)
+  Duration: 1.0 year(s)
+  Wells Added: EW-010, IW-005
+  Active Producers: EW-001, EW-002, EW-003, EW-004, EW-005, EW-006, EW-007, EW-008, EW-009, EW-010
+  Active Injectors: IW-001, IW-002, IW-003, IW-004, IW-005
+  Target Oil Rate: 20800 STB/day
+  Expected Oil Rate: 18720 STB/day
+  Water Cut: 50%
+  GOR: 1800 SCF/STB
+  Injection Rate: 25000 BWD
+  VRR Target: 1.20
+

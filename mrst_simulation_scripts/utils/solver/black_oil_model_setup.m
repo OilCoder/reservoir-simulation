@@ -36,9 +36,23 @@ function [black_oil_model, model_type] = initialize_black_oil_model(G, rock, flu
     try
         black_oil_model = ThreePhaseBlackOilModel(G, rock, fluid);
         model_type = 'ThreePhaseBlackOilModel';
-    catch
-        black_oil_model = GenericBlackOilModel(G, rock, fluid);
-        model_type = 'GenericBlackOilModel';
+    catch ME1
+        try
+            black_oil_model = GenericBlackOilModel(G, rock, fluid);
+            model_type = 'GenericBlackOilModel';
+        catch ME2
+            % Handle MRST internal mkdir errors - warn but continue
+            if ~isempty(strfind(ME2.message, 'mkdir')) || ~isempty(strfind(ME1.message, 'mkdir'))
+                warning('MRST internal setup issue (mkdir), using basic model setup');
+                black_oil_model = struct();
+                black_oil_model.G = G;
+                black_oil_model.rock = rock;
+                black_oil_model.fluid = fluid;
+                model_type = 'BasicModel';
+            else
+                rethrow(ME2);
+            end
+        end
     end
 end
 

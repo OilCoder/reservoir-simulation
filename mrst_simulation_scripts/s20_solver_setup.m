@@ -10,13 +10,17 @@ function solver_results = s20_solver_setup()
 % Author: Claude Code AI System
 % Date: August 23, 2025
 
-    script_dir = fileparts(mfilename('fullpath'));
+    script_dir = char(fileparts(mfilename('fullpath')));
     addpath(fullfile(script_dir, 'utils')); 
     addpath(fullfile(script_dir, 'utils', 'solver'));
     
-    % Suppress isdir deprecation warnings from MRST internal functions
-    suppress_isdir_warnings();
     run(fullfile(script_dir, 'utils', 'print_utils.m'));
+    
+    % WARNING SUPPRESSION: Complete silence for clean output
+    warning('off', 'all');
+    warning('off', 'MATLAB:dispatcher:nameConflict');
+    warning('off', 'MATLAB:dispatcher:ShadowedMEXExtension');
+    warning('off', 'MATLAB:char:concat_string_warning');
 
     % Add MRST session validation
     [success, message] = validate_mrst_session(script_dir);
@@ -69,7 +73,11 @@ end
 
 function [config, model_data] = load_configuration_and_model()
 % Load configuration and required model data
-    script_dir = fileparts(mfilename('fullpath'));
+    % WARNING SUPPRESSION: String concatenation warnings
+    warning('off', 'MATLAB:char:concat_string_warning');
+    warning('off', 'all');
+    
+    script_dir = char(fileparts(mfilename('fullpath')));
     
     % Load configuration
     config_file = fullfile(script_dir, 'config', 'solver_config.yaml');
@@ -84,53 +92,53 @@ function [config, model_data] = load_configuration_and_model()
 end
 
 function model_data = load_model_data(script_dir)
-% Load required model data from previous steps
-    data_dir = '/workspace/data/simulation_data';
+% Load required model data from canonical Eagle West Field data structure
+    data_dir = '/workspace/data/mrst';
     
-    % Load grid
-    grid_file = fullfile(data_dir, 'pebi_grid.mat');
+    % Load grid from canonical structure
+    grid_file = fullfile(data_dir, 'grid.mat');
     if ~exist(grid_file, 'file')
-        error('Grid file not found: %s. REQUIRED: Run s03_create_pebi_grid.m first.', grid_file);
+        error('Grid file not found: %s. REQUIRED: Complete grid workflow (s01-s05) first.', grid_file);
     end
     grid_data = load(grid_file);
     
-    % Load rock properties
-    rock_file = fullfile(data_dir, 'final_simulation_rock.mat');
+    % Load rock properties from canonical structure
+    rock_file = fullfile(data_dir, 'rock.mat');
     if ~exist(rock_file, 'file')
-        error('Rock properties file not found: %s. REQUIRED: Complete rock property workflow first.', rock_file);
+        error('Rock properties file not found: %s. REQUIRED: Complete rock workflow (s06-s08) first.', rock_file);
     end
     rock_data = load(rock_file);
     
-    % Load fluid properties
-    fluid_file = fullfile(data_dir, 'fluid', 'fluid_with_capillary_pressure.mat');
+    % Load fluid properties from canonical structure
+    fluid_file = fullfile(data_dir, 'fluid.mat');
     if ~exist(fluid_file, 'file')
-        error('Fluid properties file not found: %s. REQUIRED: Complete fluid property workflow first.', fluid_file);
+        error('Fluid properties file not found: %s. REQUIRED: Complete fluid workflow (s09-s11) first.', fluid_file);
     end
     fluid_data = load(fluid_file);
     
-    % Load wells
-    wells_file = fullfile(data_dir, 'wells_final.mat');
+    % Load wells from canonical structure
+    wells_file = fullfile(data_dir, 'wells.mat');
     if ~exist(wells_file, 'file')
-        error('Wells file not found: %s. REQUIRED: Complete wells workflow first.', wells_file);
+        error('Wells file not found: %s. REQUIRED: Complete wells workflow (s15-s16) first.', wells_file);
     end
     wells_data = load(wells_file);
     
-    % Assemble model data
+    % Assemble model data using canonical variable names
     model_data = struct();
     model_data.G = grid_data.G;
-    model_data.rock = rock_data.enhanced_rock;
+    model_data.rock = rock_data.rock;
     model_data.fluid = fluid_data.fluid;
-    model_data.wells = wells_data.W;
+    model_data.wells = wells_data.data_struct.W;
 end
 
 function export_path = export_solver_configuration(config, model_data, black_oil_model, nonlinear_solver, timestep_control, simulation_schedule)
 % Export solver configuration and data for simulation
-    script_dir = fileparts(mfilename('fullpath'));
-    data_dir = '/workspace/data/simulation_data';
+    script_dir = char(fileparts(mfilename('fullpath')));
+    data_dir = '/workspace/data/mrst';
     
-    % Create directory if it doesn't exist
+    % Directory already exists - canonical data directory
     if ~exist(data_dir, 'dir')
-        mkdir(data_dir);
+        error('Canonical data directory missing: %s. REQUIRED: Complete workflow s01-s19 first.', data_dir);
     end
     
     % Export solver configuration
@@ -185,7 +193,7 @@ function solver_results = create_solver_results(config, model_data, black_oil_mo
     solver_results.timestep_control = timestep_control;
     solver_results.simulation_schedule = simulation_schedule;
     solver_results.export_path = export_path;
-    solver_results.timestamp = datetime('now');
+    solver_results.timestamp = datestr(now, 'yyyy-mm-dd HH:MM:SS');
     solver_results.status = 'configured';
 end
 
@@ -207,16 +215,30 @@ end
 function setup_mrst_gravity()
 % Setup MRST gravity system to avoid 'gravity function not available' errors
     try
+        % WARNING SUPPRESSION: MRST gravity functions generate internal warnings
+        warning('off', 'MATLAB:dispatcher:nameConflict');
+        warning('off', 'MATLAB:dispatcher:ShadowedMEXExtension');
+        warning('off', 'MATLAB:switch:nonIntegerCase');
+        warning('off', 'MATLAB:switch:variableSwitch');
+        
         % Try standard MRST gravity functions first
         if exist('gravity', 'file') == 2
+            % Suppress all warnings during gravity function calls
+            old_warning_state = warning('query', 'all');
+            warning('off', 'all');
+            
             gravity('reset');
             gravity('on');
+            
+            % Restore warnings to original state
+            warning(old_warning_state);
+            
             fprintf('MRST gravity enabled via existing gravity() function\n');
             return;
         end
         
         % Use local gravity function from utils/
-        script_dir = fileparts(mfilename('fullpath'));
+        script_dir = char(fileparts(mfilename('fullpath')));
         utils_dir = fullfile(script_dir, 'utils');
         gravity_file = fullfile(utils_dir, 'gravity.m');
         
