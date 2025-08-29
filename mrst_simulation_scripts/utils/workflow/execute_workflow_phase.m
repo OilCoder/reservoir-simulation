@@ -38,7 +38,7 @@ function phase_result = execute_workflow_phase(phase, workflow_results)
     
     % Execute phase using function dispatch
     try
-        output_data = dispatch_phase_execution(phase.phase_id);
+        output_data = dispatch_phase_execution(phase);
         phase_result.output_data = output_data;
         phase_result.status = 'completed';
         
@@ -50,29 +50,28 @@ function phase_result = execute_workflow_phase(phase, workflow_results)
     end
 end
 
-function output_data = dispatch_phase_execution(phase_id)
+function output_data = dispatch_phase_execution(phase)
     % Dispatch phase execution to appropriate function with safe dispatch
-    % Following Exception Handling Policy: explicit validation over eval()
+    % Following Canon-First Policy: use authoritative script names from phase specs
     
-    % Validate phase_id exists in known scripts (Fail Fast Policy)
-    valid_phases = {'s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', ...
-                   's09', 's10', 's11', 's12', 's13', 's14', 's15', 's16', ...
-                   's17', 's18', 's19', 's20'};
-    
-    if ~ismember(phase_id, valid_phases)
-        error('Invalid phase ID: %s. Valid phases: s01-s20', phase_id);
+    % Validate phase structure has required script_name (Fail Fast Policy)
+    if ~isfield(phase, 'script_name') || isempty(phase.script_name)
+        error('Missing script_name in phase structure for phase_id: %s', phase.phase_id);
     end
     
-    % All current scripts (s01-s20) are function-based - safe dispatch
+    % Use canonical script name from phase specifications (Canon-First Policy)
+    script_name = phase.script_name;
+    
+    % Direct function dispatch using canonical script name
     try
-        func_handle = str2func(phase_id);
+        func_handle = str2func(script_name);
         output_data = func_handle();
     catch ME
         % Explicit error for missing function (Fail Fast Policy)  
         % Octave-compatible string search
         if ~isempty(strfind(ME.message, 'Undefined function'))
             error('Script function not found: %s.m\nREQUIRED: Ensure %s.m exists and defines function %s()', ...
-                  phase_id, phase_id, phase_id);
+                  script_name, script_name, script_name);
         else
             rethrow(ME);  % Re-throw other execution errors
         end

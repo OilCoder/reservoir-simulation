@@ -33,6 +33,6 @@ function phase_specs = get_phase_specifications()
         struct('phase_id', 's17', 'script_name', 's17_production_controls', 'description', 'Production Controls');
         struct('phase_id', 's18', 'script_name', 's18_development_schedule', 'description', 'Development Schedule (6 phases)');
         struct('phase_id', 's19', 'script_name', 's19_production_targets', 'description', 'Production Targets');
-        struct('phase_id', 's20', 'script_name', 's20_solver_setup', 'description', 'Solver Configuration (ad-fi)');
+        struct('phase_id', 's20', 'script_name', 's20_consolidate_development', 'description', 'Development Consolidation');
     };
 end

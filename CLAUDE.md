@@ -4,7 +4,7 @@
 
 ## 🎯 Identidad del Proyecto
 
-**Objetivo**: Simulación completa de reservorio Eagle West Field usando MRST con 25 scripts organizados, 12 configuraciones YAML, y 6 archivos .mat consolidados.
+**Objetivo**: Simulación completa de reservorio Eagle West Field usando MRST con 25 scripts organizados, 12 configuraciones YAML, y 9 archivos .mat modulares.
 
 **Principios Fundamentales**:
 - **6 Políticas Inmutables**: Canon-first, Data Authority, Fail Fast, Exception Handling, KISS, No Over-Engineering  
@@ -150,13 +150,16 @@ Task tool with:
 │   └── Planning/Reservoir_Definition/
 │       ├── VARIABLE_INVENTORY.md # 900+ variables (LLM-optimized)
 │       └── ... (technical specs)
-├── 📊 data/mrst/                 # Datos consolidados MRST (6 archivos .mat)
+├── 📊 data/mrst/                 # Datos modulares MRST (9 archivos .mat)
 │   ├── grid.mat                  # Complete geometry with faults
 │   ├── rock.mat                  # Petrophys properties with heterogeneity  
 │   ├── fluid.mat                 # 3-phase fluid system with PVT
 │   ├── state.mat                 # Initial pressure/saturation distribution
-│   ├── wells.mat                 # 15-well system with completions
-│   ├── schedule.mat              # Development plan and solver config
+│   ├── wells.mat                 # MRST wells array (15 wells)
+│   ├── controls.mat              # Production/injection controls
+│   ├── development.mat           # Development plan by phases
+│   ├── schedule.mat              # MRST schedule with timesteps
+│   ├── targets.mat               # Production and recovery targets
 │   └── session/
 │       └── s01_mrst_session.mat  # MRST initialization state
 └── 🧠 CLAUDE.md                  # Esta guía (CANONICAL)
@@ -181,13 +184,16 @@ s01 → s02 → s05 → s03 → s04 → s06 → s07 → s08 → s09 → s10 → 
 octave mrst_simulation_scripts/s99_run_workflow.m  # Complete workflow
 ```
 
-### Archivos .mat Canónicos
-- **grid.mat**: s05(PEBI) → s03(structure) → s04(faults) = Complete geometry
-- **rock.mat**: s06(base) → s07(layers) → s08(heterogeneity) = Final rock properties  
-- **fluid.mat**: s02(basic) → s09(relperm) → s10(capillary) → s11(PVT) = Complete fluid
-- **state.mat**: s12(pressure) → s13(saturations) → s14(aquifer) = Initial conditions
-- **wells.mat**: s15(placement) → s16(completions) = 15-well system
-- **schedule.mat**: s17(controls) → s18(schedule) → s19(targets) = Development plan
+### Archivos .mat Canónicos (9 Modulares)
+- **grid.mat**: s03→s04→s05 = Complete PEBI geometry with faults
+- **rock.mat**: s06→s07→s08 = Rock properties with heterogeneity
+- **fluid.mat**: s02→s09→s10→s11 = 3-phase fluid system with PVT
+- **state.mat**: s12→s13→s14 = Initial conditions
+- **wells.mat**: s15 = MRST wells array (15 wells)
+- **controls.mat**: s17 = Production/injection controls
+- **development.mat**: s18 = Development plan by phases
+- **schedule.mat**: s18 = MRST schedule with timesteps
+- **targets.mat**: s19 = Production and recovery targets
 
 ## 📚 Referencias Críticas
 

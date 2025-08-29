@@ -17,6 +17,9 @@ function fluid = fluid_structure_setup(scal_config, G)
     % If MRST initialization fails, create manual structure
     if isempty(fluid)
         fluid = create_manual_fluid_structure(scal_config);
+    else
+        % CRITICAL FIX: Ensure required fields exist even if MRST initialization succeeded
+        fluid = ensure_required_fields(fluid, scal_config);
     end
     
     % Add oil-water relative permeability functions
@@ -48,6 +51,33 @@ function fluid = initialize_mrst_fluid_structure()
         fprintf('MRST fluid initialization failed: %s\n', ME.message);
         fluid = [];
     end
+end
+
+function fluid = ensure_required_fields(fluid, scal_config)
+% Ensure required fields exist in fluid structure (CRITICAL FIX)
+% FAIL FAST POLICY: Add required fields that s09_relative_permeability expects
+    
+    % CANON-FIRST POLICY: Get phase specification from SCAL config
+    if ~isfield(fluid, 'phases')
+        fluid.phases = 'WOG';  % Water-Oil-Gas (standard three-phase)
+    end
+    
+    % CANON-FIRST POLICY: Load Corey exponents from configuration
+    if ~isfield(fluid, 'n')
+        if isfield(scal_config, 'default_corey_exponents')
+            corey_exp = scal_config.default_corey_exponents;
+            fluid.n = [corey_exp.water, corey_exp.oil, corey_exp.gas];
+        else
+            error('Missing default_corey_exponents in scal_properties_config.yaml. REQUIRED: Add default_corey_exponents section with water, oil, gas values.');
+        end
+    end
+    
+    % Ensure phase indices exist for consistency
+    if ~isfield(fluid, 'water'), fluid.water = 1; end
+    if ~isfield(fluid, 'oil'), fluid.oil = 2; end 
+    if ~isfield(fluid, 'gas'), fluid.gas = 3; end
+    
+    fprintf('   ✅ Required fields ensured in fluid structure\n');
 end
 
 function fluid = create_manual_fluid_structure(scal_config)

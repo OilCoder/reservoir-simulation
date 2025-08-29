@@ -6,7 +6,7 @@
 workflow_settings:
   default_timeout_seconds: 600
   validation_stop_phase: 3
-  results_directory: "data/mrst_simulation/results"
+  results_directory: "/workspace/data/mrst"
   table_format_enabled: true
   verbose_output: true
 

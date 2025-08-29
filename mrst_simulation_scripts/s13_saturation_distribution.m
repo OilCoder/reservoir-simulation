@@ -507,7 +507,7 @@ function output_data = s13_saturation_distribution()
         fprintf('   ✅ Consolidated state data updated with saturations\n');
         
         % Export to canonical structure
-        data_dir = '/workspace/data/simulation_data';
+        data_dir = '/workspace/data/mrst';
         if ~exist(data_dir, 'dir')
             mkdir(data_dir);
         end

@@ -1,8 +1,8 @@
 function export_workflow_results(workflow_results)
-% EXPORT_WORKFLOW_RESULTS - Export workflow results with canonical format
+% EXPORT_WORKFLOW_RESULTS - Export workflow results (DISABLED - No Over-Engineering)
 %
-% Exports workflow execution results to canonical data structure
-% following Data Authority policy with provenance metadata
+% DISABLED: Workflow results files are redundant - actual data is in 9 modular .mat files
+% Following KISS principle and No Over-Engineering policy
 %
 % SYNTAX:
 %   export_workflow_results(workflow_results)
@@ -11,52 +11,34 @@ function export_workflow_results(workflow_results)
 %   workflow_results - Complete workflow execution results structure
 %
 % OUTPUTS:
-%   Creates .mat file and text summary in canonical results directory
+%   No files created - data exists in /workspace/data/mrst/*.mat files
 %
 % Author: Claude Code AI System
 % Date: 2025-08-22
 
-    try
-        % Load configuration for export settings
-        config = load_workflow_config();
-        
-        % Get canonical results directory
-        script_path = fileparts(fileparts(fileparts(mfilename('fullpath'))));
-        results_dir = get_results_directory(script_path, config);
-        
-        % Ensure results directory exists
-        if ~exist(results_dir, 'dir')
-            mkdir(results_dir);
-        end
-        
-        % Generate canonical filenames with timestamp
-        timestamp = get_canonical_timestamp(config);
-        [results_file, summary_file] = generate_result_filenames(results_dir, timestamp);
-        
-        % Export results in Octave-compatible format
-        save(results_file, 'workflow_results');
-        
-        % Create text summary with provenance
-        write_canonical_summary(summary_file, workflow_results, timestamp);
-        
-        % Report export success
-        fprintf('📁 Results exported:\n');
-        fprintf('   • Results: %s\n', results_file);
-        fprintf('   • Summary: %s\n\n', summary_file);
-        
-    catch ME
-        % Handle export failures gracefully (Exception Handling Policy)
-        fprintf('⚠️  Warning: Could not export results: %s\n', ME.message);
-    end
+    % No export - data already exists in modular .mat files
+    fprintf('📁 Workflow results available in modular data files:\n');
+    fprintf('   • Grid: /workspace/data/mrst/grid.mat\n');
+    fprintf('   • Rock: /workspace/data/mrst/rock.mat\n');
+    fprintf('   • Fluid: /workspace/data/mrst/fluid.mat\n');
+    fprintf('   • State: /workspace/data/mrst/state.mat\n');
+    fprintf('   • Wells: /workspace/data/mrst/wells.mat\n');
+    fprintf('   • Controls: /workspace/data/mrst/controls.mat\n');
+    fprintf('   • Development: /workspace/data/mrst/development.mat\n');
+    fprintf('   • Schedule: /workspace/data/mrst/schedule.mat\n');
+    fprintf('   • Targets: /workspace/data/mrst/targets.mat\n\n');
+    
+    fprintf('✅ No redundant workflow files generated (KISS principle)\n\n');
 end
 
 function results_dir = get_results_directory(script_path, config)
     % Get canonical results directory from configuration
     if isfield(config.workflow_settings, 'results_directory')
-        results_dir = fullfile(script_path, config.workflow_settings.results_directory);
+        % Use absolute path directly (no concatenation with script_path)
+        results_dir = config.workflow_settings.results_directory;
     else
         % Fallback to canonical default
-        results_dir = fullfile(script_path, '..', 'data', 'mrst_simulation', 'results');
+        results_dir = '/workspace/data/mrst';
     end
 end
 
