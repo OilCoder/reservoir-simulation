@@ -26,11 +26,11 @@ initialization:
     formation_water_salinity_ppm: 35000  # TDS in formation brine
     formation_water_density_sg: 1.025    # Specific gravity
     
-  # Fluid Contacts (CANON) - Updated for actual reservoir depth
+  # Fluid Contacts (CANON) - Virgin Reservoir Configuration
   fluid_contacts:
-    # Oil-Water Contact  
+    # Oil-Water Contact - Lowered for 80% oil saturation 
     oil_water_contact:
-      depth_ft_tvdss: 8100.0            # Primary OWC depth (middle of reservoir ~8070 ft)
+      depth_ft_tvdss: 8200.0            # Deeper OWC = larger oil zone (was 8100.0)
       uncertainty_ft: 10.0              # ±10 ft uncertainty
       contact_type: "sharp_with_transition"
       
@@ -40,20 +40,20 @@ initialization:
       bubble_point_controlled: true
       bubble_point_pressure_psi: 2100.0
       
-    # Transition Zones
+    # Transition Zones - Sharper contact for virgin reservoir
     transition_zones:
       oil_water_transition:
-        thickness_ft: 50.0              # Transition zone thickness
-        top_ft_tvdss: 8075.0            # Top of transition (OWC - 25 ft)
-        bottom_ft_tvdss: 8125.0         # Bottom of transition (OWC + 25 ft)
+        thickness_ft: 25.0              # Reduced from 50.0 ft for sharper contact
+        top_ft_tvdss: 8187.5            # Top of transition (OWC - 12.5 ft)
+        bottom_ft_tvdss: 8212.5         # Bottom of transition (OWC + 12.5 ft)
         saturation_model: "capillary_pressure_controlled"
         
-  # Initial Saturation Distribution (CANON)
+  # Initial Saturation Distribution (CANON) - Virgin Reservoir
   initial_saturations:
-    # Oil Zone (Above OWC)
+    # Oil Zone (Above OWC) - Virgin reservoir conditions
     oil_zone:
-      oil_saturation_range: [0.75, 0.85]    # So range
-      water_saturation_range: [0.15, 0.25]  # Sw range (connate water)
+      oil_saturation_range: [0.80, 0.82]    # 80% oil saturation (virgin field)
+      water_saturation_range: [0.18, 0.20]  # Connate water only (reduced from 0.15-0.25)
       gas_saturation: 0.00                  # No initial gas
       pressure_range_psi: [3500, 3600]      # Pressure in oil zone
       
@@ -72,20 +72,20 @@ initialization:
       
   # Compartment-Specific Initialization (CANON)
   compartmentalization:
-    # Northern Compartment
+    # Northern Compartment - Updated for virgin reservoir
     northern_compartment:
       area_acres: 980.0
       pressure_datum_psi: 3590.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 5.0       # ±5 psi from datum
-      owc_depth_ft_tvdss: 8145.0       # Compartment-specific OWC
+      owc_depth_ft_tvdss: 8210.0       # Updated OWC depth (was 8145.0)
       boundary_factor: 0.6              # Northern compartment Y-coordinate boundary (fraction)
       
-    # Southern Compartment  
+    # Southern Compartment - Updated for virgin reservoir 
     southern_compartment:
       area_acres: 1870.0
       pressure_datum_psi: 3610.0        # Reference pressure (closer to datum)
       pressure_variation_psi: 8.0       # ±8 psi from datum
-      owc_depth_ft_tvdss: 8155.0       # Compartment-specific OWC
+      owc_depth_ft_tvdss: 8190.0       # Updated OWC depth (was 8155.0)
       boundary_factor: 0.4              # Southern compartment Y-coordinate boundary (fraction)
       
     # Inter-compartment Communication

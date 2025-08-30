@@ -26,7 +26,7 @@ wells_system:
       esp_hp: 200
       wellbore_radius_ft: 0.328
       skin_factor: 4.5
-      min_bhp_psi: 1500
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -45,7 +45,7 @@ wells_system:
       esp_hp: 250
       wellbore_radius_ft: 0.328
       skin_factor: 3.8
-      min_bhp_psi: 1450
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -65,7 +65,7 @@ wells_system:
       esp_hp: 300
       wellbore_radius_ft: 0.328
       skin_factor: -1.2
-      min_bhp_psi: 1400
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -84,7 +84,7 @@ wells_system:
       esp_hp: 180
       wellbore_radius_ft: 0.328
       skin_factor: 4.2
-      min_bhp_psi: 1520
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -104,7 +104,7 @@ wells_system:
       esp_hp: 350
       wellbore_radius_ft: 0.328
       skin_factor: -2.1
-      min_bhp_psi: 1350
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -123,7 +123,7 @@ wells_system:
       esp_hp: 150
       wellbore_radius_ft: 0.328
       skin_factor: 5.1
-      min_bhp_psi: 1480
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -144,7 +144,7 @@ wells_system:
       esp_hp: 400
       wellbore_radius_ft: 0.328
       skin_factor: -1.8
-      min_bhp_psi: 1380
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -164,7 +164,7 @@ wells_system:
       esp_hp: 280
       wellbore_radius_ft: 0.328
       skin_factor: -1.5
-      min_bhp_psi: 1420
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -183,7 +183,7 @@ wells_system:
       esp_hp: 220
       wellbore_radius_ft: 0.328
       skin_factor: 3.9
-      min_bhp_psi: 1550
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
       
@@ -204,7 +204,7 @@ wells_system:
       esp_hp: 380
       wellbore_radius_ft: 0.328
       skin_factor: -2.3
-      min_bhp_psi: 1380
+      min_bhp_psi: 2000
       max_water_cut: 0.95
       max_gor_scf_stb: 3000
 
@@ -218,7 +218,7 @@ wells_system:
       grid_location: [5, 10, 6]
       surface_coords: [750, 1750]
       total_depth_tvd_ft: 8300
-      target_injection_rate_bbl_day: 4000
+      target_injection_rate_bbl_day: 3000
       completion_layers: [5, 6, 7, 10, 11, 12]
       injection_fluid: "formation_water"
       wellbore_radius_ft: 0.328
@@ -233,7 +233,7 @@ wells_system:
       grid_location: [35, 35, 7]
       surface_coords: [4460, 3530]
       total_depth_tvd_ft: 8250
-      target_injection_rate_bbl_day: 4500
+      target_injection_rate_bbl_day: 3000
       completion_layers: [9, 10, 11, 12]
       injection_fluid: "formation_water"
       wellbore_radius_ft: 0.328
@@ -248,7 +248,7 @@ wells_system:
       grid_location: [14, 23, 8]
       surface_coords: [2700, 2500]
       total_depth_tvd_ft: 8280
-      target_injection_rate_bbl_day: 6000
+      target_injection_rate_bbl_day: 3000
       horizontal_length_ft: 2000
       completion_layers: [9, 10, 11, 12]
       injection_fluid: "formation_water"
@@ -264,7 +264,7 @@ wells_system:
       grid_location: [32, 8, 9]
       surface_coords: [4130, 1480]
       total_depth_tvd_ft: 8320
-      target_injection_rate_bbl_day: 5000
+      target_injection_rate_bbl_day: 3000
       completion_layers: [10, 11, 12]
       injection_fluid: "formation_water"
       wellbore_radius_ft: 0.328
@@ -279,7 +279,7 @@ wells_system:
       grid_location: [15, 38, 10]
       surface_coords: [2700, 3800]
       total_depth_tvd_ft: 8340
-      target_injection_rate_bbl_day: 5500
+      target_injection_rate_bbl_day: 3000
       lateral_1_length_ft: 900
       lateral_2_length_ft: 650
       completion_layers: [9, 10, 11, 12]

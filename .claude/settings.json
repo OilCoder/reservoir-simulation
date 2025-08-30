@@ -2,20 +2,44 @@
   "description": "Multi-Mode Policy-Aware Code Generation System with Natural Language Routing",
   
   "hooks": {
-    "userPromptSubmit": {
-      "description": "Enhanced router with natural intent detection and multi-mode policy injection",
-      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py"
-    },
-    "postToolUse": {
-      "Write|Edit|MultiEdit": {
-        "description": "Multi-mode policy validation scanner with context awareness (suggest/warn/strict)",
-        "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use.py"
+    "UserPromptSubmit": [
+      {
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/user_prompt_submit.py",
+            "description": "Enhanced router with natural intent detection and multi-mode policy injection"
+          }
+        ]
       }
-    },
-    "subagentStop": {
-      "description": "Consolidates results when subagents complete their tasks", 
-      "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py"
-    }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": {
+          "tools": ["Write", "Edit", "MultiEdit"]
+        },
+        "hooks": [
+          {
+            "type": "command", 
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post_tool_use.py",
+            "description": "Multi-mode policy validation scanner with context awareness (suggest/warn/strict)"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": {},
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/subagent_stop.py",
+            "description": "Consolidates results when subagents complete their tasks"
+          }
+        ]
+      }
+    ]
   },
   
   "permissions": {
