@@ -151,15 +151,15 @@ Task tool with:
 │       ├── VARIABLE_INVENTORY.md # 900+ variables (LLM-optimized)
 │       └── ... (technical specs)
 ├── 📊 data/mrst/                 # Datos modulares MRST (9 archivos .mat)
-│   ├── grid.mat                  # Complete geometry with faults
+│   ├── grid.mat                  # 9,660 active PEBI cells with faults
 │   ├── rock.mat                  # Petrophys properties with heterogeneity  
-│   ├── fluid.mat                 # 3-phase fluid system with PVT
-│   ├── state.mat                 # Initial pressure/saturation distribution
-│   ├── wells.mat                 # MRST wells array (15 wells)
-│   ├── controls.mat              # Production/injection controls
-│   ├── development.mat           # Development plan by phases
-│   ├── schedule.mat              # MRST schedule with timesteps
-│   ├── targets.mat               # Production and recovery targets
+│   ├── fluid.mat                 # 3-phase fluid system with gas liberation (Pb=2100psi)
+│   ├── state.mat                 # Initial conditions (3600psi, Sw=20%, So=80%)
+│   ├── wells.mat                 # MRST wells array (15 wells, 40-year schedule)
+│   ├── controls.mat              # Production/injection controls with gas handling
+│   ├── development.mat           # 6-phase development over 40 years
+│   ├── schedule.mat              # 480 monthly timesteps (40 years)
+│   ├── targets.mat               # Recovery targets: 282+MMbbl oil, 8.8+Bcf gas
 │   └── session/
 │       └── s01_mrst_session.mat  # MRST initialization state
 └── 🧠 CLAUDE.md                  # Esta guía (CANONICAL)
@@ -184,16 +184,16 @@ s01 → s02 → s05 → s03 → s04 → s06 → s07 → s08 → s09 → s10 → 
 octave mrst_simulation_scripts/s99_run_workflow.m  # Complete workflow
 ```
 
-### Archivos .mat Canónicos (9 Modulares)
-- **grid.mat**: s03→s04→s05 = Complete PEBI geometry with faults
-- **rock.mat**: s06→s07→s08 = Rock properties with heterogeneity
-- **fluid.mat**: s02→s09→s10→s11 = 3-phase fluid system with PVT
-- **state.mat**: s12→s13→s14 = Initial conditions
-- **wells.mat**: s15 = MRST wells array (15 wells)
-- **controls.mat**: s17 = Production/injection controls
-- **development.mat**: s18 = Development plan by phases
-- **schedule.mat**: s18 = MRST schedule with timesteps
-- **targets.mat**: s19 = Production and recovery targets
+### Archivos .mat Canónicos (9 Modulares) - UPDATED
+- **grid.mat**: s03→s04→s05 = 9,660 active PEBI cells with 5 fault networks
+- **rock.mat**: s06→s07→s08 = Rock properties with heterogeneity (4 rock types)
+- **fluid.mat**: s02→s09→s10→s11 = 3-phase black oil with gas liberation at 2100psi
+- **state.mat**: s12→s13→s14 = Initial conditions (3600psi, 20% water saturation)
+- **wells.mat**: s15 = 15 wells with 40-year progressive drilling schedule
+- **controls.mat**: s17 = Production/injection controls with gas handling
+- **development.mat**: s18 = 6-phase development over 40 years (14,610 days)
+- **schedule.mat**: s18 = 480 monthly timesteps with gas liberation phases
+- **targets.mat**: s19 = Recovery: 282+MMbbl oil, 8.8+Bcf gas, 45%+ RF
 
 ## 📚 Referencias Críticas
 
@@ -204,11 +204,14 @@ octave mrst_simulation_scripts/s99_run_workflow.m  # Complete workflow
    - LLM Decision Tree para clasificación de variables
    - Cross-reference table para dependencias
 
-2. **Technical Specifications** - Especificaciones autoritarias
+2. **Technical Specifications** - Especificaciones autoritarias (UPDATED)
    - Path: `docs/Planning/Reservoir_Definition/`
-   - Grid: 41×41×12 cells (CANONICAL)
+   - Grid: 9,660 active PEBI cells (equivalent 41×41×12 structure)
    - Faults: Fault_A, Fault_B, Fault_C, Fault_D, Fault_E (underscore)
    - Wells: EW-001 to EW-010, IW-001 to IW-005 (hyphen)
+   - Duration: 40 years (14,610 days, 480 monthly timesteps)
+   - Physics: 3-phase flow with gas liberation below 2100psi bubble point
+   - Recovery: 282+ MMbbl oil + 8.8+ Bcf gas production
 
 3. **Configuration YAML** - Parámetros de usuario (12 archivos)
    - Path: `mrst_simulation_scripts/config/`
@@ -234,12 +237,16 @@ octave mrst_simulation_scripts/s99_run_workflow.m  # Complete workflow
 - **warn** - Development: Violations flagged but not blocking  
 - **strict** - Production: Full enforcement with blocking on errors
 
-## 🎯 Eagle West Field Specs
+## 🎯 Eagle West Field Specs (UPDATED - CANON)
 
-- **Grid**: 41×41×12 cells, 20,332 total cells
+- **Grid**: 9,660 active PEBI cells (41×41×12 equivalent structure)
 - **Faults**: 5 major faults (Fault_A through Fault_E)
 - **Wells**: 15 total (10 producers EW-001 to EW-010, 5 injectors IW-001 to IW-005)
-- **Development**: 6-phase plan over 10 years
+- **Development**: 6-phase plan over **40 years** (14,610 days)
+- **Recovery**: 282+ MMbbl oil + 8.8+ Bcf gas liberation
+- **Physics**: Complete 3-phase flow (water + oil + gas)
+- **Pressure**: 3600 psi → 1412 psi (2188 psi total depletion)
+- **Gas Liberation**: Active below 2100 psi bubble point (Years 28-40)
 - **Data Location**: `/workspace/data/mrst/` ONLY
 
 ---

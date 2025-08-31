@@ -4,13 +4,15 @@
 
 This document defines reservoir parameters for comprehensive 3-phase (oil-gas-water) flow simulation using MRST for a full field development program. The reservoir model incorporates multiple lithologies including sandstone, shale, and limestone formations with complex structural geometry and heterogeneous rock properties across a 2,600-acre reservoir.
 
-### Field Development Program
+### Field Development Program (UPDATED - CANON)
 
 - **Development Strategy**: 15-well full field development program
 - **Well Configuration**: 15 wells (10 producers + 5 injectors)
-- **Development Phases**: 6-phase implementation over 10 years
-- **Production Target**: Peak production 18,500 STB/day
+- **Development Phases**: 6-phase implementation over **40 years** (14,610 days)
+- **Production Target**: 282+ MMbbl oil + 8.8+ Bcf gas production
+- **Recovery Physics**: Complete 3-phase flow with gas liberation below 2100 psi
 - **Well Types**: Vertical, horizontal, and multi-lateral completions
+- **Simulation Duration**: 480 monthly timesteps (40-year lifecycle)
 
 ### Simulation Characteristics
 
@@ -24,15 +26,19 @@ This document defines reservoir parameters for comprehensive 3-phase (oil-gas-wa
 The reservoir simulation supports comprehensive analysis of:
 
 - **Full Field Development**: 15-well optimization across 2,600-acre reservoir
-- **Phased Implementation**: 6-phase development strategy over 10-year timeline
-- **Production Optimization**: Target peak production of 18,500 STB/day
-- **Recovery Maximization**: Enhanced oil recovery through optimized well placement
-- **Reservoir Management**: Long-term pressure maintenance and sweep efficiency
+- **Extended Lifecycle**: 6-phase development strategy over **40-year timeline**
+- **Recovery Optimization**: 282+ MMbbl oil + 8.8+ Bcf gas production
+- **Gas Liberation Physics**: Active below 2100 psi bubble point (Years 28-40)
+- **Pressure Depletion**: 3600 psi → 1412 psi (2188 psi total depletion)
+- **3-Phase Recovery**: Water + oil + gas flow with mature field performance
 
-### Key Model Parameters
+### Key Model Parameters (UPDATED - CANON)
 
-- **Initial Reservoir Pressure**: 2,900 psi at datum depth
+- **Initial Reservoir Pressure**: 3,600 psi at datum depth (8000 ft)
 - **Reservoir Temperature**: 176°F (constant)
+- **Bubble Point Pressure**: 2,100 psi (gas liberation threshold)
+- **Final Pressure Range**: 1,412 psi (after 40-year depletion)
+- **Gas Liberation Period**: Years 28-40 (pressure below bubble point)
 
 ---
 
@@ -96,7 +102,9 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 | Oil Viscosity @ Tres       | 0.92                     | cp        | At bubble point           |
 | Water Salinity             | 35,000                   | ppm TDS   | Formation brine           |
 | **PRESSURE CONDITIONS**    |                          |           |                           |
-| Initial Pressure           | 2,900                    | psi       | @ 8,000 ft datum          |
+| Initial Pressure           | 3,600                    | psi       | @ 8,000 ft datum          |
+| Final Pressure (40yr)      | 1,412                    | psi       | After complete depletion  |
+| Total Pressure Depletion   | 2,188                    | psi       | 40-year field life        |
 | Reservoir Temperature      | 176                      | °F        | Constant throughout       |
 | Pressure Gradient          | 0.433                    | psi/ft    | Hydrostatic gradient      |
 | **FLUID CONTACTS**         |                          |           |                           |
@@ -108,45 +116,52 @@ This reservoir definition is organized into 9 comprehensive technical documents 
 | Producer Wells             | 10                       | -         | Oil production wells      |
 | Injector Wells             | 5                        | -         | Water injection wells     |
 | Development Phases         | 6                        | -         | Phased implementation     |
-| Development Timeline       | 10                       | years     | Full field development    |
-| Peak Production Target     | 18,500                   | STB/day   | Maximum field capacity    |
+| Development Timeline       | **40**                   | **years** | **Extended field lifecycle** |
+| Cumulative Oil Production  | **282+**                 | **MMbbl** | **40-year recovery**      |
+| Cumulative Gas Production  | **8.8+**                 | **Bcf**   | **Gas liberation**        |
+| Gas Liberation Period      | Years 28-40              | -         | When P < 2100 psi         |
 | Well Types                 | Vertical/Horizontal/Multi-lateral | -  | Multiple completion designs |
 
 ---
 
 ## Quick Reference - Simulation Implementation
 
-### Grid Specifications
+### Grid Specifications (UPDATED - CANON)
 
-**Recommended Grid Design:**
-- Grid dimensions: 40 × 40 × 12 cells (I × J × K) [CORRECTED for detailed simulation]
-- Cell dimensions: 82 × 74 × 8.3 ft (X × Y × Z) [UPDATED for field extent]
-- Total active cells: 19,200 (high resolution) [CORRECTED for realistic simulation]
-- Refinement areas: Near wells, fault zones, high permeability streaks
+**Current PEBI Grid Design:**
+- **Active cells**: 9,660 PEBI cells (equivalent 41×41×12 structure)
+- **Grid type**: Perpendicular Bisector (PEBI) with well-centered refinement
+- **Well refinement**: 20-50 ft cell sizes near wells (3-tier refinement system)
+- **Fault representation**: 5 major faults with transmissibility multipliers
+- **Layers**: 12 vertical layers with variable thickness
 
-### Key Initialization Parameters
+### Key Initialization Parameters (UPDATED - CANON)
 
 **Reservoir Conditions:**
-- Initial pressure: 2,900 psi at datum depth
-- Reference depth: 8,000 ft TVDSS
-- Oil-water contact: 8,150 ft TVDSS
-- Bubble point: 2,100 psi
-- Reservoir temperature: 176°F
+- **Initial pressure**: 3,600 psi at datum depth (8000 ft)
+- **Final pressure**: 1,412 psi (after 40-year depletion)
+- **Reference depth**: 8,000 ft TVDSS
+- **Oil-water contact**: 8,150 ft TVDSS
+- **Bubble point**: 2,100 psi (gas liberation threshold)
+- **Reservoir temperature**: 176°F (constant)
 
 **Fluid System:**
-- Phase system: Three-phase (oil-gas-water)
-- API gravity: 32°
-- Initial GOR: 450 scf/STB
+- **Phase system**: Three-phase (oil-gas-water) with gas liberation
+- **API gravity**: 32°
+- **Initial GOR**: 450 scf/STB  
+- **Final GOR**: 31 scf/bbl (after gas liberation)
+- **Gas production**: 8.8+ Bcf total liberation
 
 ### Well Configuration
 
 **Field Development Configuration:**
-- Total wells: 15 (10 producers + 5 injectors)
-- Development phases: 6 phases over 10 years
-- Peak field production target: 18,500 STB/day
-- Well types: Vertical, horizontal, and multi-lateral
-- BHP constraints: 1,500 psi (min producer), 3,500 psi (max injector)
-- Phase development schedule: [3, 3, 2, 3, 2, 2] wells per phase
+- **Total wells**: 15 (10 producers + 5 injectors)
+- **Development phases**: 6 phases over **40 years** (14,610 days)
+- **Cumulative recovery**: 282+ MMbbl oil + 8.8+ Bcf gas
+- **Well types**: Vertical, horizontal, and multi-lateral
+- **BHP constraints**: 2,000 psi (min producer), 3,600 psi (max injector)
+- **Progressive activation**: EW-001 (Year 0.5) → IW-005 (Year 8.0)
+- **Gas liberation phase**: Years 28-40 (pressure below bubble point)
 
 ---
 
@@ -223,13 +238,14 @@ The documents are designed with clear data flow for simulation model constructio
 - Configure boundary conditions and aquifer support (07)
 - Establish initial saturation distributions
 
-### Phase 4: Well Implementation
+### Phase 4: Well Implementation (UPDATED)
 
-- Place 15 wells (10 producers, 5 injectors) per completion design (08)
-- Configure phased development schedule with 6 implementation phases
-- Set up well controls and operational constraints for full field development (09)
-- Implement mixed completion types (vertical, horizontal, multi-lateral)
-- Target peak field production of 18,500 STB/day
+- **Place 15 wells**: 10 producers (EW-001 to EW-010), 5 injectors (IW-001 to IW-005)
+- **Progressive drilling schedule**: 40-year phased activation from wells_config.yaml
+- **Mixed completion types**: Vertical, horizontal, and multi-lateral wells
+- **Recovery targets**: 282+ MMbbl oil + 8.8+ Bcf gas over 40-year lifecycle
+- **Gas handling**: Production controls for gas liberation below 2100 psi
+- **Extended simulation**: 480 monthly timesteps with mature field performance
 
 ### Simulation Quality Checkpoints
 
@@ -271,10 +287,11 @@ _This overview document serves as the primary navigation hub for 15-well field d
 **Document Control:**
 
 - **Created**: January 25, 2025
-- **Last Updated**: January 25, 2025
-- **Version**: 2.0 - 15-Well Field Development Update
-- **Review Status**: Technical Review Complete
-- **Approved for**: Full Field Development MRST Simulation
+- **Last Updated**: August 31, 2025
+- **Version**: 3.0 - 40-Year Extended Lifecycle with Gas Production
+- **Review Status**: Technical Review Complete - Canon-First Policy Compliant
+- **Approved for**: 40-Year Extended Lifecycle MRST Simulation with Gas Liberation
+- **Key Updates**: 40-year timeline, 282+MMbbl oil + 8.8+Bcf gas, 3-phase flow
 
 **Technical Contact:** Reservoir Simulation Team  
 **Document Classification:** Technical Simulation Documentation

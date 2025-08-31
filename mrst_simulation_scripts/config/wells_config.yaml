@@ -7,7 +7,7 @@ wells_system:
   total_wells: 15                      # 10 producers + 5 injectors
   producers: 10
   injectors: 5
-  development_duration_days: 3650      # 10 years
+  development_duration_days: 14610     # 40 years exactly (40 * 365.25 = 14610 days) - extended for complete reservoir lifecycle + mature field performance
   
   # Producer Wells (CANON from 05_Wells_Completions.md)
   producer_wells:
@@ -34,7 +34,7 @@ wells_system:
       well_id: "EW-002" 
       well_type: "vertical"
       phase: 2
-      drill_date_day: 550
+      drill_date_day: 365
       grid_location: [25, 15, 2]
       surface_coords: [3570, 2010]
       total_depth_tvd_ft: 8180
@@ -53,7 +53,7 @@ wells_system:
       well_id: "EW-003"
       well_type: "horizontal"
       phase: 3
-      drill_date_day: 820
+      drill_date_day: 550
       grid_location: [20, 25, 6]
       surface_coords: [3240, 2840]
       total_depth_tvd_ft: 8160
@@ -73,7 +73,7 @@ wells_system:
       well_id: "EW-004"
       well_type: "vertical"
       phase: 3
-      drill_date_day: 900
+      drill_date_day: 730
       grid_location: [8, 36, 3]
       surface_coords: [1900, 3600]
       total_depth_tvd_ft: 8220
@@ -92,7 +92,7 @@ wells_system:
       well_id: "EW-005"
       well_type: "horizontal"
       phase: 4
-      drill_date_day: 1200
+      drill_date_day: 915
       grid_location: [30, 20, 2]
       surface_coords: [4050, 2470]
       total_depth_tvd_ft: 8140
@@ -112,7 +112,7 @@ wells_system:
       well_id: "EW-006"
       well_type: "vertical"
       phase: 4
-      drill_date_day: 1350
+      drill_date_day: 1095
       grid_location: [8, 18, 4]
       surface_coords: [1890, 2340]
       total_depth_tvd_ft: 8240
@@ -131,7 +131,7 @@ wells_system:
       well_id: "EW-007"
       well_type: "multi_lateral"
       phase: 4
-      drill_date_day: 1500
+      drill_date_day: 1280
       grid_location: [22, 8, 3]
       surface_coords: [3200, 1480]
       total_depth_tvd_ft: 8200
@@ -152,7 +152,7 @@ wells_system:
       well_id: "EW-008"
       well_type: "horizontal"
       phase: 5
-      drill_date_day: 2000
+      drill_date_day: 1460
       grid_location: [35, 12, 6]
       surface_coords: [4460, 1880]
       total_depth_tvd_ft: 8170
@@ -172,7 +172,7 @@ wells_system:
       well_id: "EW-009"
       well_type: "vertical"
       phase: 5
-      drill_date_day: 2200
+      drill_date_day: 1645
       grid_location: [22, 35, 4]
       surface_coords: [3400, 3530]
       total_depth_tvd_ft: 8190
@@ -191,7 +191,7 @@ wells_system:
       well_id: "EW-010"
       well_type: "multi_lateral"
       phase: 6
-      drill_date_day: 3100
+      drill_date_day: 1825
       grid_location: [28, 28, 5]
       surface_coords: [3810, 3070]
       total_depth_tvd_ft: 8155
@@ -214,7 +214,7 @@ wells_system:
       well_id: "IW-001"
       well_type: "vertical"
       phase: 2
-      drill_date_day: 450
+      drill_date_day: 2190
       grid_location: [5, 10, 6]
       surface_coords: [750, 1750]
       total_depth_tvd_ft: 8300
@@ -229,7 +229,7 @@ wells_system:
       well_id: "IW-002"
       well_type: "vertical"
       phase: 3
-      drill_date_day: 1000
+      drill_date_day: 2375
       grid_location: [35, 35, 7]
       surface_coords: [4460, 3530]
       total_depth_tvd_ft: 8250
@@ -244,7 +244,7 @@ wells_system:
       well_id: "IW-003"
       well_type: "horizontal"
       phase: 4
-      drill_date_day: 1600
+      drill_date_day: 2555
       grid_location: [14, 23, 8]
       surface_coords: [2700, 2500]
       total_depth_tvd_ft: 8280
@@ -260,7 +260,7 @@ wells_system:
       well_id: "IW-004"
       well_type: "vertical"
       phase: 5
-      drill_date_day: 2400
+      drill_date_day: 2740
       grid_location: [32, 8, 9]
       surface_coords: [4130, 1480]
       total_depth_tvd_ft: 8320
@@ -275,7 +275,7 @@ wells_system:
       well_id: "IW-005"
       well_type: "multi_lateral"
       phase: 6
-      drill_date_day: 3200
+      drill_date_day: 2920
       grid_location: [15, 38, 10]
       surface_coords: [2700, 3800]
       total_depth_tvd_ft: 8340
