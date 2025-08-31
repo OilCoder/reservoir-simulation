@@ -1,0 +1,47 @@
+# Development Configuration for Eagle West Field
+# Purpose: Configuration for s20_consolidate_development.m (Canon-First Policy compliance)
+# Date: 2025-08-31
+
+development_settings:
+  # Data source paths (Canon-First: no hardcoded paths)
+  data_sources:
+    data_directory: "/workspace/data/mrst"
+    wells_file: "wells.mat"
+    controls_file: "controls.mat" 
+    schedule_file: "schedule.mat"
+    targets_file: "targets.mat"
+    output_file: "development.mat"
+    
+  # Development standards (Canon-First: no hardcoded values)
+  field_standards:
+    expected_development_phases: 6           # Eagle West standard development phases
+    minimum_peak_rate_stb_day: 15000        # Minimum expected peak production rate
+    default_recovery_factor: 0.35           # Default recovery factor target
+    default_npv_target_musd: 1000           # Default NPV target (M USD)
+    
+  # Validation thresholds
+  validation_settings:
+    minimum_producers: 8                     # Minimum number of producers
+    minimum_injectors: 3                     # Minimum number of injectors
+    maximum_well_count: 20                   # Maximum allowed wells
+    minimum_simulation_years: 8              # Minimum simulation duration
+    maximum_simulation_years: 15             # Maximum simulation duration
+
+# Field specifications (Canon-First: authoritative field data - CONSOLIDATED)
+field_specifications:
+  field_name: "Eagle West Field"
+  # grid_dimensions moved to grid_config.yaml (CANON-FIRST: nx=41, ny=41, nz=12)
+  grid_dimensions_source: "grid_config.yaml"  # Authoritative source for grid dimensions
+  total_design_wells: 15
+  design_producers: 10
+  design_injectors: 5
+  simulation_duration_years: 10
+  major_faults: 5
+  reservoir_type: "black_oil"
+
+# Consolidation metadata
+consolidation_metadata:
+  version: "1.0"
+  created_by: "s20_consolidate_development"
+  required_input_files: ["wells.mat", "controls.mat", "schedule.mat", "targets.mat"]
+  output_format: "MATLAB_v7"

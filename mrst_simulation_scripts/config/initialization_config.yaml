@@ -140,8 +140,7 @@ initialization:
       
   # Initialization Quality Control
   quality_control:
-    # Material Balance Validation
-    material_balance_tolerance: 0.0001  # 0.01% error tolerance
+    # Material Balance Validation (moved to solver_config.yaml for consolidation)
     
     # Pressure Validation
     pressure_gradient_tolerance: 0.01   # ±1% gradient tolerance

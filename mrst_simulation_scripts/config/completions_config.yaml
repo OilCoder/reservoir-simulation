@@ -1,0 +1,33 @@
+# Completions Configuration for Eagle West Field
+# Purpose: Configuration for completion utility functions (Canon-First Policy compliance)
+# Date: 2025-08-31
+
+completion_settings:
+  # Grid parameters for completion calculations
+  grid_parameters:
+    total_layers: 12                         # Total grid layers (K dimension)
+    default_layer_weighting: 10              # Weight factor for z-distance in completion cell finding
+    maximum_xy_search_radius_ft: 100         # Maximum search radius for completion cells
+    
+  # Well completion parameters
+  well_completion:
+    default_well_index_divisor: 1            # Divisor for multi-layer well index distribution
+    completion_tolerance_ft: 50              # Tolerance for completion cell matching
+    
+  # MRST control field settings
+  mrst_controls:
+    default_producer_type: "rate"            # Default MRST control type for producers
+    default_injector_type: "rate"            # Default MRST control type for injectors
+    producer_sign: 1                         # MRST sign for producers (positive for fluid out)
+    injector_sign: -1                        # MRST sign for injectors (negative for fluid in)
+    
+  # Validation settings
+  validation:
+    require_valid_cell_indices: true         # Enforce valid cell index validation
+    require_positive_well_index: true        # Enforce positive well index values
+    
+# Error handling (Canon-First: no hardcoded error messages)
+error_messages:
+  invalid_cell_index: "Invalid cell index %d for well %s layer %d (grid has %d cells)"
+  canon_update_required: "UPDATE CANON: obsidian-vault/Planning/Well_Completion_Logic.md"
+  algorithm_error: "Multi-layer completion algorithm generated invalid cell index"

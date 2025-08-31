@@ -1,6 +1,13 @@
 function phases = define_workflow_phases()
 % DEFINE_WORKFLOW_PHASES - Configuration-driven phase definition
 %
+% 🏛️ POLICY COMPLIANCE: Canon-First + Data Authority + KISS
+%   Phase definitions come from workflow_config.yaml (canonical source)
+%   No hardcoded phase lists, script names, or execution parameters
+%   Simple array construction with direct configuration mapping
+%
+% SINGLE RESPONSIBILITY: Define workflow phases from authoritative configuration
+%
 % Creates standardized phase definitions for Eagle West Field workflow
 % using canonical configuration from workflow_config.yaml
 %

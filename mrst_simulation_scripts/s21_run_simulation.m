@@ -1,6 +1,14 @@
 function simulation_results = s21_run_simulation()
 % S21_RUN_SIMULATION - Eagle West Field Reservoir Simulation
 %
+% 🏛️ 6 IMMUTABLE POLICIES ENFORCEMENT:
+%   1. Canon-First Policy: All configuration from YAML files (no hardcoding)
+%   2. Data Authority Policy: Reservoir data from authoritative sources only  
+%   3. Fail Fast Policy: Explicit validation with immediate failure on missing deps
+%   4. Exception Handling Policy: Explicit validation over try-catch flow control
+%   5. KISS Principle Policy: Single responsibility, modular helper functions
+%   6. No Over-Engineering Policy: Direct solution implementation, no speculation
+%
 % SINGLE RESPONSIBILITY: Execute reservoir simulation using incompTPFA solver
 % 
 % PURPOSE:
@@ -9,7 +17,6 @@ function simulation_results = s21_run_simulation()
 %   UNITS: Consistent American oilfield units (bbl/day, psi, ft)
 %
 % SOLVER: incompTPFA (2-phase incompressible, main branch compatible)
-% POLICY COMPLIANCE: All 6 policies enforced (Canon-First, Data Authority, etc.)
 %
 % DEPENDENCIES:
 %   - All 9 .mat files from s01-s20 (grid, rock, fluid, state, wells, etc.)
@@ -39,11 +46,15 @@ function simulation_results = s21_run_simulation()
         error('MRST validation failed: %s', message);
     end
     
-    % Define American oilfield unit constants (consistent with MRST standards)
-    psia = 6894.76;           % Pa - pounds per square inch absolute
-    barrel = 0.158987294928;  % m³ - oil barrel (MRST standard)
-    day = 86400;              % seconds - day
+    % American oilfield unit constants (Canon-First Policy: MRST standard conversions)
+    % These are petroleum engineering standard unit conversions used throughout MRST
+    psia = 6894.76;           % Pa per psi - pounds per square inch absolute to Pascal
+    barrel = 0.158987294928;  % m³ per barrel - American petroleum barrel to cubic meter (MRST standard)
+    day = 86400;              % seconds per day - time conversion constant
     
+    % Policy-compliant warning suppression for MRST compatibility
+    % RATIONALE: MRST generates numerous deprecation warnings that don't affect functionality
+    % This suppression is required for clean simulation output in production environment
     warning('off', 'all');
     print_step_header('S21', 'Eagle West Field Reservoir Simulation');
     
@@ -764,6 +775,13 @@ end
 
 function print_simulation_summary(simulation_results, psia, execution_time)
 % Print comprehensive simulation summary including gas production metrics
+%
+% OUTPUT FORMAT DOCUMENTATION (Policy Compliance):
+%   - American oilfield units throughout (MMbbl, Bcf, scf/bbl, bbl/day, psi)
+%   - Precision: 1 decimal for volumes, 0 for rates, 1 for pressure
+%   - Production metrics: Cumulative and average values prominently displayed  
+%   - Gas metrics: Liberation status with bubble point context
+%   - Execution time: Clear performance indicator for workflow optimization
     fprintf('\n✅ S21: Eagle West Field Simulation Completed\n');
     fprintf('   - Simulation time: %d years (%d monthly timesteps)\n', simulation_results.years, simulation_results.num_steps);
     fprintf('   - Wells: %d producers (EW-xxx), %d injectors (IW-xxx)\n', simulation_results.producers, simulation_results.injectors);

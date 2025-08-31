@@ -1,13 +1,18 @@
 function workflow_results = s99_run_workflow(varargin)
 % S99_RUN_WORKFLOW - MRST workflow orchestrator (Policy-Compliant v4.0)
 %
-% Modular workflow orchestrator following 6-policy system:
-% - Canon-First: All configuration from workflow_config.yaml
-% - Data Authority: No hardcoded values, configuration-driven
-% - Fail Fast: Immediate validation, clear error messages
-% - Exception Handling: Explicit validation over try-catch
-% - KISS Principle: Single responsibility, <50 lines
-% - No Over-Engineering: Simple dispatch to modular utilities
+% 🏛️ 6 IMMUTABLE POLICIES ENFORCEMENT:
+%   1. Canon-First Policy: All configuration from workflow_config.yaml
+%   2. Data Authority Policy: No hardcoded values, configuration-driven
+%   3. Fail Fast Policy: Immediate validation, clear error messages
+%   4. Exception Handling Policy: Explicit validation over try-catch
+%   5. KISS Principle Policy: Single responsibility, <50 lines per function
+%   6. No Over-Engineering Policy: Simple dispatch to modular utilities
+%
+% SINGLE RESPONSIBILITY: Orchestrate MRST workflow execution with policy compliance
+%
+% Modular workflow orchestrator following 6-policy system with context-aware validation
+% Provides validation-only mode, selective phase execution, and comprehensive error handling
 %
 % SYNTAX:
 %   workflow_results = s99_run_workflow()
@@ -64,15 +69,12 @@ function setup_workflow_environment()
 end
 
 function print_ascii_header()
-    % Print ASCII art header for workflow
+    % Print concise workflow header (Policy-Compliant: reduced verbosity)
     fprintf('\n');
-    fprintf('################################################################\n');
-    fprintf('#                                                              #\n');
-    fprintf('#     🛢️   EAGLE WEST FIELD RESERVOIR SIMULATION   🛢️            #\n');  
-    fprintf('#              MRST Workflow Orchestrator v4.0                 #\n');
-    fprintf('#              Policy-Compliant Modular Design                 #\n');
-    fprintf('#                                                              #\n');
-    fprintf('################################################################\n\n');
+    fprintf('════════════════════════════════════════════════════════════════\n');
+    fprintf('  🛢️ EAGLE WEST FIELD RESERVOIR SIMULATION - MRST v4.0 🛢️\n');  
+    fprintf('  Policy-Compliant Modular Design | 25 Scripts | 9 Data Files\n');
+    fprintf('════════════════════════════════════════════════════════════════\n\n');
 end
 
 function [validation_only, phases_requested, verbose] = parse_workflow_arguments(varargin)

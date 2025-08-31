@@ -1,6 +1,11 @@
 function config = read_yaml_config(config_file, silent_mode)
 % READ_YAML_CONFIG - Load YAML configuration file for MRST simulations
 %
+% 🏛️ POLICY COMPLIANCE: Canon-First + Data Authority + Fail Fast
+%   Configuration files are authoritative sources for all simulation parameters
+%   Immediate failure on missing/malformed YAML with actionable error messages
+%   No fallbacks or defaults - explicit validation of all required fields
+%
 % SYNTAX:
 %   config = read_yaml_config(config_file)
 %   config = read_yaml_config(config_file, silent_mode)

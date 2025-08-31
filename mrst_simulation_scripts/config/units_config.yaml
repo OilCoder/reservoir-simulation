@@ -1,0 +1,92 @@
+# Unit Conversion Configuration for Eagle West Field
+# Purpose: Centralized unit conversions (Canon-First Policy compliance)  
+# Date: 2025-08-31
+# Created as part of YAML consolidation to eliminate 45+ unit conversion duplications
+
+unit_conversions:
+  # Length conversions (CANON)
+  length:
+    m_to_ft: 3.28084                    # Meters to feet conversion
+    ft_to_m: 0.3048                     # Feet to meters conversion
+    km_to_ft: 3280.84                   # Kilometers to feet conversion
+    
+  # Volume conversions (CANON)
+  volume:
+    bbl_to_m3: 0.158987294928           # Oil barrel to cubic meter (MRST standard)
+    m3_to_bbl: 6.28981                  # Cubic meter to barrel
+    stb_to_m3: 0.158987294928           # Stock tank barrel to cubic meter
+    m3_to_stb: 6.28981                  # Cubic meter to stock tank barrel
+    
+  # Pressure conversions (CANON)
+  pressure:
+    psi_to_pa: 6894.76                  # Pounds per square inch to Pascal
+    pa_to_psi: 0.000145038              # Pascal to pounds per square inch  
+    pa_to_barsa: 0.00001                # Pascal to bar absolute
+    barsa_to_pa: 100000.0               # Bar absolute to Pascal
+    psi_to_barsa: 0.0689476             # PSI to bar absolute
+    barsa_to_psi: 14.5038               # Bar absolute to PSI
+    
+  # Time conversions (CANON)
+  time:
+    day_to_seconds: 86400               # Day to seconds conversion
+    seconds_to_day: 1.15741e-5          # Seconds to day conversion
+    year_to_days: 365.25                # Year to days (accounting for leap years)
+    days_to_year: 0.00273973            # Days to year conversion
+    month_to_days: 30.4375              # Average month to days
+    
+  # Mass conversions (CANON)
+  mass:
+    kg_to_lbm: 2.20462                  # Kilogram to pound mass
+    lbm_to_kg: 0.453592                 # Pound mass to kilogram
+    
+  # Density conversions (CANON)
+  density:
+    sg_to_kg_m3: 1000.0                 # Specific gravity to kg/m³ (water reference)
+    kg_m3_to_sg: 0.001                  # kg/m³ to specific gravity
+    lbm_ft3_to_kg_m3: 16.0185          # lbm/ft³ to kg/m³
+    
+  # Energy conversions (CANON)
+  energy:
+    btu_to_joule: 1055.06               # British thermal unit to Joule
+    joule_to_btu: 0.000947817           # Joule to British thermal unit
+    
+  # Viscosity conversions (CANON)
+  viscosity:
+    cp_to_pa_s: 0.001                   # Centipoise to Pascal-second
+    pa_s_to_cp: 1000.0                  # Pascal-second to centipoise
+
+# Reference conditions for standard conversions (CANON)
+reference_conditions:
+  standard_temperature_k: 288.15        # 15°C (60°F) standard temperature
+  standard_temperature_f: 60.0          # 60°F standard temperature
+  standard_pressure_pa: 101325.0        # 1 atmosphere in Pascal
+  standard_pressure_psia: 14.696        # 1 atmosphere in psia
+  water_density_sg: 1.0                 # Water specific gravity reference
+
+# Physical constants (CANON)
+physical_constants:
+  gravity_ms2: 9.80665                  # Standard gravity (m/s²)
+  gravity_fts2: 32.174                  # Standard gravity (ft/s²)
+  gas_constant_j_mol_k: 8.314462618     # Universal gas constant (J/mol/K)
+  
+# Petroleum engineering specific conversions (CANON)
+petroleum_conversions:
+  # Production rate conversions
+  stb_day_to_m3_day: 0.158987294928     # STB/day to m³/day
+  m3_day_to_stb_day: 6.28981            # m³/day to STB/day
+  
+  # Formation volume factor reference
+  bo_reference: 1.0                     # Oil formation volume factor reference (rb/stb)
+  bg_reference: 1.0                     # Gas formation volume factor reference (rcf/scf)
+  
+  # Gas conversions
+  scf_to_m3: 0.0283168                  # Standard cubic feet to cubic meter
+  m3_to_scf: 35.3147                    # Cubic meter to standard cubic feet
+  mscf_to_m3: 28.3168                   # Thousand standard cubic feet to cubic meter
+  
+# Technical standards compliance
+technical_standards:
+  industry_standard: "SPE_unit_conversion_standards"
+  mrst_compatibility: "MRST_SI_base_units"
+  validation_method: "Canon_First_Policy_compliance"
+  consolidation_source: "YAML_deduplication_project_2025_08_31"

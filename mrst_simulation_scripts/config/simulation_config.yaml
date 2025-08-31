@@ -1,0 +1,38 @@
+# Simulation Configuration for Eagle West Field MRST Simulation
+# Purpose: Eliminate hardcoded values from s21_run_simulation.m (Data Authority Policy)
+# Date: 2025-08-31
+
+simulation_settings:
+  # Unit Conversions (CANON - eliminate hardcoded conversions)
+  unit_conversions:
+    barrel_to_m3: 0.158987294928          # m³ - oil barrel (MRST standard, line 44)
+    psi_to_pa: 6894.76                    # Pa - pounds per square inch absolute
+    day_to_seconds: 86400                 # seconds - day conversion
+    
+  # Initial Saturations (moved to initialization_config.yaml for consolidation)
+  saturation_source: "initialization_config.yaml"  # Authoritative initial conditions
+    
+  # Saturation Limits (CANON - eliminate hardcoded limits)
+  saturation_limits:
+    sw_min: 0.25                          # Minimum water saturation (line 531)
+    sg_max: 0.25                          # Maximum gas saturation (line 532)
+    
+  # Default Rock Properties (CANON - eliminate hardcoded values)
+  default_porosity:
+    average_porosity_fraction: 0.2        # Default porosity fraction (line 634)
+    
+  # Gas Liberation Parameters
+  gas_liberation:
+    liberation_rate: 0.001                # Gas liberation rate per timestep (0.1%)
+    activation_time_years: 3              # Years before gas liberation begins
+    
+  # Pressure Parameters
+  pressure_settings:
+    minimum_pressure_psi: 1000            # Minimum reservoir pressure
+    oil_compressibility_per_psi: 15e-6    # Oil compressibility (1/psi)
+    
+# Reference Standards
+technical_standards:
+  industry_standard: "SPE_simulation_standards"
+  data_authority: "MRST_compatible_units" 
+  validation_method: "Canon_First_Policy_compliance"

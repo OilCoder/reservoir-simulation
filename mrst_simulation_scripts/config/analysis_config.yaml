@@ -1,0 +1,47 @@
+# Analysis Configuration for Eagle West Field Results
+# Purpose: Configuration for s22_analyze_results.m (Canon-First Policy compliance)
+# Date: 2025-08-31
+
+analysis_settings:
+  # Result file paths (Canon-First: no hardcoded paths)
+  result_paths:
+    simulation_file: "/workspace/data/mrst/simulation.mat"
+    analysis_output_file: "/workspace/data/mrst/analysis.mat"
+    rock_file: "/workspace/data/mrst/rock.mat"
+    
+  # Analysis parameters (Canon-First: no hardcoded values)
+  performance_metrics:
+    minimum_field_rate_bbl_day: 10000        # Minimum acceptable field production rate
+    expected_peak_rate_bbl_day: 50000        # Expected peak field production rate
+    target_cum_production_MMbbl: 100         # Target cumulative production
+    maximum_decline_rate_percent: 30         # Maximum acceptable decline rate
+    
+  # Unit conversions (Canon-First: eliminate hardcoded conversions)
+  unit_conversions:
+    m3_to_bbl: 6.289                         # m³ to barrel conversion factor
+    pa_to_barsa: 0.00001                     # Pa to barsa conversion
+    pa_to_psia: 0.000145038                  # Pa to psia conversion
+    
+  # Pressure analysis thresholds
+  pressure_thresholds:
+    critical_pressure_drop_barsa: 50         # Critical pressure drop threshold
+    minimum_pressure_barsa: 100              # Minimum acceptable reservoir pressure
+    
+  # Production analysis settings
+  production_analysis:
+    well_name_prefixes:
+      producers: "EW-"                       # Producer well name prefix
+      injectors: "IW-"                       # Injector well name prefix
+    performance_categories:
+      high_performer_threshold_bbl_day: 3000 # High performing well threshold
+      low_performer_threshold_bbl_day: 500   # Low performing well threshold
+
+# Field characteristics reference (Canon-First: load from authoritative source)
+field_source: "development_config.yaml"  # Authoritative field specifications
+
+# Output settings
+output_settings:
+  verbose_reporting: true
+  detailed_well_analysis: true
+  pressure_map_generation: false            # Set to true when visualization ready
+  production_curve_generation: false        # Set to true when plotting ready

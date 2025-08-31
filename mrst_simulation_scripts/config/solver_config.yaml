@@ -66,7 +66,7 @@ solver_configuration:
   # Quality Control
   # ----------------------------------------
   quality_control:
-    material_balance_tolerance: 0.01  # 1% error maximum
+    material_balance_tolerance: 0.0001  # 0.01% error tolerance (consolidated from initialization)
     pressure_range_check: true
     saturation_range_check: true
     grid_quality_check: true

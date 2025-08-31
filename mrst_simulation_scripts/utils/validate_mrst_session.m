@@ -1,5 +1,12 @@
 function [success, message] = validate_mrst_session(script_dir)
 % VALIDATE_MRST_SESSION - Ensure MRST is properly initialized
+%
+% 🏛️ POLICY COMPLIANCE: Fail Fast + Exception Handling + Canon-First
+%   Explicit validation of MRST prerequisites with immediate failure on missing deps
+%   External dependency validation (MRST) uses exceptions appropriately
+%   Follows documented initialization pattern from workflow configuration
+%
+% SINGLE RESPONSIBILITY: MRST session validation and automatic initialization
 % Requires: MRST
 %
 % SYNTAX:

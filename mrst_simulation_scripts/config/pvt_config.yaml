@@ -1,0 +1,39 @@
+# PVT Configuration for Eagle West Field
+# Purpose: Configuration for PVT processing utilities (Canon-First Policy compliance)
+# Date: 2025-08-31
+
+pvt_settings:
+  # Unit conversions (Canon-First: eliminate hardcoded conversions)
+  unit_conversions:
+    fahrenheit_to_kelvin_offset: 32          # °F to °C offset
+    fahrenheit_to_celsius_factor: 0.5556     # °F to °C factor (5/9)
+    celsius_to_kelvin_offset: 273.15         # °C to K offset
+    psia_to_pa: 6894.76                      # psia to Pa conversion
+    
+  # Default surface conditions
+  surface_conditions:
+    standard_temperature_f: 60               # Standard surface temperature (°F)
+    standard_pressure_psia: 14.7             # Standard surface pressure (psia)
+    
+  # Fluid model settings
+  fluid_model:
+    default_phases: "wog"                    # Default phase system (water-oil-gas)
+    composition_tracking: true               # Enable composition tracking
+    
+  # PVT table validation settings
+  validation:
+    require_pvto_table: true                 # Require oil PVT table
+    require_pvtw_table: true                 # Require water PVT table
+    require_pvtg_table: false                # Gas PVT table optional for 2-phase systems
+    
+# Fluid property ranges (Canon-First: authoritative validation ranges)
+property_ranges:
+  oil_viscosity_cp:
+    minimum: 0.5                             # Minimum oil viscosity (cp)
+    maximum: 10.0                            # Maximum oil viscosity (cp)
+  water_viscosity_cp:
+    minimum: 0.3                             # Minimum water viscosity (cp)
+    maximum: 1.5                             # Maximum water viscosity (cp)
+  oil_density_api:
+    minimum: 25.0                            # Minimum oil density (API)
+    maximum: 45.0                            # Maximum oil density (API)

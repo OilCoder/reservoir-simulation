@@ -1,5 +1,9 @@
 % PRINT_UTILS - Unified printing system for Eagle West Field MRST workflow
 %
+% 🏛️ POLICY COMPLIANCE: KISS Principle + No Over-Engineering
+%   Simple function definitions for consistent workflow output formatting
+%   No speculative abstractions, single responsibility per function
+%
 % DESCRIPTION:
 %   Script that defines printing functions in the workspace for
 %   standardized table format printing following Option B specification.

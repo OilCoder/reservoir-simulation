@@ -7,4 +7,4 @@ Connected Cells: 805
 Connection Ratio: 8.3%
 Aquifer Pressure: 11822 psi
 Aquifer Constant: 1.67e+05 bbl/psi
-Connected Pore Volume: 873338429 bbl
+Connected Pore Volume: 874952676 bbl

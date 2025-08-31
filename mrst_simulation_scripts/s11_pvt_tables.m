@@ -16,7 +16,7 @@ function fluid_complete = s11_pvt_tables()
     
     % Step 1 – Load Dependencies
     step_start = tic;
-    addpath('utils/pvt_processing');
+    addpath(fullfile(script_dir, 'utils', 'pvt_processing'));
     
     % Load from canonical data structure (Canon-First Policy)
     fluid_file = '/workspace/data/mrst/fluid.mat';
