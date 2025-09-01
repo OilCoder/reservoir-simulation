@@ -290,11 +290,11 @@ function output_data = s13_saturation_distribution()
             cell_rock_type = rock_types(i);  % Rock type index (1-6)
             height = height_above_owc(i);
             
-            if height > 50  % Well above transition zone (oil zone)
-                % Use initial saturations from YAML configuration (CANON-FIRST)
-                % initial_sw and initial_so from config (e.g., sw=0.20, so=0.80)
-                sw_target = max(swi_by_type(cell_rock_type), initial_sw); 
-                so_target = max(sor_by_type(cell_rock_type), initial_so);  % Use configured oil saturation
+            if height > 0  % Above OWC - use canonical oil zone saturations (expanded oil zone)
+                % Use CANONICAL saturations from YAML configuration (CANON-FIRST POLICY)
+                % Force canonical values Sw=20%, So=80% regardless of rock type
+                sw_target = initial_sw;  % Use canonical YAML value (0.19-0.20)
+                so_target = initial_so;  % Use canonical YAML value (0.80-0.81)
                 sg_target = initial_sg;  % Typically 0.0 initially
                 
                 % Normalize saturations to sum to 1.0
@@ -303,58 +303,12 @@ function output_data = s13_saturation_distribution()
                 so(i) = so_target / total_sat;
                 sg(i) = sg_target / total_sat;
                 
-            elseif height < -50  % Well below transition zone (water zone)
-                % Pure water zone
-                sw(i) = 1.0;
-                so(i) = 0.0;
-                sg(i) = 0.0;
-                
-            else  % Transition zone (-50 ft to +50 ft around OWC)
-                % Use capillary pressure-based saturation distribution
-                type_name = rock_type_names{cell_rock_type};
-                entry_pc = pc_params.(type_name).entry_pressure;
-                lambda = pc_params.(type_name).lambda;
-                max_pc = pc_params.(type_name).max_pc;
-                
-                % Calculate capillary pressure from height using fluid properties
-                % Load water and oil densities from completed fluid model  
-                if isfield(fluid_with_pc, 'rhoS')
-                    water_density_kgm3 = fluid_with_pc.rhoS(1);  % Water density kg/m³
-                    oil_density_kgm3 = fluid_with_pc.rhoS(2);    % Oil density kg/m³
-                    % Convert to lb/ft³ (multiply by 0.062428)
-                    water_density_lbft3 = water_density_kgm3 * 0.062428;
-                    oil_density_lbft3 = oil_density_kgm3 * 0.062428;
-                else
-                    % Use default values if densities not available
-                    water_density_lbft3 = 62.4;  % Default water density in lb/ft³
-                    oil_density_lbft3 = 53.1;    % Default oil density in lb/ft³ 
-                end
-                oil_water_density_diff = water_density_lbft3 - oil_density_lbft3;  % lb/ft³
-                pc_height = abs(height) * oil_water_density_diff / 144;  % Convert to psi
-                pc = max(0, min(max_pc, pc_height));
-                
-                if height > 0  % Above OWC in transition zone
-                    % Brooks-Corey saturation function
-                    if pc > entry_pc
-                        sw_norm = (entry_pc / pc)^lambda;
-                        sw(i) = swi_by_type(cell_rock_type) + sw_norm * (1 - swi_by_type(cell_rock_type) - sor_by_type(cell_rock_type));
-                        % Clamp using SCAL endpoints instead of hard-coded values
-                        max_sw_transition = 1.0 - sor_by_type(cell_rock_type);
-                        sw(i) = max(swi_by_type(cell_rock_type), min(max_sw_transition, sw(i)));
-                    else
-                        sw(i) = swi_by_type(cell_rock_type);
-                    end
-                    so(i) = 1.0 - sw(i);
-                    sg(i) = 0.0;
-                    
-                else  % Below OWC in transition zone
-                    % Increasing water saturation with depth below OWC
-                    depth_factor = abs(height) / 50;  % Normalize to 0-1 over 50 ft
-                    sw(i) = 0.6 + 0.4 * depth_factor;  % Range from 60% to 100%
-                    sw(i) = min(1.0, sw(i));
-                    so(i) = max(0.0, 1.0 - sw(i));
-                    sg(i) = 0.0;
-                end
+            else
+                % Water zone (height <= 0): 100% water saturation (CANON-FIRST POLICY)
+                % Below OWC - cells are fully water-saturated
+                sw(i) = 1.0;  % 100% water saturation
+                so(i) = 0.0;  % 0% oil saturation
+                sg(i) = 0.0;  % 0% gas saturation
             end
         end
         
@@ -408,17 +362,17 @@ function output_data = s13_saturation_distribution()
             validation_passed = false;
         end
         
-        % Check oil zone saturations using YAML initial values as reference
-        oil_zone_cells = height_above_owc > transition_zone_thickness/2;  % Well above OWC
+        % Check oil zone saturations using CANONICAL YAML values (STRICT MODE)
+        oil_zone_cells = height_above_owc > 0;  % All cells above OWC
         if sum(oil_zone_cells) > 0
             avg_sw_oil_zone = mean(sw(oil_zone_cells));
             avg_so_oil_zone = mean(so(oil_zone_cells));
             
-            % Use YAML initial values for validation ranges (±25% tolerance)
-            sw_min = initial_sw * 0.75;
-            sw_max = initial_sw * 1.25;
-            so_min = initial_so * 0.85;
-            so_max = initial_so * 1.05;
+            % CANONICAL validation ranges - must match YAML values exactly (±2% tolerance max)
+            sw_min = initial_sw * 0.98;  % ±2% tolerance for canonical compliance
+            sw_max = initial_sw * 1.02;
+            so_min = initial_so * 0.98;
+            so_max = initial_so * 1.02;
             
             if avg_sw_oil_zone < sw_min || avg_sw_oil_zone > sw_max
                 fprintf('   ⚠️  Warning: Oil zone water saturation (%.3f) outside expected range [%.3f-%.3f]\n', ...

@@ -163,13 +163,13 @@ function development_phases = create_development_phases(well_config)
     phase5.new_wells = {'EW-008', 'EW-009', 'IW-004'};
     development_phases = [development_phases; phase5];
     
-    % Phase 6: Add EW-010, IW-005 (full development)
+    % Phase 6: Add EW-010, IW-005 (full development - extended to 40 years)
     phase6 = struct();
     phase6.phase_number = 6;
     phase6.phase_name = 'PHASE_6';
-    phase6.duration_days = 365;
+    phase6.duration_days = 12420;  % Remaining days to reach 40 years (14610 - 2190 = 12420)
     phase6.start_day = 1825;
-    phase6.end_day = 2190;
+    phase6.end_day = 14610;  % CANONICAL: 40 years = 14,610 days
     phase6.active_wells = {'EW-001', 'EW-002', 'EW-003', 'EW-004', 'EW-005', 'EW-006', 'EW-007', 'EW-008', 'EW-009', 'EW-010', 'IW-001', 'IW-002', 'IW-003', 'IW-004', 'IW-005'};
     phase6.new_wells = {'EW-010', 'IW-005'};
     development_phases = [development_phases; phase6];
@@ -182,11 +182,11 @@ function schedule = create_mrst_schedule(development_phases, controls_data)
     
     % Initialize schedule components
     num_phases = length(development_phases);
-    total_time = development_phases(end).end_day * day;  % Convert to seconds
+    total_time = development_phases(end).end_day * 24 * 3600;  % Convert to seconds (days to seconds)
     
     % Create time step structure
-    % Use monthly timesteps (30 days each) for 10-year simulation
-    num_timesteps = 120;  % 10 years * 12 months
+    % Use monthly timesteps (30.4375 days each) for 40-year simulation (CANONICAL)
+    num_timesteps = 480;  % 40 years * 12 months = 480 monthly timesteps
     dt = total_time / num_timesteps;
     
     schedule.step = struct();

@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The Eagle West Field development incorporates a comprehensive 15-well drilling program consisting of 10 producers (PROD1-PROD10) and 5 injectors (INJ1-INJ5) strategically positioned across the 2,600-acre faulted anticline structure. The development is executed in six phases over 10 years (3,650 days), optimizing recovery from the three-sand reservoir system through varied well types including vertical, horizontal, and multi-lateral configurations. The completion design emphasizes selective perforation strategies across Upper, Middle, and Lower Sand intervals with comprehensive artificial lift systems and strategic fault block targeting for sustained production optimization.
+The Eagle West Field development incorporates a comprehensive 15-well drilling program consisting of 10 producers (EW-001 to EW-010) and 5 injectors (IW-001 to IW-005) strategically positioned across the 2,600-acre faulted anticline structure. The development is executed in six phases over 40 years (14,610 days), optimizing recovery from the three-sand reservoir system through varied well types including vertical, horizontal, and multi-lateral configurations. The completion design emphasizes selective perforation strategies across Upper, Middle, and Lower Sand intervals with comprehensive artificial lift systems and strategic fault block targeting for sustained production optimization.
 
 ## 1. Development Schedule and Well Inventory
 
@@ -15,7 +15,7 @@ The Eagle West Field development incorporates a comprehensive 15-well drilling p
 | Phase 3 | 731-1,095 | Year 3 | EW-003, EW-004, IW-002 | 6 |
 | Phase 4 | 1,096-1,825 | Years 4-5 | EW-005, EW-006, IW-003, IW-004 | 10 |
 | Phase 5 | 1,826-2,555 | Years 6-7 | EW-007, EW-008, EW-009 | 13 |
-| Phase 6 | 2,556-3,650 | Years 8-10 | EW-010, IW-005 | 15 |
+| Phase 6 | 2,556-14,610 | Years 8-40 | EW-010, IW-005 | 15 |
 
 ### 1.2 Complete Well Inventory
 
@@ -51,7 +51,7 @@ The Eagle West Field development incorporates a comprehensive 15-well drilling p
 The 15-well development plan strategically targets the faulted anticline structure across multiple fault blocks to maximize hydrocarbon recovery. Well placement considers:
 
 **Structural High Priority:**
-- PROD1, PROD5, PROD10: Target structural crest and central high for maximum initial rates
+- EW-001, EW-005, EW-010: Target structural crest and central high for maximum initial rates
 - Positioned to capture early oil production and establish pressure depletion patterns
 
 **Fault Block Compartmentalization:**
@@ -112,7 +112,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - **VRR Target**: 1.14
 - **Development Strategy**: Full field coverage with horizontal wells
 
-#### Phase 5 - Production Optimization (Days 1,826-2,920)
+#### Phase 5 - Production Optimization (Days 1,826-2,920)  
 - **Timeline**: Years 6-8 (1,095 days)
 - **Wells Added**: EW-008, EW-009, IW-004
 - **Total Active Wells**: 13 (9P/4I)
@@ -124,8 +124,8 @@ The 15-well development plan strategically targets the faulted anticline structu
 - **VRR Target**: 1.16
 - **Development Strategy**: Optimize sweep efficiency
 
-#### Phase 6 - Peak Production (Days 2,921-3,650)
-- **Timeline**: Years 9-10 (730 days)
+#### Phase 6 - Peak Production (Days 2,921-14,610)
+- **Timeline**: Years 9-40 (11,690 days)
 - **Wells Added**: EW-010, IW-005
 - **Total Active Wells**: 15 (10P/5I)
 - **Target Oil Rate**: 18,500 STB/day
@@ -138,7 +138,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 
 ## 3. Technical Well Specifications by Type
 
-### 3.1 Vertical Producer Wells (PROD1, PROD2, PROD4, PROD8)
+### 3.1 Vertical Producer Wells (EW-001, EW-002, EW-004, EW-008)
 
 #### Standard Vertical Completion Design
 
@@ -160,7 +160,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Cable: #2-6 AWG EPDM insulation
 - Setting Depths: 7,400-7,900 ft MD
 
-#### PROD1 - Phase 1 Vertical (Structural Crest)
+#### EW-001 - Phase 1 Vertical (Structural Crest)
 **Completion Details:**
 - Upper Sand: 7,950-8,015 ft (65 ft net pay)
 - Middle Sand: 8,025-8,070 ft (45 ft net pay)
@@ -173,7 +173,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,500 psi
 - ESP: GC-6000, 150 stages, 200 HP motor at 7,500 ft
 
-#### PROD2 - Phase 2 Vertical (Upper Sand High)
+#### EW-002 - Phase 2 Vertical (Upper Sand High)
 **Completion Details:**
 - Upper Sand: 8,075-8,145 ft (70 ft net pay)
 - Middle Sand: 8,160-8,200 ft (40 ft net pay)
@@ -186,7 +186,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,450 psi
 - ESP: GC-4000, 120 stages, 150 HP motor at 7,800 ft
 
-#### PROD4 - Phase 3 Vertical (West Flank)
+#### EW-004 - Phase 3 Vertical (West Flank)
 **Completion Details:**
 - Upper Sand: 8,125-8,190 ft (65 ft net pay)
 - Middle Sand: 8,205-8,250 ft (45 ft net pay)
@@ -199,7 +199,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,600 psi
 - ESP: GC-3000, 100 stages, 125 HP motor at 7,900 ft
 
-#### PROD8 - Phase 5 Vertical (Southwest Flank)
+#### EW-008 - Phase 5 Vertical (Southwest Flank)
 **Completion Details:**
 - Upper Sand: 8,185-8,240 ft (55 ft net pay)
 - Middle Sand: 8,255-8,295 ft (40 ft net pay)
@@ -212,7 +212,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,650 psi
 - ESP: GC-2500, 90 stages, 100 HP motor at 8,100 ft
 
-### 3.2 Horizontal Producer Wells (PROD3, PROD5, PROD7, PROD9)
+### 3.2 Horizontal Producer Wells (EW-003, EW-005, EW-007, EW-009)
 
 #### Horizontal Completion Design
 
@@ -228,7 +228,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Multi-stage Completion: 8-12 stages per lateral
 - Perforation: 6 SPF, 45° phasing in laterals
 
-#### PROD3 - Phase 3 Horizontal (East Flank)
+#### EW-003 - Phase 3 Horizontal (East Flank)
 **Completion Details:**
 - Kickoff Point: 7,850 ft TVD
 - Lateral TD: 9,450 ft MD (1,270 ft lateral in Middle Sand)
@@ -241,7 +241,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,520 psi
 - ESP: GC-8000, 180 stages, 250 HP motor at 7,600 ft
 
-#### PROD5 - Phase 4 Horizontal (Central Lateral)
+#### EW-005 - Phase 4 Horizontal (Central Lateral)
 **Completion Details:**
 - Kickoff Point: 7,800 ft TVD
 - Lateral TD: 9,680 ft MD (1,480 ft lateral in Upper Sand)
@@ -254,7 +254,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,480 psi
 - ESP: GC-10000, 200 stages, 300 HP motor at 7,500 ft
 
-#### PROD7 - Phase 5 Horizontal (Southeast Lateral)
+#### EW-007 - Phase 5 Horizontal (Southeast Lateral)
 **Completion Details:**
 - Kickoff Point: 8,050 ft TVD
 - Lateral TD: 9,890 ft MD (1,510 ft lateral in Lower Sand)
@@ -267,7 +267,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,580 psi
 - ESP: GC-7000, 160 stages, 225 HP motor at 7,800 ft
 
-#### PROD9 - Phase 5 Horizontal (Northeast Lateral)
+#### EW-009 - Phase 5 Horizontal (Northeast Lateral)
 **Completion Details:**
 - Kickoff Point: 7,750 ft TVD
 - Lateral TD: 9,520 ft MD (1,320 ft lateral in Upper Sand)
@@ -280,7 +280,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,450 psi
 - ESP: GC-9000, 190 stages, 275 HP motor at 7,400 ft
 
-### 3.3 Multi-lateral Producer Wells (PROD6, PROD10)
+### 3.3 Multi-lateral Producer Wells (EW-006, EW-010)
 
 #### Multi-lateral Completion Design
 
@@ -293,9 +293,9 @@ The 15-well development plan strategically targets the faulted anticline structu
 **Lateral Configuration:**
 - Primary Lateral: 800-1,200 ft targeting Upper Sand
 - Secondary Lateral: 600-1,000 ft targeting Middle Sand
-- Tertiary Lateral: 400-800 ft targeting Lower Sand (PROD10 only)
+- Tertiary Lateral: 400-800 ft targeting Lower Sand (EW-010 only)
 
-#### PROD6 - Phase 4 Dual-Lateral (North Complex)
+#### EW-006 - Phase 4 Dual-Lateral (North Complex)
 **Completion Details:**
 - Main Bore TD: 8,280 ft TVD
 - Primary Lateral: 1,120 ft in Upper Sand (7,980-8,020 ft TVD)
@@ -309,7 +309,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Min BHP: 1,400 psi
 - Dual ESP System: Primary GC-8000 (200 HP), Secondary GC-6000 (150 HP)
 
-#### PROD10 - Phase 6 Tri-lateral (North Central Complex)
+#### EW-010 - Phase 6 Tri-lateral (North Central Complex)
 **Completion Details:**
 - Main Bore TD: 8,220 ft TVD
 - Primary Lateral: 1,350 ft in Upper Sand (7,920-7,960 ft TVD)
@@ -326,7 +326,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 
 ## 4. Injector Well Specifications
 
-### 4.1 Vertical Injector Wells (INJ1, INJ2, INJ4)
+### 4.1 Vertical Injector Wells (IW-001, IW-002, IW-004)
 
 #### Standard Vertical Injector Design
 
@@ -342,7 +342,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Penetration: 18" deep penetrating charges
 - Perforation Strategy: Target aquifer contact and sand interfaces
 
-#### INJ1 - Phase 2 Vertical (Down-dip Support)
+#### IW-001 - Phase 2 Vertical (Down-dip Support)
 **Completion Details:**
 - Middle Sand: 8,025-8,070 ft (45 ft net pay)
 - Lower Sand: 8,080-8,115 ft (35 ft net pay)
@@ -355,7 +355,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Max BHP: 3,200 psi
 - Skin Factor: -1.2 (stimulated)
 
-#### INJ2 - Phase 3 Vertical (North Flank Support)
+#### IW-002 - Phase 3 Vertical (North Flank Support)
 **Completion Details:**
 - Upper Sand: 7,885-7,925 ft (40 ft net pay)
 - Middle Sand: 7,940-7,980 ft (40 ft net pay)
@@ -368,7 +368,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Max BHP: 3,100 psi
 - Skin Factor: -0.8 (stimulated)
 
-#### INJ4 - Phase 4 Vertical (East Flank Support)
+#### IW-004 - Phase 4 Vertical (East Flank Support)
 **Completion Details:**
 - Middle Sand: 8,235-8,275 ft (40 ft net pay)
 - Lower Sand: 8,290-8,325 ft (35 ft net pay)
@@ -381,9 +381,9 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Max BHP: 3,400 psi
 - Skin Factor: -1.0 (stimulated)
 
-### 4.2 Horizontal Injector Well (INJ3)
+### 4.2 Horizontal Injector Well (IW-003)
 
-#### INJ3 - Phase 4 Horizontal (Southeast Support)
+#### IW-003 - Phase 4 Horizontal (Southeast Support)
 **Completion Details:**
 - Kickoff Point: 8,100 ft TVD
 - Lateral TD: 9,200 ft MD (750 ft lateral in Lower Sand)
@@ -396,9 +396,9 @@ The 15-well development plan strategically targets the faulted anticline structu
 - Max BHP: 3,500 psi
 - Skin Factor: -2.5 (lateral stimulation)
 
-### 4.3 Multi-lateral Injector Well (INJ5)
+### 4.3 Multi-lateral Injector Well (IW-005)
 
-#### INJ5 - Phase 6 Dual-Lateral (Northwest Complex)
+#### IW-005 - Phase 6 Dual-Lateral (Northwest Complex)
 **Completion Details:**
 - Main Bore TD: 8,380 ft TVD
 - Primary Lateral: 900 ft in Middle Sand (8,150-8,190 ft TVD)
@@ -537,26 +537,26 @@ The 15-well development plan strategically targets the faulted anticline structu
 
 | Well ID | Type | Min BHP (psi) | Max Liquid (bbl/day) | Target Oil (STB/day) | Max Water Cut (%) | Max GOR (SCF/STB) |
 |---------|------|---------------|---------------------|---------------------|-------------------|-------------------|
-| PROD1 | Vertical | 1,500 | 18,000 | 1,200 | 95 | 2,000 |
-| PROD2 | Vertical | 1,450 | 15,000 | 900 | 95 | 2,000 |
-| PROD3 | Horizontal | 1,520 | 22,000 | 1,400 | 95 | 1,800 |
-| PROD4 | Vertical | 1,600 | 12,000 | 650 | 95 | 2,000 |
-| PROD5 | Horizontal | 1,480 | 28,000 | 1,800 | 95 | 1,800 |
-| PROD6 | Multi-lateral | 1,400 | 35,000 | 2,200 | 95 | 1,600 |
-| PROD7 | Horizontal | 1,580 | 20,000 | 1,200 | 95 | 1,800 |
-| PROD8 | Vertical | 1,650 | 10,000 | 550 | 95 | 2,000 |
-| PROD9 | Horizontal | 1,450 | 24,000 | 1,500 | 95 | 1,800 |
-| PROD10 | Multi-lateral | 1,350 | 45,000 | 2,800 | 95 | 1,600 |
+| EW-001 | Vertical | 1,500 | 18,000 | 1,200 | 95 | 2,000 |
+| EW-002 | Vertical | 1,450 | 15,000 | 900 | 95 | 2,000 |
+| EW-003 | Horizontal | 1,520 | 22,000 | 1,400 | 95 | 1,800 |
+| EW-004 | Vertical | 1,600 | 12,000 | 650 | 95 | 2,000 |
+| EW-005 | Horizontal | 1,480 | 28,000 | 1,800 | 95 | 1,800 |
+| EW-006 | Multi-lateral | 1,400 | 35,000 | 2,200 | 95 | 1,600 |
+| EW-007 | Horizontal | 1,580 | 20,000 | 1,200 | 95 | 1,800 |
+| EW-008 | Vertical | 1,650 | 10,000 | 550 | 95 | 2,000 |
+| EW-009 | Horizontal | 1,450 | 24,000 | 1,500 | 95 | 1,800 |
+| EW-010 | Multi-lateral | 1,350 | 45,000 | 2,800 | 95 | 1,600 |
 
 ### 6.2 Injector Operating Constraints (All Wells)
 
 | Well ID | Type | Max BHP (psi) | Target Rate (bbl/day) | Max Rate (bbl/day) | Min Rate (bbl/day) | Max WHP (psi) |
 |---------|------|---------------|----------------------|-------------------|-------------------|---------------|
-| INJ1 | Vertical | 3,200 | 18,000 | 25,000 | 2,000 | 3,200 |
-| INJ2 | Vertical | 3,100 | 16,000 | 22,000 | 2,000 | 3,100 |
-| INJ3 | Horizontal | 3,500 | 22,000 | 30,000 | 3,000 | 3,500 |
-| INJ4 | Vertical | 3,400 | 14,000 | 20,000 | 2,000 | 3,400 |
-| INJ5 | Multi-lateral | 3,600 | 25,000 | 35,000 | 4,000 | 3,600 |
+| IW-001 | Vertical | 3,200 | 18,000 | 25,000 | 2,000 | 3,200 |
+| IW-002 | Vertical | 3,100 | 16,000 | 22,000 | 2,000 | 3,100 |
+| IW-003 | Horizontal | 3,500 | 22,000 | 30,000 | 3,000 | 3,500 |
+| IW-004 | Vertical | 3,400 | 14,000 | 20,000 | 2,000 | 3,400 |
+| IW-005 | Multi-lateral | 3,600 | 25,000 | 35,000 | 4,000 | 3,600 |
 
 ### 6.3 Water Quality and Treatment Specifications
 
@@ -591,39 +591,39 @@ The 15-well development plan strategically targets the faulted anticline structu
 ### 7.1 Completion Statistics by Reservoir Layer
 
 #### Upper Sand Completions (8 Wells)
-- **Producers:** PROD1 (65 ft), PROD2 (70 ft), PROD4 (65 ft), PROD5 (1,480 ft lateral), PROD6 (1,120 ft lateral), PROD8 (55 ft), PROD9 (1,320 ft lateral), PROD10 (1,350 ft lateral)
-- **Injectors:** INJ2 (40 ft), INJ5 (900 ft lateral)
+- **Producers:** EW-001 (65 ft), EW-002 (70 ft), EW-004 (65 ft), EW-005 (1,480 ft lateral), EW-006 (1,120 ft lateral), EW-008 (55 ft), EW-009 (1,320 ft lateral), EW-010 (1,350 ft lateral)
+- **Injectors:** IW-002 (40 ft), IW-005 (900 ft lateral)
 - **Total Net Pay:** 750 ft vertical + 4,770 ft lateral = 5,520 ft equivalent
 
 #### Middle Sand Completions (10 Wells)  
-- **Producers:** PROD1 (45 ft), PROD2 (40 ft), PROD3 (1,270 ft lateral), PROD4 (45 ft), PROD6 (850 ft lateral), PROD8 (40 ft), PROD10 (1,180 ft lateral)
-- **Injectors:** INJ1 (45 ft), INJ2 (40 ft), INJ4 (40 ft), INJ5 (900 ft lateral)
+- **Producers:** EW-001 (45 ft), EW-002 (40 ft), EW-003 (1,270 ft lateral), EW-004 (45 ft), EW-006 (850 ft lateral), EW-008 (40 ft), EW-010 (1,180 ft lateral)
+- **Injectors:** IW-001 (45 ft), IW-002 (40 ft), IW-004 (40 ft), IW-005 (900 ft lateral)
 - **Total Net Pay:** 625 ft vertical + 4,200 ft lateral = 4,825 ft equivalent
 
 #### Lower Sand Completions (9 Wells)
-- **Producers:** PROD1 (35 ft), PROD2 (30 ft), PROD4 (30 ft), PROD7 (1,510 ft lateral), PROD8 (30 ft), PROD10 (750 ft lateral)
-- **Injectors:** INJ1 (35 ft), INJ2 (25 ft), INJ3 (750 ft lateral), INJ4 (35 ft), INJ5 (650 ft lateral)
+- **Producers:** EW-001 (35 ft), EW-002 (30 ft), EW-004 (30 ft), EW-007 (1,510 ft lateral), EW-008 (30 ft), EW-010 (750 ft lateral)
+- **Injectors:** IW-001 (35 ft), IW-002 (25 ft), IW-003 (750 ft lateral), IW-004 (35 ft), IW-005 (650 ft lateral)
 - **Total Net Pay:** 470 ft vertical + 3,660 ft lateral = 4,130 ft equivalent
 
 ### 7.2 Well Type Distribution and Performance
 
 #### Vertical Wells (7 Total)
-- **Producers:** PROD1, PROD2, PROD4, PROD8
-- **Injectors:** INJ1, INJ2, INJ4
+- **Producers:** EW-001, EW-002, EW-004, EW-008
+- **Injectors:** IW-001, IW-002, IW-004
 - **Average Completion:** 130 ft net pay per well
 - **Target Production:** 4,250 STB/day oil (28% of total)
 - **Target Injection:** 48,000 bbl/day water (51% of total)
 
 #### Horizontal Wells (5 Total)
-- **Producers:** PROD3, PROD5, PROD7, PROD9
-- **Injectors:** INJ3
+- **Producers:** EW-003, EW-005, EW-007, EW-009
+- **Injectors:** IW-003
 - **Average Lateral Length:** 1,330 ft
 - **Target Production:** 7,900 STB/day oil (43% of total)
 - **Target Injection:** 22,000 bbl/day water (23% of total)
 
 #### Multi-lateral Wells (3 Total)
-- **Producers:** PROD6, PROD10
-- **Injectors:** INJ5
+- **Producers:** EW-006, EW-010
+- **Injectors:** IW-005
 - **Average Total MD:** 10,300 ft
 - **Target Production:** 5,000 STB/day oil (27% of total)
 - **Target Injection:** 25,000 bbl/day water (26% of total)
@@ -658,7 +658,7 @@ The 15-well development plan strategically targets the faulted anticline structu
 - **Voidage Replacement:** 1.20 (20% pressure support)
 - **Areal Sweep Efficiency:** >90% of 2,600-acre reservoir
 - **Fault Block Coverage:** 8 of 8 identified compartments
-- **Development Timeline:** 10 years (3,650 days)
+- **Development Timeline:** 40 years (14,610 days)
 - **Ultimate Recovery Factor:** Targeting 45-50% OOIP
 
 **Technical Achievement Targets:**
