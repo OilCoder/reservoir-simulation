@@ -16,7 +16,7 @@
 # - Size-field approach with tiered well/fault influence zones
 # - Natural size transitions instead of artificial subdivision
 # - Faults as grid edges for proper sealing behavior
-# - Target cells: ~20,000-25,000 (comparable efficiency to refined Cartesian)
+# - Target cells: ~9,660 active cells (PEBI optimized for Eagle West Field)
 
 # Refinement Configuration (Top-level for s05_grid_refinement.m)
 refinement:
@@ -143,8 +143,8 @@ pebi_grid:
   quality_control:
     min_angle: 25.0                        # degrees (minimum polygon angle)
     max_aspect_ratio: 4.0                  # Maximum cell aspect ratio in refined areas
-    target_cell_count: 25000               # Approximate target cell count
-    max_cell_count: 30000                  # Maximum allowed cell count
+    target_cell_count: 9660                # Approximate target cell count (PEBI optimized)
+    max_cell_count: 12000                   # Maximum allowed cell count
   
   # UPR Module Parameters
   upr_settings:
@@ -159,8 +159,8 @@ grid:
   nz: 12                               # K-direction cells (layers)
   
   # Cell Sizes (CANON)
-  cell_size_x: 82.0                    # ft (E-W direction)
-  cell_size_y: 74.0                    # ft (N-S direction)
+  cell_size_x: 80.0                    # ft (E-W direction)
+  cell_size_y: 72.0                    # ft (N-S direction)
   
   # Layer Thicknesses (CANON - 12 layers, total 340 ft Eagle West)
   layer_thicknesses: [28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.3, 28.4]  # ft per layer
@@ -183,7 +183,7 @@ grid:
   
   # Grid Quality Control
   total_cells: 20172                   # Total grid cells (41×41×12)
-  target_active_cells: 19000           # Expected active cells
+  target_active_cells: 9660            # Expected active cells (PEBI optimized)
   max_aspect_ratio: 10.0               # Maximum cell aspect ratio
   
   # Grid Quality Parameters

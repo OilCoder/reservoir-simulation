@@ -16,16 +16,22 @@ development_settings:
   field_standards:
     expected_development_phases: 6           # Eagle West standard development phases
     minimum_peak_rate_stb_day: 15000        # Minimum expected peak production rate
-    default_recovery_factor: 0.35           # Default recovery factor target
+    default_recovery_factor: 0.45           # Default recovery factor target (40-year lifecycle)
     default_npv_target_musd: 1000           # Default NPV target (M USD)
+    
+    # Recovery Targets (CANON from 40_Year_Simulation_Update.md)
+    cumulative_oil_target_mmbl: 282         # MMbbl cumulative oil production (40-year)
+    cumulative_gas_target_bcf: 8.8          # Bcf cumulative gas production (40-year)
+    oil_recovery_factor_target: 0.45        # 45%+ recovery factor target
+    gas_production_start_year: 28           # Gas liberation starts Year 28 (below 2100 psi)
     
   # Validation thresholds
   validation_settings:
     minimum_producers: 8                     # Minimum number of producers
     minimum_injectors: 3                     # Minimum number of injectors
     maximum_well_count: 20                   # Maximum allowed wells
-    minimum_simulation_years: 8              # Minimum simulation duration
-    maximum_simulation_years: 15             # Maximum simulation duration
+    minimum_simulation_years: 35             # Minimum simulation duration
+    maximum_simulation_years: 45             # Maximum simulation duration
 
 # Field specifications (Canon-First: authoritative field data - CONSOLIDATED)
 field_specifications:
@@ -35,7 +41,7 @@ field_specifications:
   total_design_wells: 15
   design_producers: 10
   design_injectors: 5
-  simulation_duration_years: 10
+  simulation_duration_years: 40
   major_faults: 5
   reservoir_type: "black_oil"
 

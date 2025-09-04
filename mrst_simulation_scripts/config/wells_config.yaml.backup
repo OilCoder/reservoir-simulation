@@ -19,7 +19,7 @@ wells_system:
       grid_location: [15, 10, 3]       # [I, J, K_top]
       surface_coords: [2750, 1750]     # ft from origin
       total_depth_tvd_ft: 8200
-      target_oil_rate_stb_day: 2900
+      target_oil_rate_stb_day: 2000
       completion_layers: [1, 2, 3, 5, 6, 7]
       esp_type: "GC-6000"
       esp_stages: 150
@@ -38,7 +38,7 @@ wells_system:
       grid_location: [25, 15, 2]
       surface_coords: [3570, 2010]
       total_depth_tvd_ft: 8180
-      target_oil_rate_stb_day: 2900
+      target_oil_rate_stb_day: 3400
       completion_layers: [1, 2, 3, 5, 6, 7]
       esp_type: "GC-8000"
       esp_stages: 175
@@ -57,7 +57,7 @@ wells_system:
       grid_location: [20, 25, 6]
       surface_coords: [3240, 2840]
       total_depth_tvd_ft: 8160
-      target_oil_rate_stb_day: 3100
+      target_oil_rate_stb_day: 4200
       horizontal_length_ft: 2500
       completion_layers: [5, 6, 7]
       esp_type: "GC-8000"
@@ -96,7 +96,7 @@ wells_system:
       grid_location: [30, 20, 2]
       surface_coords: [4050, 2470]
       total_depth_tvd_ft: 8140
-      target_oil_rate_stb_day: 3600
+      target_oil_rate_stb_day: 4500
       horizontal_length_ft: 3000
       completion_layers: [1, 2, 3]
       esp_type: "GC-10000"
@@ -116,7 +116,7 @@ wells_system:
       grid_location: [8, 18, 4]
       surface_coords: [1890, 2340]
       total_depth_tvd_ft: 8240
-      target_oil_rate_stb_day: 3100
+      target_oil_rate_stb_day: 2600
       completion_layers: [5, 6, 7, 9, 10]
       esp_type: "GC-4000"
       esp_stages: 120
@@ -135,7 +135,7 @@ wells_system:
       grid_location: [22, 8, 3]
       surface_coords: [3200, 1480]
       total_depth_tvd_ft: 8200
-      target_oil_rate_stb_day: 3500
+      target_oil_rate_stb_day: 4400
       lateral_1_length_ft: 1800
       lateral_2_length_ft: 2200
       completion_layers: [1, 2, 3, 5, 6, 7]
@@ -156,7 +156,7 @@ wells_system:
       grid_location: [35, 12, 6]
       surface_coords: [4460, 1880]
       total_depth_tvd_ft: 8170
-      target_oil_rate_stb_day: 3100
+      target_oil_rate_stb_day: 4100
       horizontal_length_ft: 2800
       completion_layers: [5, 6, 7]
       esp_type: "GC-8000"
@@ -176,7 +176,7 @@ wells_system:
       grid_location: [22, 35, 4]
       surface_coords: [3400, 3530]
       total_depth_tvd_ft: 8190
-      target_oil_rate_stb_day: 3100
+      target_oil_rate_stb_day: 3200
       completion_layers: [1, 2, 3, 9, 10, 11, 12]
       esp_type: "GC-6000"
       esp_stages: 160
@@ -195,7 +195,7 @@ wells_system:
       grid_location: [28, 28, 5]
       surface_coords: [3810, 3070]
       total_depth_tvd_ft: 8155
-      target_oil_rate_stb_day: 3000
+      target_oil_rate_stb_day: 4000
       lateral_1_length_ft: 1350
       lateral_2_length_ft: 1180
       completion_layers: [5, 6, 7]

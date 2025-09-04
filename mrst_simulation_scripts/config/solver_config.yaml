@@ -37,7 +37,7 @@ solver_configuration:
   # Simulation Schedule
   # ----------------------------------------
   simulation_schedule:
-    total_duration_days: 3650  # 10 years
+    total_duration_days: 14610  # 40 years
     
     # History period (monthly timesteps)
     history_period:

@@ -136,13 +136,14 @@ function W = create_mrst_wells(config, G, rock)
             cell_idx = mod(cell_idx - 1, G.cells.num) + 1;
         end
         
-        % Add producer well to MRST array
+        % Add producer well to MRST array (AMERICAN UNITS)
         W = addWell(W, G, rock, cell_idx, ...
             'Type', 'rate', ...
-            'Val', well_config.target_oil_rate_stb_day * 0.159, ... % Convert STB/day to m3/day
-            'Radius', 0.1, ...
+            'Val', -well_config.target_oil_rate_stb_day, ... % Keep STB/day (American units), negative for production
+            'Radius', well_config.wellbore_radius_ft, ... % Keep ft (American units)
             'Name', well_name, ...
-            'Comp_i', [1, 0, 0]);  % Oil production
+            'Comp_i', [1, 0, 0], ... % Oil production
+            'Sign', -1);  % Producer
     end
     
     % Add injector wells
@@ -166,12 +167,13 @@ function W = create_mrst_wells(config, G, rock)
             cell_idx = mod(cell_idx - 1, G.cells.num) + 1;
         end
         
-        % Add injector well to MRST array
+        % Add injector well to MRST array (AMERICAN UNITS)
         W = addWell(W, G, rock, cell_idx, ...
             'Type', 'rate', ...
-            'Val', well_config.target_injection_rate_bbl_day * 0.159, ... % Convert BBL/day to m3/day
-            'Radius', 0.1, ...
+            'Val', well_config.target_injection_rate_bbl_day, ... % Keep BBL/day (American units), positive for injection
+            'Radius', well_config.wellbore_radius_ft, ... % Keep ft (American units)
             'Name', well_name, ...
-            'Comp_i', [0, 1, 0]);  % Water injection
+            'Comp_i', [0, 1, 0], ... % Water injection
+            'Sign', 1);  % Injector
     end
 end

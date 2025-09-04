@@ -4,7 +4,7 @@ function schedule_results = s18_development_schedule()
 % SINGLE RESPONSIBILITY: Create MRST schedule structure only
 % 
 % PURPOSE:
-%   Creates MRST schedule structure for 10-year development plan
+%   Creates MRST schedule structure for 40-year development plan
 %   NO controls creation - that's s17's responsibility
 %   
 % CANONICAL INPUT/OUTPUT:
@@ -187,16 +187,49 @@ function schedule = create_mrst_schedule(development_phases, controls_data)
     % Create time step structure
     % Use monthly timesteps (30.4375 days each) for 40-year simulation (CANONICAL)
     num_timesteps = 480;  % 40 years * 12 months = 480 monthly timesteps
-    dt = total_time / num_timesteps;
+    dt = total_time / num_timesteps;  % Should be ~2.63M seconds = 30.4 days per timestep
     
     schedule.step = struct();
     schedule.step.val = repmat(dt, num_timesteps, 1);  % Time step sizes
     schedule.step.control = ones(num_timesteps, 1);    % All use control 1 for now
     
-    % Create control structure (simplified)
-    % In a full implementation, this would map to actual MRST well controls
-    schedule.control = struct();
-    schedule.control(1).W = [];  % Placeholder for wells - would be populated from controls_data
+    % Create control structure with progressive wells
+    % Load wells from s15 to populate progressive controls
+    wells_file = '/workspace/data/mrst/wells.mat';
+    if exist(wells_file, 'file')
+        wells_data = load(wells_file);
+        all_wells = wells_data.W;
+        
+        % Create progressive well controls for 6 phases
+        schedule.control = [];
+        for phase = 1:6
+            control = struct();
+            control.W = [];
+            
+            % Add wells progressively based on phase (simple approach)
+            wells_per_phase = ceil(length(all_wells) * phase / 6);
+            if wells_per_phase > 0
+                control.W = all_wells(1:min(wells_per_phase, length(all_wells)));
+            end
+            
+            schedule.control = [schedule.control, control];
+        end
+        
+        % Update step controls to use progressive phases (6 phases over 480 steps)
+        timesteps_per_phase = 80; % 480/6 = 80 timesteps per phase
+        schedule.step.control = zeros(num_timesteps, 1);
+        for t = 1:num_timesteps
+            phase = min(6, ceil(t / timesteps_per_phase));
+            schedule.step.control(t) = phase;
+        end
+        
+        fprintf('   Progressive wells: 6 phases with %d wells total\n', length(all_wells));
+    else
+        % Fallback: empty control
+        schedule.control = struct();
+        schedule.control(1).W = [];
+        fprintf('   Warning: wells.mat not found, creating empty schedule\n');
+    end
     
     % Add metadata
     schedule.total_time = total_time;

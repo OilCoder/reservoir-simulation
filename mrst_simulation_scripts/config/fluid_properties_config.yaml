@@ -16,7 +16,7 @@ fluid_properties:
   bubble_point: 2100.0                  # psi @ 176°F (CANON)
   solution_gor: 450.0                   # scf/STB (initial GOR, CANON)
   reservoir_temperature: 176.0          # °F (constant, CANON)
-  initial_reservoir_pressure: 2900.0    # psi (CANON)
+  initial_reservoir_pressure: 3600.0    # psi (CANON)
   
   # API and Specific Gravity (CANON from 03_Fluid_Properties.md)
   api_gravity: 32.0                     # °API

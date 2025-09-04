@@ -65,8 +65,15 @@ function mrst_env = s01_initialize_mrst()
     addpath(fullfile(mrst_root, 'core'));
     addpath(genpath(fullfile(mrst_root, 'core')));
     
-    % Add essential MRST module directories
-    mrst_modules = {'autodiff', 'modules', 'solvers', 'multiscale', 'visualization'};
+    % Add essential MRST module directories - Updated for AD-BlackOil compatibility
+    mrst_modules = {
+        'core', 
+        'autodiff/ad-core', 
+        'autodiff/ad-blackoil', 
+        'autodiff/ad-props',
+        'modules',
+        'solvers'
+    };
     paths_added = 0;
     
     for i = 1:length(mrst_modules)

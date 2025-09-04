@@ -15,7 +15,7 @@ This catalog helps stakeholders understand:
 - **Data processing chains** from YAML configs to MRST structures
 - **Integration pathways** for ML and dashboard applications
 
-**Coverage**: Complete Eagle West Field reservoir model with 41×41×12 grid, 15 wells, 5 faults, and 10-year development plan.
+**Coverage**: Complete Eagle West Field reservoir model with 41×41×12 grid, 15 wells, 5 faults, and 40-year development plan.
 
 ## Generated Data Files (Reality-Based)
 
@@ -76,7 +76,7 @@ s15 (Well Placement) → s16 (Completions) = wells.mat
 ```
 s17 (Production Controls) → s18 (Development Schedule) → s19 (Production Targets) = schedule.mat
 ```
-- **Result**: 10-year phased development with drilling sequence
+- **Result**: 40-year phased development with drilling sequence (6 phases over 480 monthly timesteps)
 - **Content**: Well startup timing, production controls, injection strategies
 
 ### Session Management File
@@ -90,7 +90,7 @@ s17 (Production Controls) → s18 (Development Schedule) → s19 (Production Tar
 
 ### Reservoir Dimensions
 - **Grid**: 41 × 41 × 12 cells (I × J × K)
-- **Total Cells**: ~20,172 active cells
+- **Total Cells**: 9,660 active cells (PEBI optimized)
 - **Grid Type**: PEBI (Perpendicular Bisection)
 - **Area**: 2,600 acres
 - **Gross Thickness**: 238 ft
@@ -99,7 +99,7 @@ s17 (Production Controls) → s18 (Development Schedule) → s19 (Production Tar
 - **Total Wells**: 15
 - **Producers**: 10 (EW-001 to EW-010)
 - **Injectors**: 5 (IW-001 to IW-005)
-- **Peak Production**: 18,500 STB/day field target
+- **Peak Production**: 36,200 STB/day field target (aggressive development for gas liberation)
 
 ### Fault System
 - **Major Faults**: 5 (Fault_A, Fault_B, Fault_C, Fault_D, Fault_E)
@@ -108,14 +108,18 @@ s17 (Production Controls) → s18 (Development Schedule) → s19 (Production Tar
 ### Fluid System
 - **Phases**: 3 (oil, water, gas)
 - **API Gravity**: 32° API (light crude)
-- **Initial Pressure**: 2,900 psi
+- **Initial Pressure**: 3,634 psi
 - **Temperature**: 176°F
 - **Drive Mechanism**: Waterflood with aquifer support
 
-### Development Timeline
-- **Duration**: 10 years
+### Development Timeline (AGGRESSIVE THREE-PHASE STRATEGY)
+- **Duration**: 40 years (14,610 days)
+- **Timesteps**: 480 monthly steps (40 years × 12 months)  
 - **Phases**: 6 development phases
-- **Well Sequencing**: Phased drilling program with optimized timing
+- **Well Sequencing**: Progressive drilling program with optimized timing
+- **Production Strategy**: Aggressive production rates (2600-4500 STB/day per well)
+- **Injection Strategy**: Reduced water injection (2000 BBL/day per injector)
+- **Objective**: Achieve gas liberation below 2100 psi bubble point in Years 20-30
 
 ## Data Storage Architecture
 

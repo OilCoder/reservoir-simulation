@@ -63,22 +63,34 @@ function output_data = s12_pressure_initialization()
     % Get cell depths (already in feet from grid)
     cell_depths = abs(G.cells.centroids(:, 3));
     
-    % Calculate hydrostatic pressure
+    % Use MRST initResSol for proper hydrostatic pressure initialization
+    fprintf('   Using MRST initResSol for hydrostatic pressure...\n');
     num_cells = G.cells.num;
-    pressure = zeros(num_cells, 1);
     
-    for i = 1:num_cells
-        depth = cell_depths(i);
-        depth_diff = depth - datum_depth;
+    % Convert to MRST units and create proper initialization
+    datum_pressure_pa = datum_pressure * 6894.76; % Convert psi to Pa
+    
+    try
+        % Initialize hydrostatic pressure using MRST
+        state = initResSol(G, datum_pressure_pa, [0.2, 0.8, 0.0]); % Initial saturations
+        pressure = state.pressure / 6894.76; % Convert back to psi for consistency
         
-        if depth <= owc_depth
-            % Oil zone
-            pressure(i) = datum_pressure + oil_gradient * depth_diff;
-        else
-            % Water zone
-            owc_pressure = datum_pressure + oil_gradient * (owc_depth - datum_depth);
-            water_depth_diff = depth - owc_depth;
-            pressure(i) = owc_pressure + water_gradient * water_depth_diff;
+        fprintf('   ✅ MRST hydrostatic initialization: %.0f - %.0f psi\n', ...
+                min(pressure), max(pressure));
+    catch
+        warning('MRST initResSol failed, using manual calculation as fallback');
+        % Fallback to manual calculation only if MRST fails
+        pressure = zeros(num_cells, 1);
+        for i = 1:num_cells
+            depth = cell_depths(i);
+            depth_diff = depth - datum_depth;
+            if depth <= owc_depth
+                pressure(i) = datum_pressure + oil_gradient * depth_diff;
+            else
+                owc_pressure = datum_pressure + oil_gradient * (owc_depth - datum_depth);
+                water_depth_diff = depth - owc_depth;
+                pressure(i) = owc_pressure + water_gradient * water_depth_diff;
+            end
         end
     end
     
